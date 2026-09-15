@@ -2,5 +2,6 @@
     "name": "akigumo",
     "dockerComposeFile": "../compose.yaml",
     "service": "workspace",
-    "workspaceFolder": "/workspace"
+    "workspaceFolder": "/workspace",
+    "postCreateCommand": "npm install && cd frontend && npm install && cd ../backend && npm install"
 }
