@@ -1,0 +1,6 @@
+{
+    "name": "akigumo",
+    "dockerComposeFile": "../compose.yaml",
+    "service": "workspace",
+    "workspaceFolder": "/workspace"
+}

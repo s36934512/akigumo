@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.angular/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# VS Code
+# Keep project settings such as .vscode/settings.json
+# Ignore only local VS Code files
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Angular cache
+.angular/
