@@ -1,10 +1,40 @@
 services:
   workspace:
     image: mcr.microsoft.com/devcontainers/javascript-node:22
+
     volumes:
       - .:/workspace:cached
+
     working_dir: /workspace
+
     command: sleep infinity
+
     ports:
       - "4200:4200"
       - "3000:3000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL",  "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

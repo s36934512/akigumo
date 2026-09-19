@@ -5,6 +5,9 @@ node_modules/
 dist/
 .angular/
 
+# Generated files
+generated/
+
 # Environment files
 .env
 .env.*

@@ -8,7 +8,8 @@
         "outDir": "dist",
         "rootDir": "src",
         "paths": {
-            "#app/*": ["./src/*"]
+            "#app/*": ["./src/*"],
+            "#generated/*": ["./src/generated/*"]
         }
     },
     "include": ["src"]
