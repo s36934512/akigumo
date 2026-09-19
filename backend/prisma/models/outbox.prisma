@@ -1,0 +1,51 @@
+enum OutboxStatus {
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+}
+
+model Outbox {
+    id         BigInt  @id @default(autoincrement())
+    workflowId String? @map("workflow_id") @db.Uuid
+
+    operation String // create, update, connect...
+    priority  Int    @default(10) // Bullmq job priority, 數字越小，優先級越高
+    payload   Json
+
+    status    OutboxStatus @default(PENDING)
+    attempts  Int          @default(0)
+    lastError String?      @map("last_error") // 方便排查為何失敗
+
+    createdAt   DateTime  @default(now()) @map("created_at")
+    updatedAt   DateTime  @updatedAt @map("updated_at")
+    scheduledAt DateTime? @map("scheduled_at") // 實現指數退避 (Exponential Backoff)
+
+    processingStartedAt DateTime? @map("processing_started_at")
+    processingId        String?   @map("processing_id") @db.Uuid
+
+    workflowResultProcessedAt DateTime? @map("workflow_result_processed_at")
+
+    @@index([status, scheduledAt, createdAt])
+    @@index([workflowId])
+    @@map("outbox")
+}
+
+model WorkflowState {
+    id String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+
+    workflowType  String  @map("workflow_type") // 對應 Workflow 模板的 type (如 'user-onboarding')
+    correlationId String? @map("correlation_id") @db.Uuid // 表是由哪個workflow instanceu衍伸出來的
+
+    status   String
+    data     Json? // 存放狀態機運行過程中產生的資料，如 API 回應、計算結果等
+    snapshot Json? // 存放 XState 的完整序列化狀態 (context, value, history)
+
+    schemaVersion Int @default(1) @map("schema_version") // 以便未來狀態結構變更時的版本控制
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@index([correlationId])
+    @@map("workflow_state")
+}

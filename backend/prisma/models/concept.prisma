@@ -1,0 +1,18 @@
+model Concept {
+    id          String  @id @default(dbgenerated("uuidv7()")) @db.Uuid
+    name        String
+    description String?
+    metadata    Json?
+
+    systemMetadata Json? @map("system_metadata")
+    version        Int   @default(1)
+
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+    deletedAt DateTime? @map("deleted_at")
+
+    verifiedAt DateTime? @map("verified_at")
+    verifiedBy String?   @map("verified_by") @db.Uuid
+
+    @@map("concept")
+}
