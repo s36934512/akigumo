@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import type { kernelConfig } from "#app/config/kernel.js";
+import { kernelConfig } from "#app/config/kernel.js";
 import {
     RESULT_STATUS,
     type Result,
@@ -142,11 +142,10 @@ async function handleProcessorFailure(
  * does not retry the processor. Failure-result delivery is currently
  * best-effort because Kernel does not persist a separate result-pending state.
  */
-export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
+export async function executeKernelTask<TSchema extends z.ZodType>(
     processor: ProcessorDefinition<TSchema>,
     task: Task<unknown>,
     publisher: WorkflowResultPublisher,
-    config: typeof kernelConfig,
 ): Promise<void> {
     const validationResult = processor.inputSchema.safeParse(task.payload);
 
@@ -168,7 +167,12 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
 
         logicResult = await processor.logic(validatedTask);
     } catch (error: unknown) {
-        await handleProcessorFailure(validatedTask, publisher, error, config);
+        await handleProcessorFailure(
+            validatedTask,
+            publisher,
+            error,
+            kernelConfig,
+        );
 
         return;
     }
@@ -189,7 +193,7 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
         await handleRetryableError(
             validatedTask.metadata,
             serializeError(error),
-            config,
+            kernelConfig,
         );
 
         return;
@@ -206,7 +210,7 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
         await handleRetryableError(
             validatedTask.metadata,
             serializeError(error),
-            config,
+            kernelConfig,
         );
     }
 }
