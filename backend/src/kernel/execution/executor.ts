@@ -1,20 +1,22 @@
 import type z from "zod";
 
-import { RESULT_STATUS, type Result } from "#app/contracts/index.js";
+import type { kernelConfig } from "#app/config/kernel.js";
 import {
+    RESULT_STATUS,
+    type Result,
     WORKFLOW_RESULT_VERSION,
     WorkflowResultSchema,
-} from "#app/contracts/workflow-result.js";
+} from "#app/contracts/index.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
-import { logger } from "#app/infrastructure/logger/pino.js";
+import { logger } from "#app/infrastructure/logger/index.js";
 import { OutboxStatus } from "#generated/prisma/enums.js";
 
 import type { WorkflowResultPublisher } from "../port/workflow-result-publisher.js";
 import type { Task } from "../task/task.js";
 import { NonRetryableError } from "./error.js";
 import {
-    exponentialBackoff,
     handleFatalError,
+    handleRetryableError,
     normalizeError,
     serializeError,
 } from "./failure.js";
@@ -25,20 +27,6 @@ import type { ProcessorDefinition } from "./processor.js";
  */
 function isNonRetryable(error: unknown): error is NonRetryableError {
     return error instanceof NonRetryableError;
-}
-
-/** * Runs the processor lifecycle.
- *
- * Processor hooks are part of the processor definition and therefore
- * execute within the Kernel task execution lifecycle.
- */
-async function executeProcessor<TSchema extends z.ZodType>(
-    processor: ProcessorDefinition<TSchema>,
-    task: Task<z.output<TSchema>>,
-): Promise<unknown> {
-    await processor.onBefore?.(task);
-
-    return processor.logic(task);
 }
 
 /**
@@ -70,20 +58,6 @@ async function completeOutboxTask(task: Task<unknown>): Promise<void> {
             "Kernel task lost execution ownership before completion",
         );
     }
-}
-
-/**
- * Publishes a successful processor result to the Workflow runtime.
- */
-async function publishSuccessResult(
-    publisher: WorkflowResultPublisher,
-    task: Task<unknown>,
-    logicResult: unknown,
-): Promise<void> {
-    await sendWorkflowResult(publisher, task, {
-        status: RESULT_STATUS.SUCCESS,
-        data: logicResult,
-    });
 }
 
 /**
@@ -136,6 +110,7 @@ async function handleProcessorFailure(
     task: Task<unknown>,
     publisher: WorkflowResultPublisher,
     error: unknown,
+    config: typeof kernelConfig,
 ): Promise<void> {
     if (isNonRetryable(error)) {
         await handleFatalError(task.metadata, error.message);
@@ -144,7 +119,7 @@ async function handleProcessorFailure(
         return;
     }
 
-    await exponentialBackoff(task.metadata, serializeError(error));
+    await handleRetryableError(task.metadata, serializeError(error), config);
 }
 
 /**
@@ -171,6 +146,7 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
     processor: ProcessorDefinition<TSchema>,
     task: Task<unknown>,
     publisher: WorkflowResultPublisher,
+    config: typeof kernelConfig,
 ): Promise<void> {
     const validationResult = processor.inputSchema.safeParse(task.payload);
 
@@ -188,15 +164,20 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
     let logicResult: Awaited<ReturnType<ProcessorDefinition<TSchema>["logic"]>>;
 
     try {
-        logicResult = await executeProcessor(processor, validatedTask);
+        await processor.onBefore?.(validatedTask);
+
+        logicResult = await processor.logic(validatedTask);
     } catch (error: unknown) {
-        await handleProcessorFailure(validatedTask, publisher, error);
+        await handleProcessorFailure(validatedTask, publisher, error, config);
 
         return;
     }
 
     try {
-        await publishSuccessResult(publisher, validatedTask, logicResult);
+        await sendWorkflowResult(publisher, task, {
+            status: RESULT_STATUS.SUCCESS,
+            data: logicResult,
+        });
     } catch (error: unknown) {
         /*
          * Processor already succeeded.
@@ -205,7 +186,11 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
          * execution yet, retrying the task may execute the processor again.
          * This is intentional at-least-once semantics.
          */
-        await exponentialBackoff(validatedTask.metadata, serializeError(error));
+        await handleRetryableError(
+            validatedTask.metadata,
+            serializeError(error),
+            config,
+        );
 
         return;
     }
@@ -218,7 +203,11 @@ export async function executeKernelTask<TSchema extends z.ZodTypeAny>(
          * completion failed. Retrying may execute the processor again.
          * Processor implementations must therefore be idempotent.
          */
-        await exponentialBackoff(validatedTask.metadata, serializeError(error));
+        await handleRetryableError(
+            validatedTask.metadata,
+            serializeError(error),
+            config,
+        );
     }
 }
 

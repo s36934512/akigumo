@@ -10,26 +10,26 @@ const getKey = (name: string): string => name;
  * Registers a processor by operation name.
  */
 export function registerProcessor<TSchema extends z.ZodType>(
-	processor: ProcessorDefinition<TSchema>,
+    processor: ProcessorDefinition<TSchema>,
 ): void {
-	const key = getKey(processor.name);
+    const key = getKey(processor.name);
 
-	if (registry.has(key)) {
-		throw new Error(
-			`[processorRegistry] Processor already registered: ${key}`,
-		);
-	}
+    if (registry.has(key)) {
+        throw new Error(
+            `[processorRegistry] Processor already registered: ${key}`,
+        );
+    }
 
-	registry.set(key, processor as ProcessorDefinition<z.ZodType>);
+    registry.set(key, processor as ProcessorDefinition<z.ZodType>);
 }
 
 /**
  * Gets a processor by operation name.
  */
 export function getProcessor<TSchema extends z.ZodType = z.ZodType>(
-	name: string,
+    name: string,
 ): ProcessorDefinition<TSchema> | undefined {
-	return registry.get(getKey(name)) as
-		| ProcessorDefinition<TSchema>
-		| undefined;
+    return registry.get(getKey(name)) as
+        | ProcessorDefinition<TSchema>
+        | undefined;
 }

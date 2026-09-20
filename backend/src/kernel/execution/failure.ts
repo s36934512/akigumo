@@ -1,4 +1,4 @@
-import { kernelConfig } from "#app/config/kernel.js";
+import type { kernelConfig } from "#app/config/kernel.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
 import { OutboxStatus } from "#generated/prisma/enums.js";
 
@@ -29,22 +29,23 @@ export async function handleFatalError(
     });
 }
 
-export async function exponentialBackoff(
+export async function handleRetryableError(
     execution: TaskExecutionIdentity,
     errorString: string,
+    config: typeof kernelConfig,
 ): Promise<void> {
     await prisma.$executeRaw`
         UPDATE "outbox"
         SET
             attempts = attempts + 1,
             status = CASE
-                WHEN attempts + 1 >= ${kernelConfig.maxAttempts}
+                WHEN attempts + 1 >= ${config.maxAttempts}
                     THEN 'FAILED'::"OutboxStatus"
                 ELSE 'PENDING'::"OutboxStatus"
             END,
             last_error = ${errorString},
             scheduled_at = CASE
-                WHEN attempts + 1 >= ${kernelConfig.maxAttempts}
+                WHEN attempts + 1 >= ${config.maxAttempts}
                     THEN NULL
                 ELSE NOW() + (
                     power(2::double precision, attempts + 1)
