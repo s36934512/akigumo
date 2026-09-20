@@ -2,24 +2,36 @@
 
 Full-stack web application built with **Angular, Hono, TypeScript, and Docker**.
 
-本專案以現代前後端分離架構開發，Frontend 使用 Angular，Backend 使用 Hono，並透過 Docker Compose 與 Dev Container 建立一致的開發環境。
+Akigumo is a TypeScript-based full-stack application designed with a focus on **clear architecture, reproducible development environments, and maintainable system boundaries**.
+
+The project uses Angular for the frontend, Hono for the backend API, and Docker Compose with VS Code Dev Containers to provide a consistent development environment.
 
 ---
 
 ## Overview
 
-Akigumo 是一個前後端分離的 Full-stack Web Application，主要目標是建立一套容易開發、測試與部署的專案架構。
+Akigumo is a full-stack web application developed with a separated frontend and backend architecture.
 
-目前專案已完成：
+The project focuses not only on application features, but also on establishing a development and backend architecture that is:
 
-* Angular Frontend
-* Hono Backend API
-* Frontend / Backend API 串接
-* Docker Compose 開發環境
+* Easy to run from a clean environment
+* Reproducible across development machines
+* Clearly separated by responsibility
+* Suitable for incremental development and refactoring
+* Maintainable as the system grows
+
+The current project includes:
+
+* Angular frontend
+* Hono backend API
+* Frontend / Backend API communication
+* Docker Compose development environment
 * VS Code Dev Container
-* 自動安裝 Root、Frontend、Backend dependencies
-* Health Check API
-* GitHub 專案管理
+* Automatic dependency installation
+* Environment variable configuration
+* Backend health check API
+* Git-based version control
+* GitHub repository
 
 ---
 
@@ -38,9 +50,9 @@ Akigumo 是一個前後端分離的 Full-stack Web Application，主要目標是
 
 * Hono
 * TypeScript
-* Node.js
+* Node.js 22
 * `@hono/node-server`
-* tsx
+* `tsx`
 
 ### Development Environment
 
@@ -57,11 +69,13 @@ Akigumo 是一個前後端分離的 Full-stack Web Application，主要目標是
 
 ---
 
-## Architecture
+## Application Overview
+
+The current application uses a separated frontend and backend architecture.
 
 ```text
 ┌──────────────────────────────┐
-│          Browser             │
+│           Browser            │
 │                              │
 │      http://localhost:4200   │
 └──────────────┬───────────────┘
@@ -69,59 +83,47 @@ Akigumo 是一個前後端分離的 Full-stack Web Application，主要目標是
                │ HTTP
                ▼
 ┌──────────────────────────────┐
-│       Angular Frontend       │
+│      Angular Frontend        │
 │                              │
-│       Port: 4200             │
+│          Port 4200            │
 │                              │
-│       /api/**                │
+│          /api/**              │
 └──────────────┬───────────────┘
                │
                │ Angular Dev Proxy
-               │
                ▼
 ┌──────────────────────────────┐
 │        Hono Backend          │
 │                              │
-│       Port: 3000             │
+│          Port 3000            │
 │                              │
 │       GET /api/health        │
 └──────────────────────────────┘
 ```
 
-Frontend 開發環境透過 Angular Proxy 將 `/api/**` request 轉送至 Hono Backend。
+During development, the Angular development server proxies `/api/**` requests to the Hono backend.
 
-例如：
+For example:
 
 ```text
 Browser
-  ↓
-http://localhost:4200/api/health
-  ↓
+   │
+   │ http://localhost:4200/api/health
+   ▼
 Angular Dev Proxy
-  ↓
-http://localhost:3000/api/health
-  ↓
-Hono
+   │
+   │ http://localhost:3000/api/health
+   ▼
+Hono Backend
 ```
 
-Backend 目前提供 Health Check API：
-
-```http
-GET /api/health
-```
-
-Response：
-
-```json
-{
-  "status": "ok",
-  "service": "backend"
-}
-```
+This allows frontend code to use the same `/api/**` path regardless of the backend's development port.
 
 ---
 
 ## Project Structure
+
+The project is organized into separate frontend and backend applications.
 
 ```text
 akigumo/
@@ -132,7 +134,7 @@ akigumo/
 │
 ├── backend/
 │   ├── src/
-│   │   └── index.ts
+│   ├── .env.example
 │   ├── package.json
 │   └── package-lock.json
 │
@@ -150,18 +152,25 @@ akigumo/
 └── README.md
 ```
 
+The backend is being developed incrementally around explicit application, configuration, infrastructure, and runtime responsibilities rather than relying on a single application layer.
+
+As the architecture evolves, detailed architecture documentation will be maintained separately from this README.
+
 ---
 
 ## Development Environment
 
-本專案使用 **Docker Compose + VS Code Dev Container** 建立開發環境。
+Akigumo uses **Docker Compose + VS Code Dev Containers** to provide a consistent development environment.
 
-Docker Compose 提供：
+The development container provides:
 
-* Node.js 22 開發環境
-* Frontend `4200` port
-* Backend `3000` port
-* `/workspace` 專案目錄掛載
+* Node.js 22
+* Frontend port `4200`
+* Backend port `3000`
+* `/workspace` project directory
+* A consistent Node.js development environment
+
+The current Compose configuration is conceptually:
 
 ```yaml
 services:
@@ -176,34 +185,32 @@ services:
       - "3000:3000"
 ```
 
-Dev Container 建立完成後，會自動安裝：
+When the Dev Container is created, the configured `postCreateCommand` automatically installs dependencies for:
 
 ```text
-Root dependencies
-Frontend dependencies
-Backend dependencies
+Root
+Frontend
+Backend
 ```
 
-因此不需要每次建立新的開發環境後，再手動進入每個資料夾執行 `npm install`。
+This allows a clean checkout of the repository to be prepared without manually entering each project directory and running `npm install`.
 
 ---
 
-## Getting Started
+## Requirements
 
-### Requirements
-
-建議使用：
+Recommended tools:
 
 * Docker Desktop
 * Visual Studio Code
 * Dev Containers extension
 * Git
 
-如果使用 Dev Container，Node.js 與 npm 已由 Container 提供，不需要在主機額外安裝 Node.js。
+When using the Dev Container, Node.js and npm are provided by the container, so they do not need to be installed separately on the host machine.
 
 ---
 
-## Run with Dev Container
+## Getting Started
 
 ### 1. Clone the repository
 
@@ -212,51 +219,63 @@ git clone https://github.com/s36934512/akigumo.git
 cd akigumo
 ```
 
-### 2. Open with Visual Studio Code
+### 2. Open the project with Visual Studio Code
 
 ```bash
 code .
 ```
 
-### 3. Reopen in Container
+### 3. Reopen in Dev Container
 
-在 VS Code 中：
+In Visual Studio Code:
 
 ```text
 Ctrl + Shift + P
 ```
 
-選擇：
+Select:
 
 ```text
 Dev Containers: Reopen in Container
 ```
 
-第一次建立 Container 時，會自動執行 dependencies installation。
+The first container creation will install the project dependencies automatically.
+
+### 4. Configure environment variables
+
+Environment-specific configuration is kept outside version control.
+
+For the backend, create a local `.env` from the provided example:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+The `.env.example` file documents the environment variables required by the application without exposing local or sensitive values.
 
 ---
 
 ## Start Backend
 
-進入 Backend：
+Open a terminal inside the Dev Container:
 
 ```bash
 cd backend
 ```
 
-啟動 development server：
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Backend 預設執行於：
+The backend runs on:
 
 ```text
 http://localhost:3000
 ```
 
-Health Check：
+Health check:
 
 ```text
 http://localhost:3000/api/health
@@ -266,31 +285,31 @@ http://localhost:3000/api/health
 
 ## Start Frontend
 
-另外開啟一個 Terminal：
+Open another terminal:
 
 ```bash
 cd frontend
 ```
 
-啟動 Angular development server：
+Start the Angular development server:
 
 ```bash
 npm start
 ```
 
-Frontend 預設執行於：
+The frontend runs on:
 
 ```text
 http://localhost:4200
 ```
 
-開啟：
+Open:
 
 ```text
 http://localhost:4200
 ```
 
-即可使用 Frontend。
+to access the application.
 
 ---
 
@@ -302,7 +321,7 @@ http://localhost:4200
 GET /api/health
 ```
 
-Response：
+Response:
 
 ```json
 {
@@ -311,89 +330,19 @@ Response：
 }
 ```
 
-這個 endpoint 可用於確認 Backend Server 是否正常運作。
-
----
-
-## Development Commands
-
-### Root
-
-安裝 Root dependencies：
-
-```bash
-npm install
-```
-
----
-
-### Frontend
-
-安裝 dependencies：
-
-```bash
-cd frontend
-npm install
-```
-
-啟動 development server：
-
-```bash
-npm start
-```
-
-Build：
-
-```bash
-npm run build
-```
-
-Test：
-
-```bash
-npm test
-```
-
----
-
-### Backend
-
-安裝 dependencies：
-
-```bash
-cd backend
-npm install
-```
-
-Development：
-
-```bash
-npm run dev
-```
-
-Build：
-
-```bash
-npm run build
-```
-
-Production start：
-
-```bash
-npm start
-```
+This endpoint can be used to verify that the backend server is running correctly.
 
 ---
 
 ## Frontend API Proxy
 
-Frontend 開發環境使用 Angular Proxy：
+The frontend development environment uses Angular's development proxy configuration:
 
 ```text
 frontend/proxy.conf.json
 ```
 
-設定：
+Example:
 
 ```json
 {
@@ -404,78 +353,126 @@ frontend/proxy.conf.json
 }
 ```
 
-因此 Frontend 不需要直接將 API URL 寫成：
-
-```text
-http://localhost:3000/api/health
-```
-
-而是可以使用：
+Frontend code can therefore communicate with the backend through:
 
 ```text
 /api/health
 ```
 
-由 Angular Development Server 負責轉送至 Backend。
+instead of directly using:
 
-這樣可以讓 Frontend 與 Backend 的 API 路徑保持一致，也降低開發環境中的 CORS 與 URL 設定問題。
+```text
+http://localhost:3000/api/health
+```
+
+The development proxy keeps the frontend API path independent from the backend development port and avoids unnecessary cross-origin configuration during local development.
 
 ---
 
 ## Environment Configuration
 
-敏感或環境相關設定不直接提交至 Git。
+Environment-specific configuration is not committed to Git.
 
-`.gitignore` 會排除：
+The repository ignores local environment files such as:
 
 ```text
 .env
 .env.*
 ```
 
-同時保留：
+while allowing example configuration files to be committed:
 
 ```text
 .env.example
 ```
 
-因此未來如果需要加入 API URL、Database connection 或其他環境設定，可以使用：
+Example files define the required variable names and provide a starting point for a new development environment without exposing actual credentials or machine-specific configuration.
 
-```text
-.env.example
+For example:
+
+```bash
+cp backend/.env.example backend/.env
 ```
 
-提供其他開發者需要設定的變數名稱，而不暴露實際敏感資訊。
+Developers should update the local `.env` file with values appropriate for their environment.
 
 ---
 
-## Git & GitHub
+## Development Commands
 
-本專案使用 Git 進行版本控制，並託管於 GitHub。
+### Root
 
-Repository：
+Install root dependencies:
 
-https://github.com/s36934512/akigumo
-
-GitHub Repository：
-
-```text
-s36934512/akigumo
+```bash
+npm install
 ```
 
-專案採用：
+### Frontend
 
-```text
-main
+```bash
+cd frontend
 ```
 
-作為主要 branch。
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start development server:
+
+```bash
+npm start
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+Run tests:
+
+```bash
+npm test
+```
+
+### Backend
+
+```bash
+cd backend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+Start production build:
+
+```bash
+npm start
+```
 
 ---
 
-## Docker Development Workflow
+## Development Workflow
 
-整體開發流程：
+The intended development workflow is:
 
 ```text
 GitHub
@@ -489,13 +486,15 @@ Local Project
 Dev Container
    │
    ├── Angular
-   │     └── :4200
+   │      └── :4200
    │
    └── Hono
-         └── :3000
+          └── :3000
 ```
 
-透過 Dev Container，可以讓不同電腦上的開發環境維持一致，降低 Node.js 版本或系統環境造成的問題。
+The Dev Container provides a consistent runtime environment, while the repository contains the configuration required to recreate the development setup.
+
+A clean checkout should therefore be able to reproduce the development environment without relying on machine-specific Node.js configuration.
 
 ---
 
@@ -503,52 +502,102 @@ Dev Container
 
 ### Completed
 
-* [x] Angular Frontend
-* [x] Hono Backend
+* [x] Angular frontend
+* [x] Hono backend
 * [x] Frontend / Backend API communication
 * [x] Health Check API
 * [x] Docker Compose development environment
 * [x] VS Code Dev Container
 * [x] Automatic dependency installation
+* [x] Environment example configuration
+* [x] Git configuration
 * [x] GitHub repository
-* [x] `.gitignore` configuration
+* [x] Clean-environment setup verification
+
+### In Progress
+
+* [ ] Backend architecture refinement
+* [ ] Domain and application boundaries
+* [ ] Infrastructure organization
+* [ ] Workflow and runtime architecture
+* [ ] Shared contracts
+* [ ] Event and message processing architecture
+* [ ] Frontend feature integration
 
 ### Planned
 
-* [ ] Expand backend API
-* [ ] Connect frontend features with backend services
+* [ ] Expand application features
+* [ ] Expand backend APIs
 * [ ] Add automated tests
 * [ ] Improve error handling
-* [ ] Add production Docker configuration
-* [ ] Add Docker image build
-* [ ] Add GitHub Actions CI/CD
-* [ ] Deploy production environment
+* [ ] Production Docker configuration
+* [ ] Docker image build
+* [ ] GitHub Actions CI/CD
+* [ ] Production deployment
+
+---
+
+## Architecture Direction
+
+Akigumo is developed incrementally rather than through a complete rewrite.
+
+The project follows a **slice-by-slice development and refactoring approach**:
+
+```text
+Define responsibility
+        ↓
+Implement one slice
+        ↓
+Verify behavior
+        ↓
+Build / test
+        ↓
+Review boundaries
+        ↓
+Continue with the next slice
+```
+
+The goal is to keep architectural decisions explicit while allowing the application to evolve without introducing unnecessary framework-level abstractions.
+
+Detailed architectural decisions will be documented separately as the system becomes more stable.
 
 ---
 
 ## Why This Project
 
-這個專案除了實作 Web Application 本身，也著重於完整的開發流程：
+Akigumo is intended to demonstrate more than the implementation of individual frontend or backend features.
+
+The project focuses on the engineering process behind a maintainable full-stack application:
 
 ```text
 Frontend
-    ↓
+   ↓
 Backend API
-    ↓
-Docker
-    ↓
-Dev Container
-    ↓
+   ↓
+Application Architecture
+   ↓
+Infrastructure
+   ↓
+Docker Development Environment
+   ↓
 Git
-    ↓
+   ↓
 GitHub
-    ↓
+   ↓
 CI/CD
-    ↓
+   ↓
 Production
 ```
 
-目標是建立一個可以從本機開發、版本控制，到後續自動化建置與部署的完整 Full-stack 開發流程。
+The long-term goal is to build a full-stack system that can be developed locally, reproduced from a clean checkout, tested, version-controlled, and eventually deployed through an automated workflow.
+
+---
+
+## Repository
+
+GitHub:
+
+https://github.com/s36934512/akigumo
 
 ---
 
