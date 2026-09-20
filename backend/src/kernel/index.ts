@@ -1,3 +1,5 @@
+export { createDispatcher } from "./dispatch/dispatcher.js";
+export { createDispatchRuntime } from "./dispatch/runtime.js";
 export { NonRetryableError } from "./execution/error.js";
 export { registerProcessor } from "./execution/processor-registry.js";
 export {
