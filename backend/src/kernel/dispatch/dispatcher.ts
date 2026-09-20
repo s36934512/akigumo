@@ -20,30 +20,30 @@ export interface DispatcherDependencies {
 async function claimPendingOutboxList(maxAttempts: number): Promise<Outbox[]> {
     return await prisma.$transaction(async (tx) => {
         const rowList = await tx.$queryRaw<Outbox[]>`
-			WITH candidate AS (
-				SELECT id
-				FROM "outbox"
-				WHERE status = 'PENDING'
-				AND attempts < ${maxAttempts}
-				AND (
-					scheduled_at IS NULL
-					OR scheduled_at <= NOW()
-				)
-				ORDER BY id ASC
-				LIMIT 100
-				FOR UPDATE SKIP LOCKED
-			)
+            WITH candidate AS (
+                SELECT id
+                FROM "outbox"
+                WHERE status = 'PENDING'
+                AND attempts < ${maxAttempts}
+                AND (
+                    scheduled_at IS NULL
+                    OR scheduled_at <= NOW()
+                )
+                ORDER BY id ASC
+                LIMIT 100
+                FOR UPDATE SKIP LOCKED
+            )
 
-			UPDATE "outbox" AS o
-			SET
-				status = 'PROCESSING',
-				processing_id = uuidv7(),
-				processing_started_at = NOW(),
-				updated_at = NOW()
-			FROM candidate
-			WHERE o.id = candidate.id
-			RETURNING o.*;
-		`;
+            UPDATE "outbox" AS o
+            SET
+                status = 'PROCESSING',
+                processing_id = uuidv7(),
+                processing_started_at = NOW(),
+                updated_at = NOW()
+            FROM candidate
+            WHERE o.id = candidate.id
+            RETURNING o.*;
+        `;
 
         return rowList;
     });
@@ -129,25 +129,25 @@ async function failInvalidOutboxList(outboxList: Outbox[]): Promise<void> {
     }
 
     await prisma.$executeRaw`
-		UPDATE "outbox" AS o
-		SET
-			status = 'FAILED',
-			processing_started_at = NULL,
-			processing_id = NULL,
-			last_error = 'Invalid kernel task: failed to transform outbox row',
-			updated_at = NOW()
-		FROM (
-			VALUES
-				${Prisma.join(
+        UPDATE "outbox" AS o
+        SET
+            status = 'FAILED',
+            processing_started_at = NULL,
+            processing_id = NULL,
+            last_error = 'Invalid kernel task: failed to transform outbox row',
+            updated_at = NOW()
+        FROM (
+            VALUES
+                ${Prisma.join(
                     outboxList.map(
                         (outbox) =>
                             Prisma.sql`(${outbox.id}, ${outbox.processingId}::uuid)`,
                     ),
                 )}
-		) AS outbox(id, processing_id)
-		WHERE o.id = outbox.id
-			AND o.processing_id = outbox.processing_id;
-	`;
+        ) AS outbox(id, processing_id)
+        WHERE o.id = outbox.id
+            AND o.processing_id = outbox.processing_id;
+    `;
 }
 
 /**
@@ -160,24 +160,24 @@ async function releaseClaimedOutboxList(outboxList: Outbox[]): Promise<void> {
     }
 
     await prisma.$executeRaw`
-		UPDATE "outbox" AS o
-		SET
-			status = 'PENDING',
-			processing_started_at = NULL,
-			processing_id = NULL,
-			updated_at = NOW()
-		FROM (
-			VALUES
-				${Prisma.join(
+        UPDATE "outbox" AS o
+        SET
+            status = 'PENDING',
+            processing_started_at = NULL,
+            processing_id = NULL,
+            updated_at = NOW()
+        FROM (
+            VALUES
+                ${Prisma.join(
                     outboxList.map(
                         (outbox) =>
                             Prisma.sql`(${outbox.id}, ${outbox.processingId}::uuid)`,
                     ),
                 )}
-		) AS outbox(id, processing_id)
-		WHERE o.id = outbox.id
-			AND o.processing_id = outbox.processing_id;
-	`;
+        ) AS outbox(id, processing_id)
+        WHERE o.id = outbox.id
+            AND o.processing_id = outbox.processing_id;
+    `;
 }
 
 /**

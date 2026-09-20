@@ -14,10 +14,10 @@ export const TASK_VERSION = "1.0.0" as const;
  * These fields describe the Task itself, not the processor payload.
  */
 const TaskMetadataSchema = z.object({
-	version: z.literal(TASK_VERSION),
-	outboxId: z.coerce.bigint(),
-	priority: z.number(),
-	processingId: z.uuid(),
+    version: z.literal(TASK_VERSION),
+    outboxId: z.coerce.bigint(),
+    priority: z.number(),
+    processingId: z.uuid(),
 });
 
 /**
@@ -27,8 +27,8 @@ const TaskMetadataSchema = z.object({
  * result must be delivered back to the Workflow Engine.
  */
 const TaskContextSchema = z.object({
-	workflowId: z.uuid(),
-	operation: z.string(),
+    workflowId: z.uuid(),
+    operation: z.string(),
 });
 
 /**
@@ -38,14 +38,14 @@ const TaskContextSchema = z.object({
  * is responsible for validating its own payload.
  */
 export const TaskSchema = z.object({
-	metadata: TaskMetadataSchema,
-	context: TaskContextSchema,
-	payload: z.unknown(),
+    metadata: TaskMetadataSchema,
+    context: TaskContextSchema,
+    payload: z.unknown(),
 });
 
 export type Task<TPayload = unknown> = Omit<
-	z.infer<typeof TaskSchema>,
-	"payload"
+    z.infer<typeof TaskSchema>,
+    "payload"
 > & {
-	payload: TPayload;
+    payload: TPayload;
 };
