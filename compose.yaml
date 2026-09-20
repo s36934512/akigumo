@@ -16,6 +16,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
 
   postgres:
     image: postgres:18
@@ -31,10 +35,49 @@ services:
       - postgres-data:/var/lib/postgresql
 
     healthcheck:
-      test: ["CMD-SHELL",  "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+
+    restart: unless-stopped
+
+    volumes:
+      - redis-data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-cache:
+    image: redis:8-alpine
+
+    restart: unless-stopped
+
+    volumes:
+      - redis-cache-data:/data
+
+    command:
+      [
+        "redis-server",
+        "--maxmemory",
+        "512mb",
+        "--maxmemory-policy",
+        "allkeys-lru"
+      ]
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
   postgres-data:
+  redis-data:
+  redis-cache-data:
