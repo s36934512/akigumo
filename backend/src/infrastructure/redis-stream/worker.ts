@@ -1,9 +1,8 @@
 import * as process from "node:process";
-
 import type { Redis } from "ioredis";
 import type pino from "pino";
 
-import { logger } from "#app/infrastructure/logger/pino.js";
+import { logger } from "#app/infrastructure/logger/logger.js";
 
 import { decodeStreamMessage } from "./decoder.js";
 import type {

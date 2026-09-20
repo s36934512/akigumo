@@ -17,7 +17,7 @@ export class RedisStreamProducer {
      * Producer 只負責 XADD，
      * 不需要知道 Consumer Group 或 Consumer。
      */
-    public async add(payload: string): Promise<string> {
+    public async publish(payload: string): Promise<string> {
         const id = await this.producerRedis.xadd(
             this.streamName,
             "*",
