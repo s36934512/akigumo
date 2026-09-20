@@ -1,6 +1,6 @@
-import { kernelConfig } from "#app/config/kernel.js";
+import type { kernelConfig } from "#app/config/kernel.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
-import { logger } from "#app/infrastructure/logger/pino.js";
+import { logger } from "#app/infrastructure/logger/index.js";
 import { type Outbox, Prisma } from "#generated/prisma/client.js";
 import { OutboxStatus } from "#generated/prisma/enums.js";
 
@@ -8,18 +8,23 @@ import type { KernelTaskQueue } from "../port/task-queue.js";
 import type { Task } from "../task/task.js";
 import { OutboxToTaskSchema } from "./outbox-to-task.js";
 
+export interface DispatcherDependencies {
+    taskQueue: KernelTaskQueue;
+    config: typeof kernelConfig;
+}
+
 /**
  * Atomically claims pending outbox rows so that concurrent dispatchers
  * cannot claim the same row.
  */
-async function claimPendingOutboxList(): Promise<Outbox[]> {
+async function claimPendingOutboxList(maxAttempts: number): Promise<Outbox[]> {
     return await prisma.$transaction(async (tx) => {
         const rowList = await tx.$queryRaw<Outbox[]>`
 			WITH candidate AS (
 				SELECT id
 				FROM "outbox"
 				WHERE status = 'PENDING'
-				AND attempts < ${kernelConfig.maxAttempts}
+				AND attempts < ${maxAttempts}
 				AND (
 					scheduled_at IS NULL
 					OR scheduled_at <= NOW()
@@ -52,9 +57,12 @@ async function claimPendingOutboxList(): Promise<Outbox[]> {
  *
  * Lease expiration consumes one retry attempt.
  */
-async function recoverExpiredProcessingLeases(): Promise<void> {
-    const timeoutMinutes = kernelConfig.processingLeaseTimeoutMinutes;
-    const staleBefore = new Date(Date.now() - timeoutMinutes * 60 * 1000);
+async function recoverExpiredProcessingLeases(
+    config: typeof kernelConfig,
+): Promise<void> {
+    const staleBefore = new Date(
+        Date.now() - config.processingLeaseTimeoutMinutes * 60 * 1000,
+    );
 
     const retryResult = await prisma.outbox.updateMany({
         where: {
@@ -63,7 +71,7 @@ async function recoverExpiredProcessingLeases(): Promise<void> {
                 lt: staleBefore,
             },
             attempts: {
-                lt: kernelConfig.maxAttempts - 1,
+                lt: config.maxAttempts - 1,
             },
         },
         data: {
@@ -85,7 +93,7 @@ async function recoverExpiredProcessingLeases(): Promise<void> {
                 lt: staleBefore,
             },
             attempts: {
-                gte: kernelConfig.maxAttempts - 1,
+                gte: config.maxAttempts - 1,
             },
         },
         data: {
@@ -173,51 +181,52 @@ async function releaseClaimedOutboxList(outboxList: Outbox[]): Promise<void> {
 }
 
 /**
- * Dispatches pending outbox rows to the Kernel task queue.
+ * Creates the application-level Outbox dispatcher.
  *
- * This is the application-level dispatch use case.
- *
- * It does not know which queue implementation is used.
+ * The dispatcher does not know which task queue implementation is used.
  */
-export async function dispatchPendingOutbox(
-    taskQueue: KernelTaskQueue,
-): Promise<void> {
-    await recoverExpiredProcessingLeases();
+export function createDispatcher({
+    taskQueue,
+    config,
+}: DispatcherDependencies): () => Promise<void> {
+    return async function dispatchPendingOutbox(): Promise<void> {
+        await recoverExpiredProcessingLeases(config);
 
-    const outboxList = await claimPendingOutboxList();
+        const outboxList = await claimPendingOutboxList(config.maxAttempts);
 
-    if (outboxList.length === 0) {
-        return;
-    }
-
-    const taskList: Task[] = [];
-    const validOutboxList: Outbox[] = [];
-    const invalidOutboxList: Outbox[] = [];
-
-    for (const outbox of outboxList) {
-        const result = OutboxToTaskSchema.safeParse(outbox);
-
-        if (!result.success) {
-            invalidOutboxList.push(outbox);
-            continue;
+        if (outboxList.length === 0) {
+            return;
         }
 
-        validOutboxList.push(outbox);
-        taskList.push(result.data);
-    }
+        const taskList: Task[] = [];
+        const validOutboxList: Outbox[] = [];
+        const invalidOutboxList: Outbox[] = [];
 
-    if (invalidOutboxList.length > 0) {
-        await failInvalidOutboxList(invalidOutboxList);
-    }
+        for (const outbox of outboxList) {
+            const result = OutboxToTaskSchema.safeParse(outbox);
 
-    if (taskList.length === 0) {
-        return;
-    }
+            if (!result.success) {
+                invalidOutboxList.push(outbox);
+                continue;
+            }
 
-    try {
-        await taskQueue.addBulk(taskList);
-    } catch (error) {
-        await releaseClaimedOutboxList(validOutboxList);
-        throw error;
-    }
+            validOutboxList.push(outbox);
+            taskList.push(result.data);
+        }
+
+        if (invalidOutboxList.length > 0) {
+            await failInvalidOutboxList(invalidOutboxList);
+        }
+
+        if (taskList.length === 0) {
+            return;
+        }
+
+        try {
+            await taskQueue.addBulk(taskList);
+        } catch (error) {
+            await releaseClaimedOutboxList(validOutboxList);
+            throw error;
+        }
+    };
 }
