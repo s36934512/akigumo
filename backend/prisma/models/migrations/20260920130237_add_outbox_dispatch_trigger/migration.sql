@@ -11,6 +11,6 @@ $$ LANGUAGE plpgsql;
 
 -- 2. 建立 Trigger 綁定到表上
 CREATE TRIGGER trigger_outbox_insert
-AFTER INSERT ON "outbox"
-FOR EACH ROW
-EXECUTE FUNCTION outbox_notify();
+    AFTER INSERT ON "outbox"
+    FOR EACH ROW
+    EXECUTE PROCEDURE outbox_notify();

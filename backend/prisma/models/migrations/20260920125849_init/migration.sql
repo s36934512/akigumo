@@ -113,6 +113,7 @@ CREATE TABLE "workflow_state" (
     "status" TEXT NOT NULL,
     "data" JSONB,
     "snapshot" JSONB,
+    "last_error" TEXT,
     "schema_version" INTEGER NOT NULL DEFAULT 1,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,

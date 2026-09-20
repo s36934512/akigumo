@@ -41,6 +41,8 @@ model WorkflowState {
     data     Json? // 存放狀態機運行過程中產生的資料，如 API 回應、計算結果等
     snapshot Json? // 存放 XState 的完整序列化狀態 (context, value, history)
 
+    lastError String? @map("last_error")
+
     schemaVersion Int @default(1) @map("schema_version") // 以便未來狀態結構變更時的版本控制
 
     createdAt DateTime @default(now()) @map("created_at")
