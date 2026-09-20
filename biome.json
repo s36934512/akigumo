@@ -11,9 +11,9 @@
             "**/*.ts",
             "**/*.js",
             "**/*.json",
-            "!**/node_modules/**",
-            "!**/dist/**",
-            "!**/.angular/**"
+            "!**/node_modules",
+            "!**/dist",
+            "!**/.angular"
         ]
     },
     "formatter": {
