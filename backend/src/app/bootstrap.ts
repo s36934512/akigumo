@@ -1,12 +1,23 @@
 import { Client } from "pg";
 
 import { kernelConfig } from "#app/config/kernel.js";
+import { workflowResultMqConfig } from "#app/config/message-queue/workflow-result.js";
 import { postgresConfig } from "#app/config/postgres.js";
+import { prisma } from "#app/infrastructure/database/prisma.js";
+import { logger } from "#app/infrastructure/logger/index.js";
+import { createRedisWorkflowResultMq } from "#app/infrastructure/message-queue/workflow-result/factory.js";
 import { PostgresOutboxListener } from "#app/infrastructure/postgres/outbox-listener.js";
 import { createBullMQTaskQueue } from "#app/infrastructure/queue/bullmq/factory.js";
+import { createBullMQWorker } from "#app/infrastructure/queue/bullmq/worker.js";
 import { createDispatcher, createDispatchRuntime } from "#app/kernel/index.js";
+import {
+    createWorkflowEngine,
+    PrismaWorkflowStore,
+} from "#app/workflow/index.js";
 
-export async function bootstrap(): Promise<void> {
+export async function bootstrap(): Promise<{
+    stop: () => Promise<void>;
+}> {
     const postgresListenerClient = new Client({
         connectionString: postgresConfig.connectionString,
     });
@@ -25,4 +36,27 @@ export async function bootstrap(): Promise<void> {
     const outboxListener = new PostgresOutboxListener(postgresListenerClient);
 
     await outboxListener.start(dispatchRuntime.requestDispatch);
+
+    const workflowResultMq = createRedisWorkflowResultMq(
+        workflowResultMqConfig,
+    );
+
+    const workflowStore = new PrismaWorkflowStore(prisma);
+
+    const workflowEngine = createWorkflowEngine(workflowStore);
+
+    const worker = createBullMQWorker(workflowResultMq.publisher);
+
+    void workflowResultMq.consumer.run(workflowEngine);
+
+    logger.info({ label: "Kernel" }, "秋雲 Akigumo 系統內核已完全啟動");
+
+    return {
+        stop: async () => {
+            await outboxListener.stop();
+            await workflowResultMq.consumer.stop();
+            await worker.close();
+            await postgresListenerClient.end();
+        },
+    };
 }
