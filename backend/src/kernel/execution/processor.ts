@@ -10,6 +10,17 @@ import type { Task } from "../task/task.js";
 export interface ProcessorDefinition<TSchema extends z.ZodType = z.ZodType> {
     name: string;
     inputSchema: TSchema;
-    onBefore?: (task: Task<z.output<TSchema>>) => Promise<void> | void;
     logic: (task: Task<z.output<TSchema>>) => Promise<unknown>;
+}
+
+export function defineProcessor<TInput extends z.ZodType, TResult>(
+    action: string,
+    inputSchema: TInput,
+    logic: (task: Task<z.infer<TInput>>) => Promise<TResult>,
+): ProcessorDefinition<TInput> {
+    return {
+        name: action,
+        inputSchema,
+        logic,
+    };
 }

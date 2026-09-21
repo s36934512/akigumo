@@ -163,8 +163,6 @@ export async function executeKernelTask<TSchema extends z.ZodType>(
     let logicResult: Awaited<ReturnType<ProcessorDefinition<TSchema>["logic"]>>;
 
     try {
-        await processor.onBefore?.(validatedTask);
-
         logicResult = await processor.logic(validatedTask);
     } catch (error: unknown) {
         await handleProcessorFailure(
