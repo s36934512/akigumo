@@ -77,22 +77,14 @@ export class RedisStreamWorker {
     }
 
     /**
-     * ACK 一批 messages。
+     * ACK 一個 Stream message。
      */
-    private async acknowledgeMessages(
-        messageList: StreamMessage[],
-    ): Promise<void> {
-        if (messageList.length === 0) {
-            return;
-        }
-
-        const pipeline = this.consumerRedis.pipeline();
-
-        for (const message of messageList) {
-            pipeline.xack(this.streamName, this.consumerGroup, message.id);
-        }
-
-        await pipeline.exec();
+    private async acknowledgeMessage(message: StreamMessage): Promise<void> {
+        await this.consumerRedis.xack(
+            this.streamName,
+            this.consumerGroup,
+            message.id,
+        );
     }
 
     /**
@@ -114,8 +106,8 @@ export class RedisStreamWorker {
 
         const pipeline = this.consumerRedis.pipeline();
 
-        for (const [id] of malformedMessageList) {
-            pipeline.xack(this.streamName, this.consumerGroup, id);
+        for (const [messageId] of malformedMessageList) {
+            pipeline.xack(this.streamName, this.consumerGroup, messageId);
         }
 
         await pipeline.exec();
@@ -126,10 +118,10 @@ export class RedisStreamWorker {
     }
 
     /**
-     * Decode raw messages。
+     * Decode raw Stream message。
      *
-     * Valid messages 進入 messageList。
-     * Malformed messages 個別記錄，之後由 Worker ACK 丟棄。
+     * Decode failure 不交給 handler，
+     * 因為 message 本身已經不符合 infrastructure wire format。
      */
     private decodeBatch(messages: RedisStreamMessages): {
         messageList: StreamMessage[];
@@ -158,8 +150,24 @@ export class RedisStreamWorker {
         };
     }
 
+    private async processMessage(
+        message: StreamMessage,
+        handler: (message: StreamMessage) => Promise<void>,
+    ): Promise<void> {
+        try {
+            await handler(message);
+            await this.acknowledgeMessage(message);
+        } catch (error) {
+            this.log.error(
+                `Stream message processing failed: ${message.id}: ${error}`,
+            );
+        }
+    }
+
     /**
-     * 處理一批 Redis Stream messages。
+     * 處理一次 Redis Stream delivery。
+     *
+     * 每個 message 都是獨立的 execution 單位。
      *
      * Decode failure：
      * - log
@@ -167,6 +175,7 @@ export class RedisStreamWorker {
      * - discard
      *
      * Handler failure：
+     * - log
      * - 不 ACK
      * - message 留在 PEL
      * - 後續由 XAUTOCLAIM 重新取得
@@ -174,9 +183,9 @@ export class RedisStreamWorker {
      * Handler 成功：
      * - ACK
      */
-    private async handleBatch(
+    private async handleMessageBatch(
         messages: RedisStreamMessages,
-        handler: (messageList: StreamMessage[]) => Promise<void>,
+        handler: (message: StreamMessage) => Promise<void>,
     ): Promise<void> {
         if (messages.length === 0) {
             return;
@@ -185,30 +194,14 @@ export class RedisStreamWorker {
         const { messageList, malformedMessageList } =
             this.decodeBatch(messages);
 
-        /**
-         * Malformed messages 與 valid messages 分開處理。
-         *
-         * malformed message 不應阻塞同一 batch
-         * 中其他 valid messages。
-         */
-        if (malformedMessageList.length > 0) {
-            await this.discardMalformedMessages(malformedMessageList);
-        }
+        await this.discardMalformedMessages(malformedMessageList);
 
         if (messageList.length === 0) {
             return;
         }
 
-        try {
-            await handler(messageList);
-
-            await this.acknowledgeMessages(messageList);
-
-            this.log.debug(
-                `Successfully processed and ACKed batch of ${messageList.length}`,
-            );
-        } catch (error) {
-            this.log.error(`Stream message batch processing failed: ${error}`);
+        for (const message of messageList) {
+            await this.processMessage(message, handler);
         }
     }
 
@@ -216,7 +209,7 @@ export class RedisStreamWorker {
      * 嘗試取得 stale pending messages。
      */
     private async claimPendingMessages(
-        handler: (messageList: StreamMessage[]) => Promise<void>,
+        handler: (message: StreamMessage) => Promise<void>,
     ): Promise<void> {
         const result = await this.consumerRedis.xautoclaim(
             this.streamName,
@@ -233,7 +226,7 @@ export class RedisStreamWorker {
         const staleMessages = result[1];
 
         if (staleMessages.length > 0) {
-            await this.handleBatch(staleMessages, handler);
+            await this.handleMessageBatch(staleMessages, handler);
         }
     }
 
@@ -315,9 +308,12 @@ export class RedisStreamWorker {
 
     /**
      * 啟動 Worker。
+     *
+     * batchSize 僅控制 Redis Stream 每次 delivery 的 message 數量。
+     * Handler 與 ACK 都以單一 message 為粒度。
      */
     public async run(
-        handler: (messageList: StreamMessage[]) => Promise<void>,
+        handler: (message: StreamMessage) => Promise<void>,
     ): Promise<void> {
         if (this.running) {
             throw new Error("RedisStreamWorker is already running");
@@ -370,7 +366,7 @@ export class RedisStreamWorker {
                         continue;
                     }
 
-                    await this.handleBatch(messages, handler);
+                    await this.handleMessageBatch(messages, handler);
                 }
             } catch (error) {
                 if (!this.running) {
