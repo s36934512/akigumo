@@ -18,36 +18,36 @@ import {
 export async function bootstrap(): Promise<{
     stop: () => Promise<void>;
 }> {
+    // 1. Infrastructure
     const postgresListenerClient = new Client({
         connectionString: postgresConfig.connectionString,
     });
-
     await postgresListenerClient.connect();
 
     const taskQueue = createBullMQTaskQueue();
+    const workflowResultMq = createRedisWorkflowResultMq(
+        workflowResultMqConfig,
+    );
 
+    // 2. Kernel
     const dispatch = createDispatcher({
         taskQueue,
         config: kernelConfig,
     });
 
     const dispatchRuntime = createDispatchRuntime(dispatch);
-
     const outboxListener = new PostgresOutboxListener(postgresListenerClient);
 
-    await outboxListener.start(dispatchRuntime.requestDispatch);
-
-    const workflowResultMq = createRedisWorkflowResultMq(
-        workflowResultMqConfig,
-    );
-
+    // 3. Workflow
     const workflowStore = new PrismaWorkflowStore(prisma);
-
     const workflowEngine = createWorkflowEngine(workflowStore);
 
+    // 4. Runtime workers
     const worker = createBullMQWorker(workflowResultMq.publisher);
 
+    // 5. Start listeners
     void workflowResultMq.consumer.run(workflowEngine);
+    await outboxListener.start(dispatchRuntime.requestDispatch);
 
     logger.info({ label: "Kernel" }, "秋雲 Akigumo 系統內核已完全啟動");
 
