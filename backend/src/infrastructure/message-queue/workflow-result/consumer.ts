@@ -13,18 +13,16 @@ export class RedisWorkflowResultConsumer {
     async run(
         handler: (event: WorkflowResult) => Promise<void>,
     ): Promise<void> {
-        await this.worker.run(async (messageList: StreamMessage[]) => {
-            for (const message of messageList) {
-                const result = WorkflowResultSchema.safeParse(message.payload);
+        await this.worker.run(async (message: StreamMessage) => {
+            const result = WorkflowResultSchema.safeParse(message.payload);
 
-                if (!result.success) {
-                    throw new Error(
-                        `Invalid WorkflowResult message: ${result.error.message}`,
-                    );
-                }
-
-                await handler(result.data);
+            if (!result.success) {
+                throw new Error(
+                    `Invalid WorkflowResult message: ${result.error.message}`,
+                );
             }
+
+            await handler(result.data);
         });
     }
 
