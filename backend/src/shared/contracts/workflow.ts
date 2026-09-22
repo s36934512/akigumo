@@ -1,39 +1,77 @@
-type ActionDefinition = {
+import { z } from "zod";
+
+type EventDefinition = {
     code: string;
+    resultSchema: z.ZodType;
+};
+
+type EventCodes<
+    TProcessor extends string,
+    TDefinitions extends readonly EventDefinition[],
+> = {
+    [TDefinition in TDefinitions[number] as TDefinition["code"]]: `${TProcessor}_${TDefinition["code"]}`;
+} & {
+    schemaList: {
+        [K in keyof TDefinitions]: TDefinitions[K] extends {
+            code: infer TCode extends string;
+            resultSchema: infer TResultSchema extends z.ZodType;
+        }
+            ? z.ZodObject<{
+                  type: z.ZodLiteral<`${TProcessor}_${TCode}`>;
+                  result: TResultSchema;
+              }>
+            : never;
+    };
 };
 
 export function createEventCodes<
-    const T extends Record<string, { readonly code: string }>,
->(actions: T) {
-    type SuccessResult = {
-        [K in keyof T as `${T[K]["code"]}_SUCCESS`]: `${T[K]["code"]}_SUCCESS`;
-    };
+    const TProcessor extends string,
+    const TDefinitions extends readonly [EventDefinition, ...EventDefinition[]],
+>(
+    processorName: TProcessor,
+    definitionList: TDefinitions,
+): EventCodes<TProcessor, TDefinitions> {
+    const schemaList = definitionList.map(({ code, resultSchema }) =>
+        z.object({
+            type: z.literal(`${processorName}_${code}`),
+            result: resultSchema,
+        }),
+    ) as EventCodes<TProcessor, TDefinitions>["schemaList"];
 
-    type FailureResult = {
-        [K in keyof T as `${T[K]["code"]}_FAILURE`]: `${T[K]["code"]}_FAILURE`;
-    };
+    const eventCodes = Object.fromEntries(
+        definitionList.map(({ code }) => [code, `${processorName}_${code}`]),
+    );
 
-    type ReturnType = SuccessResult & FailureResult;
-
-    const result = {} as Record<string, string>;
-
-    for (const key in actions) {
-        const code = actions[key].code;
-
-        const successKey = `${code}_SUCCESS` as const;
-        const failureKey = `${code}_FAILURE` as const;
-
-        result[successKey] = successKey;
-        result[failureKey] = failureKey;
-    }
-
-    return result as ReturnType;
+    return {
+        ...eventCodes,
+        schemaList,
+    } as EventCodes<TProcessor, TDefinitions>;
 }
+export const GraphIntentCreatedEvents = createEventCodes(
+    "GRAPH_INTENT_CREATED",
+    [
+        {
+            code: "SUCCEEDED",
+            resultSchema: z.unknown(),
+        },
+        {
+            code: "FAILED",
+            resultSchema: z.object({
+                reason: z.string(),
+            }),
+        },
+    ],
+);
 
-export type InferActionCode<T extends Record<string, ActionDefinition>> =
-    T[keyof T]["code"];
-
-export type InferEventCode<T extends Record<string, ActionDefinition>> =
-    ReturnType<typeof createEventCodes<T>>[keyof ReturnType<
-        typeof createEventCodes<T>
-    >];
+export const PythonEvents = createEventCodes("PYTHON", [
+    {
+        code: "SUCCEEDED",
+        resultSchema: z.unknown(),
+    },
+    {
+        code: "FAILED",
+        resultSchema: z.object({
+            reason: z.string(),
+        }),
+    },
+]);
