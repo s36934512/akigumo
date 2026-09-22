@@ -1,4 +1,11 @@
 export {
+    TypeConstrainedRecord,
+    TypeConstrainedRecordSchema,
+} from "./common/record.js";
+
+export { ConceptRegistry, ConceptRegistrySchema } from "./concept/registry.js";
+
+export {
     RESULT_STATUS,
     type Result,
     ResultSchema,
