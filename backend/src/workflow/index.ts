@@ -1,5 +1,6 @@
 export { createWorkflowEngine } from "./engine.js";
 export * from "./error.js";
+export * from "./event/index.js";
 export * from "./machine/index.js";
 export { publishOperation, publishWorkflow } from "./publisher.js";
 export { registerWorkflow } from "./registry.js";
