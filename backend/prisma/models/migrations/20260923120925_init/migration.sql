@@ -89,6 +89,7 @@ CREATE TABLE "file_extension" (
 CREATE TABLE "outbox" (
     "id" BIGSERIAL NOT NULL,
     "workflow_id" UUID,
+    "source_outbox_id" BIGINT,
     "operation" TEXT NOT NULL,
     "priority" INTEGER NOT NULL DEFAULT 10,
     "payload" JSONB NOT NULL,
@@ -138,6 +139,9 @@ CREATE UNIQUE INDEX "file_category_code_key" ON "file_category"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "file_extension_code_key" ON "file_extension"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "outbox_source_outbox_id_key" ON "outbox"("source_outbox_id");
 
 -- CreateIndex
 CREATE INDEX "outbox_status_scheduled_at_created_at_idx" ON "outbox"("status", "scheduled_at", "created_at");

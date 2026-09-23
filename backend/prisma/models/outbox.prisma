@@ -9,6 +9,8 @@ model Outbox {
     id         BigInt  @id @default(autoincrement())
     workflowId String? @map("workflow_id") @db.Uuid
 
+    sourceOutboxId BigInt? @unique @map("source_outbox_id")
+
     operation String // create, update, connect...
     priority  Int    @default(10) // Bullmq job priority, 數字越小，優先級越高
     payload   Json
