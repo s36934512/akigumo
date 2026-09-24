@@ -1,6 +1,6 @@
 import type { WorkflowResult } from "#app/contracts/index.js";
+import type { RedisStreamProducer } from "#app/infrastructure/redis-stream/index.js";
 import type { WorkflowResultPublisher } from "#app/kernel/port/workflow-result-publisher.js";
-import type { RedisStreamProducer } from "../../redis-stream/index.js";
 
 export class RedisWorkflowResultPublisher implements WorkflowResultPublisher {
     constructor(private readonly producer: RedisStreamProducer) {}

@@ -6,10 +6,23 @@ export {
 export { ConceptRegistry, ConceptRegistrySchema } from "./concept/registry.js";
 
 export {
+    GraphOperationResult,
+    GraphOperationResultSchema,
+    GraphRefinementRequest,
+    GraphRefinementRequestSchema,
+} from "./graph-refinement.js";
+
+export {
     RESULT_STATUS,
     type Result,
     ResultSchema,
 } from "./result.js";
+
+export {
+    createEventCodes,
+    GraphIntentCreatedEvents,
+    PythonEvents,
+} from "./workflow.js";
 
 export {
     WORKFLOW_RESULT_VERSION,
