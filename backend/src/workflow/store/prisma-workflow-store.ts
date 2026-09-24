@@ -33,14 +33,14 @@ class PrismaWorkflowTransaction implements WorkflowTransaction {
         const rowList = await this.tx.$queryRaw<
             Array<{
                 id: string;
-                workflow_type: string;
+                workflowType: string;
                 data: Prisma.JsonValue | null;
                 snapshot: Prisma.JsonValue | null;
             }>
         >`
             SELECT
                 id,
-                workflow_type,
+                workflow_type  AS "workflowType",
                 data,
                 snapshot
             FROM "workflow_state"
@@ -56,7 +56,7 @@ class PrismaWorkflowTransaction implements WorkflowTransaction {
 
         return {
             id: row.id,
-            workflowType: row.workflow_type,
+            workflowType: row.workflowType,
             data: row.data,
             snapshot: row.snapshot,
         };

@@ -1,6 +1,6 @@
 import type { JsonValue } from "@prisma/client/runtime/client";
 import { createActor, type Snapshot } from "xstate";
-import z from "zod";
+import { z } from "zod";
 
 import type { WorkflowState } from "./port/workflow-store.js";
 import * as workflowRegistry from "./registry.js";

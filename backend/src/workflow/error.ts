@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 export const ErrorDetailSchema = z.object({
     code: z.string(), // 例如: 'UPLOAD_TIMEOUT', 'UNSUPPORTED_MIME'

@@ -1,4 +1,4 @@
-export type WorkflowFailureEvent<T extends { type: string }> = Extract<
+type WorkflowFailureEvent<T extends { type: string }> = Extract<
     T,
     { type: `${string}_FAILED` }
 >;
