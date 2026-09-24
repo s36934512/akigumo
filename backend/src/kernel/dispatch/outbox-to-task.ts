@@ -42,6 +42,7 @@ export const OutboxToTaskSchema = OutboxModelSchema.transform((data, ctx) => {
         },
         context: {
             workflowId: data.workflowId,
+            sourceOutboxId: data.sourceOutboxId,
             operation: data.operation,
         },
         payload: data.payload,

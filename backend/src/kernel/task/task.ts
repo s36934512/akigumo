@@ -28,6 +28,7 @@ const TaskMetadataSchema = z.object({
  */
 const TaskContextSchema = z.object({
     workflowId: z.uuid(),
+    sourceOutboxId: z.coerce.bigint().nullable(),
     operation: z.string(),
 });
 

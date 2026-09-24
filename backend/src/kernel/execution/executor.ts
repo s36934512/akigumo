@@ -1,4 +1,4 @@
-import type z from "zod";
+import type { z } from "zod";
 
 import { kernelConfig } from "#app/config/kernel.js";
 import {
