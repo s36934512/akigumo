@@ -11,7 +11,7 @@ const envSchema = z.object({
     REDIS_URL: z.url().default("redis://redis:6379"),
     REDIS_CACHE_URL: z.url().default("redis://redis-cache:6379"),
 
-    NEO4J_URI: z.url().default("bolt://neo4j:7687"),
+    NEO4J_URL: z.url().default("bolt://neo4j:7687"),
     NEO4J_USERNAME: z.string().default("neo4j"),
     NEO4J_PASSWORD: z.string(),
 
@@ -31,7 +31,7 @@ export const env = {
     },
 
     neo4j: {
-        uri: parsedEnv.NEO4J_URI,
+        url: parsedEnv.NEO4J_URL,
         username: parsedEnv.NEO4J_USERNAME,
         password: parsedEnv.NEO4J_PASSWORD,
     },
