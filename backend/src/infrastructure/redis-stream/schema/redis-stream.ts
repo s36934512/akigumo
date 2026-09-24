@@ -10,12 +10,9 @@ import { z } from "zod";
  *   ["field", "value", ...]
  * ]
  */
-export const RedisStreamMessageSchema = z.tuple([
-    z.string(),
-    z.array(z.string()),
-]);
+const RedisStreamMessageSchema = z.tuple([z.string(), z.array(z.string())]);
 
-export const RedisStreamMessagesSchema = RedisStreamMessageSchema.array();
+const RedisStreamMessagesSchema = RedisStreamMessageSchema.array();
 
 export type RedisStreamMessage = z.infer<typeof RedisStreamMessageSchema>;
 
@@ -27,7 +24,7 @@ export type RedisStreamMessages = z.infer<typeof RedisStreamMessagesSchema>;
  * data 保持 unknown，
  * 由上層 contract / schema 決定實際型別。
  */
-export const StreamMessageSchema = z.object({
+const StreamMessageSchema = z.object({
     id: z.string(),
     payload: z.unknown(),
 });
