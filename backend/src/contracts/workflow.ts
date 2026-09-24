@@ -47,6 +47,7 @@ export function createEventCodes<
         schemaList,
     } as EventCodes<TProcessor, TDefinitions>;
 }
+
 export const GraphIntentCreatedEvents = createEventCodes(
     "GRAPH_INTENT_CREATED",
     [

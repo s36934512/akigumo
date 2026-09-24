@@ -1,8 +1,7 @@
 import { z } from "zod";
-import {
-    createFlexibleSchema,
-    type InferFlexible,
-} from "#app/shared/contracts/index.js";
+
+import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
+
 import { TypeConstrainedRecordSchema } from "../common/record.js";
 
 export const ConceptRegistrySchema = createFlexibleSchema(
