@@ -1,14 +1,17 @@
 export {
-    TypeConstrainedRecord,
+    type TypeConstrainedRecord,
     TypeConstrainedRecordSchema,
 } from "./common/record.js";
 
-export { ConceptRegistry, ConceptRegistrySchema } from "./concept/registry.js";
+export {
+    type ConceptRegistry,
+    ConceptRegistrySchema,
+} from "./concept/registry.js";
 
 export {
-    GraphOperationResult,
+    type GraphOperationResult,
     GraphOperationResultSchema,
-    GraphRefinementRequest,
+    type GraphRefinementRequest,
     GraphRefinementRequestSchema,
 } from "./graph-refinement.js";
 
