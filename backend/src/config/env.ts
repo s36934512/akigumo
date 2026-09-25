@@ -17,6 +17,9 @@ const envSchema = z.object({
 
     MEILI_HOST: z.url().default("http://meilisearch:7700"),
     MEILI_MASTER_KEY: z.string().default("masterKey"),
+
+    STORAGE_PATH: z.string().default("./storage"),
+    TMP_PATH: z.string().default("./tmp"),
 });
 
 const parsedEnv = envSchema.parse(process.env);
@@ -39,5 +42,10 @@ export const env = {
     meilisearch: {
         host: parsedEnv.MEILI_HOST,
         apiKey: parsedEnv.MEILI_MASTER_KEY,
+    },
+
+    storage: {
+        path: parsedEnv.STORAGE_PATH,
+        tmpPath: parsedEnv.TMP_PATH,
     },
 };
