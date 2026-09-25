@@ -9,7 +9,7 @@ import type {
     RedisStreamMessage,
     RedisStreamMessages,
     StreamMessage,
-} from "./schema/index.js";
+} from "./schema/redis-stream.js";
 import type { RedisStreamWorkerConfig } from "./types/redis-stream.js";
 
 export class RedisStreamWorker {
