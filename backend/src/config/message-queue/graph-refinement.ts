@@ -1,6 +1,6 @@
 export const graphRefinementMqConfig = {
-    requestStreamName: "graph",
-    resultStreamName: "python",
+    requestStreamName: "akigumo:graph",
+    resultStreamName: "akigumo:python",
     consumerGroup: "graph-refinement",
     batchSize: 5,
     minIdleTime: 30_000,

@@ -1,5 +1,5 @@
 export const workflowResultMqConfig = {
-    streamName: "workflow",
+    streamName: "akigumo:workflow",
     consumerGroup: "workflow-engine",
     batchSize: 5,
     minIdleTime: 30_000,
