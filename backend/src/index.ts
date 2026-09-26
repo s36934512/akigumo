@@ -1,21 +1,27 @@
 import { serve } from "@hono/node-server";
-import { Hono } from "hono";
 
-const app = new Hono();
+import { bootstrap } from "./app/bootstrap.js";
+import { logger } from "./infrastructure/logger/index.js";
+import app from "./routes.js";
 
-app.get("/api/health", (c) => {
-    return c.json({
-        status: "ok",
-        service: "backend",
-    });
-});
+(BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+};
 
-const port = 3000;
+const runtime = await bootstrap();
 
-serve({
+const server = serve({
     fetch: app.fetch,
-    port,
+    port: 3000,
     hostname: "0.0.0.0",
 });
 
-console.log(`Backend running on http://localhost:${port}`);
+logger.info({ label: "Akigumo" }, "Core Modules Loaded");
+
+const shutdown = async () => {
+    server.close();
+    await runtime.stop();
+};
+
+process.once("SIGINT", () => void shutdown());
+process.once("SIGTERM", () => void shutdown());
