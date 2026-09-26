@@ -12,12 +12,16 @@ import { createRedisWorkflowResultMq } from "#app/infrastructure/message-queue/w
 import { PostgresOutboxListener } from "#app/infrastructure/postgres/outbox-listener.js";
 import { createBullMQTaskQueue } from "#app/infrastructure/queue/bullmq/factory.js";
 import { createBullMQWorker } from "#app/infrastructure/queue/bullmq/worker.js";
-import { createDispatcher, createDispatchRuntime } from "#app/kernel/index.js";
+import {
+    createDispatcher,
+    createDispatchRuntime,
+    registerProcessor,
+} from "#app/kernel/index.js";
+import { createGraphSyncProcessor } from "#app/modules/graph/graph-sync/index.js";
 import {
     createWorkflowEngine,
     PrismaWorkflowStore,
 } from "#app/workflow/index.js";
-
 import { registerModuleRuntime } from "./register-modules.js";
 
 export async function bootstrap(): Promise<{
@@ -67,6 +71,12 @@ export async function bootstrap(): Promise<{
     // Start
     void graphRefinementWorker.run();
     void workflowResultMq.consumer.run(workflowEngine);
+
+    const graphSyncProcessor = createGraphSyncProcessor(
+        graphRefinementMq.publisher,
+    );
+
+    registerProcessor(graphSyncProcessor);
 
     await outboxListener.start(dispatchRuntime.requestDispatch);
 
