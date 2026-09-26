@@ -36,5 +36,10 @@ export function createRedisWorkflowResultMq(config: WorkflowResultMqConfig) {
     return {
         publisher: new RedisWorkflowResultPublisher(producer),
         consumer: new RedisWorkflowResultConsumer(worker),
+
+        stop: async () => {
+            await worker.stop();
+            await producer.close();
+        },
     };
 }

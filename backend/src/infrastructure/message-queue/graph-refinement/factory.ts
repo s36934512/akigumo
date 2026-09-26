@@ -37,5 +37,10 @@ export function createRedisGraphRefinementMq(config: GraphRefinementMqConfig) {
     return {
         publisher: new RedisGraphRefinementPublisher(producer),
         consumer: new RedisGraphRefinementConsumer(worker),
+
+        stop: async () => {
+            await worker.stop();
+            await producer.close();
+        },
     };
 }

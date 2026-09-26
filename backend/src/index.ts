@@ -19,9 +19,18 @@ const server = serve({
 logger.info({ label: "Akigumo" }, "Core Modules Loaded");
 
 const shutdown = async () => {
-    server.close();
+    await new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+            if (error) {
+                reject(error);
+                return;
+            }
+
+            resolve();
+        });
+    });
+
     await runtime.stop();
 };
-
 process.once("SIGINT", () => void shutdown());
 process.once("SIGTERM", () => void shutdown());

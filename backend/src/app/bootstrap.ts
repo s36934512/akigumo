@@ -75,7 +75,9 @@ export async function bootstrap(): Promise<{
     return {
         stop: async () => {
             await outboxListener.stop();
-            await workflowResultMq.consumer.stop();
+            await workflowResultMq.stop();
+            await graphRefinementMq.stop();
+            await taskQueue.close();
             await taskWorker.close();
             await graphRefinementWorker.stop();
             await postgresListenerClient.end();

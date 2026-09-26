@@ -17,4 +17,8 @@ export class BullMQTaskQueue implements KernelTaskQueue {
             })),
         );
     }
+
+    public async close(): Promise<void> {
+        await this.queue.close();
+    }
 }

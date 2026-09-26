@@ -1,9 +1,9 @@
 import { type Job, Worker } from "bullmq";
 import { z } from "zod";
 
+import { env } from "#app/config/env.js";
 import { queueConfig } from "#app/config/queue.js";
 import { logger } from "#app/infrastructure/logger/index.js";
-import { redis } from "#app/infrastructure/redis/redis.js";
 import { executeKernelTask } from "#app/kernel/execution/executor.js";
 import { handleFatalError } from "#app/kernel/execution/failure.js";
 import { getProcessor } from "#app/kernel/execution/processor-registry.js";
@@ -72,7 +72,9 @@ export function createBullMQWorker(publisher: WorkflowResultPublisher): Worker {
             await executeKernelTask(processor, task, publisher);
         },
         {
-            connection: redis,
+            connection: {
+                url: env.redis.url,
+            },
             concurrency: queueConfig.workerConcurrency,
         },
     );
