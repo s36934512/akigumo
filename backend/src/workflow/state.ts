@@ -54,7 +54,7 @@ export function serializeWorkflowSnapshot(
 export function createWorkflowMachineFromState(workflow: WorkflowState) {
     const machine = workflowRegistry.getWorkflow(workflow.workflowType);
 
-    const data = getWorkflowData(workflow.data);
+    const data = getWorkflowData(workflow.data ?? {});
 
     return createActor(machine, {
         input: { ...data },

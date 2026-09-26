@@ -1,5 +1,6 @@
 import type { WorkflowResult } from "#app/contracts/index.js";
 import { logger } from "#app/infrastructure/logger/index.js";
+import { createWorkflowEvent } from "./event/index.js";
 
 import type { WorkflowStore } from "./port/workflow-store.js";
 import {
@@ -63,10 +64,13 @@ export function createWorkflowEngine(store: WorkflowStore) {
 
                     try {
                         actor.start();
-                        actor.send(message);
+
+                        const event = createWorkflowEvent(message);
+
+                        actor.send(event);
 
                         const nextSnapshot = actor.getSnapshot();
-                        const nextTask = nextSnapshot.context.nextTask;
+                        const nextIntent = nextSnapshot.context.nextIntent;
 
                         await tx.updateWorkflowState({
                             workflowId: message.workflowId,
@@ -74,10 +78,10 @@ export function createWorkflowEngine(store: WorkflowStore) {
                             snapshot: serializeWorkflowSnapshot(nextSnapshot),
                         });
 
-                        if (nextTask) {
+                        if (nextIntent) {
                             await tx.createOutbox({
                                 workflowId: message.workflowId,
-                                ...nextTask,
+                                ...nextIntent,
                             });
                         }
                     } finally {
