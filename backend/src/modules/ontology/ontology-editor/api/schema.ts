@@ -2,10 +2,7 @@ import { z } from "zod";
 
 import { WorkflowResponseSchema } from "#app/api/response.js";
 import { ConceptRegistrySchema } from "#app/contracts/index.js";
-import {
-    createFlexibleSchema,
-    type InferFlexible,
-} from "#app/shared/contracts/index.js";
+import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
 const ConceptEditSchema = createFlexibleSchema(
     z.object({

@@ -1,11 +1,9 @@
 import { z } from "zod";
-
 import {
     GraphIntentCreatedEvents,
     PythonEvents,
-} from "#app/shared/contracts/index.js";
+} from "#app/contracts/index.js";
 import { MachineContextSchema } from "#app/workflow/index.js";
-
 import { OntologyDeleteEvents } from "../core/index.js";
 
 const ContextSchema = MachineContextSchema.extend({

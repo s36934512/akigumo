@@ -1,8 +1,6 @@
 import { z } from "zod";
-
+import { createEventCodes } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
-import { createEventCodes } from "#app/shared/contracts/index.js";
-
 import { OntologyDeleteSchema } from "../../api/schema.js";
 import * as service from "../service.js";
 
