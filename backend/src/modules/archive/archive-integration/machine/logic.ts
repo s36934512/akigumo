@@ -135,6 +135,6 @@ export const actions = {
             return {};
         }
 
-        return { error: event.result.reason };
+        return { error: event.data.reason };
     },
 };

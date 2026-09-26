@@ -9,8 +9,8 @@ export const machineActions = {
     handleDeleteSuccess({ event }: { event: MachineEvents }) {
         assertEvent(event, OntologyDeleteEvents.SUCCEEDED);
         return {
-            notifyId: event.result.notifyId,
-            idList: event.result.idList,
+            notifyId: event.data.notifyId,
+            idList: event.data.idList,
         };
     },
 
@@ -19,6 +19,6 @@ export const machineActions = {
             return {};
         }
 
-        return { error: event.result.reason };
+        return { error: event.data.reason };
     },
 };

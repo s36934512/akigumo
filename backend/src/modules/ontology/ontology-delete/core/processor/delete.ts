@@ -19,14 +19,14 @@ export const ontologyDeleteProcessor = defineProcessor(
 export const OntologyDeleteEvents = createEventCodes(ONTOLOGY_DELETE, [
     {
         code: "SUCCEEDED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             notifyId: z.uuid(),
             idList: z.uuid().array(),
         }),
     },
     {
         code: "FAILED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             reason: z.string(),
         }),
     },

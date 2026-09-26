@@ -25,7 +25,7 @@ export const archiveDispatchProcessor = defineProcessor(
 export const ArchiveDispatchEvents = createEventCodes(ARCHIVE_DISPATCH, [
     {
         code: "SUCCEEDED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             fileId: z.uuid(),
             strategy: z.string(),
             uncompressMaxDepth: z.int(),
@@ -36,7 +36,7 @@ export const ArchiveDispatchEvents = createEventCodes(ARCHIVE_DISPATCH, [
     },
     {
         code: "FAILED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             reason: z.string(),
         }),
     },

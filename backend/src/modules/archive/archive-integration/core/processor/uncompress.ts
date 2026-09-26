@@ -93,14 +93,14 @@ export const archiveUncompressProcessor = defineProcessor(
 export const ArchiveUncompressEvents = createEventCodes(ARCHIVE_UNCOMPRESS, [
     {
         code: "SUCCEEDED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             notifyId: z.uuid(),
             idList: z.uuid().array(),
         }),
     },
     {
         code: "FAILED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             reason: z.string(),
         }),
     },

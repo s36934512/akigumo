@@ -1,6 +1,8 @@
 import { z } from "zod";
+
 import { createEventCodes } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
+
 import { OntologyRegistrySchema } from "../../api/schema.js";
 import * as service from "../service.js";
 
@@ -21,14 +23,14 @@ export const ontologyRegistryProcessor = defineProcessor(
 export const OntologyRegistryEvents = createEventCodes(ONTOLOGY_REGISTRY, [
     {
         code: "SUCCEEDED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             notifyId: z.uuid(),
             idList: z.uuid().array(),
         }),
     },
     {
         code: "FAILED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             reason: z.string(),
         }),
     },

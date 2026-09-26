@@ -25,14 +25,14 @@ export const archiveConceptProcessor = defineProcessor(
 export const ArchiveConceptEvents = createEventCodes(ARCHIVE_CONCEPT, [
     {
         code: "SUCCEEDED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             pool: PoolSchema.array(),
             entryList: ArchiveConceptEntrySchema.array,
         }),
     },
     {
         code: "FAILED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             reason: z.string(),
         }),
     },

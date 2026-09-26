@@ -56,7 +56,7 @@ export const machine = setup({
             on: {
                 ONTOLOGY_REGISTRY_SUCCEEDED: [
                     {
-                        guard: ({ event }) => event.result.idList.length > 0,
+                        guard: ({ event }) => event.data.idList.length > 0,
                         target: "SYNCING_CONCEPT",
                         actions: [
                             "handleRegistrySuccess",

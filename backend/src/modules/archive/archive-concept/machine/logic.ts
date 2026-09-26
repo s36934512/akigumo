@@ -8,7 +8,7 @@ import type { MachineEvents } from "./schema.js";
 export const machineActions = {
     handleSaveSuccess({ event }: { event: MachineEvents }) {
         assertEvent(event, ArchiveConceptEvents.SUCCEEDED);
-        return { pool: event.result.pool, entryList: event.result.entryList };
+        return { pool: event.data.pool, entryList: event.data.entryList };
     },
 
     handleFailure({ event }: { event: MachineEvents }) {
@@ -16,6 +16,6 @@ export const machineActions = {
             return {};
         }
 
-        return { error: event.result.reason };
+        return { error: event.data.reason };
     },
 };

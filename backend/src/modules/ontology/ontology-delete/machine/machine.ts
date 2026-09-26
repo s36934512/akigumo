@@ -55,7 +55,7 @@ export const machine = setup({
             on: {
                 ONTOLOGY_DELETE_SUCCEEDED: [
                     {
-                        guard: ({ event }) => event.result.idList.length > 0,
+                        guard: ({ event }) => event.data.idList.length > 0,
                         target: "SYNCING_CONCEPT",
                         actions: [
                             "handleDeleteSuccess",

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 type EventDefinition = {
     code: string;
-    resultSchema: z.ZodType;
+    dataSchema: z.ZodType;
 };
 
 type EventCodes<
@@ -14,11 +14,11 @@ type EventCodes<
     schemaList: {
         [K in keyof TDefinitions]: TDefinitions[K] extends {
             code: infer TCode extends string;
-            resultSchema: infer TResultSchema extends z.ZodType;
+            dataSchema: infer TDataSchema extends z.ZodType;
         }
             ? z.ZodObject<{
                   type: z.ZodLiteral<`${TProcessor}_${TCode}`>;
-                  result: TResultSchema;
+                  data: TDataSchema;
               }>
             : never;
     };
@@ -31,10 +31,10 @@ export function createEventCodes<
     processorName: TProcessor,
     definitionList: TDefinitions,
 ): EventCodes<TProcessor, TDefinitions> {
-    const schemaList = definitionList.map(({ code, resultSchema }) =>
+    const schemaList = definitionList.map(({ code, dataSchema }) =>
         z.object({
             type: z.literal(`${processorName}_${code}`),
-            result: resultSchema,
+            data: dataSchema,
         }),
     ) as EventCodes<TProcessor, TDefinitions>["schemaList"];
 
@@ -53,11 +53,11 @@ export const GraphIntentCreatedEvents = createEventCodes(
     [
         {
             code: "SUCCEEDED",
-            resultSchema: z.unknown(),
+            dataSchema: z.unknown(),
         },
         {
             code: "FAILED",
-            resultSchema: z.object({
+            dataSchema: z.object({
                 reason: z.string(),
             }),
         },
@@ -67,11 +67,11 @@ export const GraphIntentCreatedEvents = createEventCodes(
 export const PythonEvents = createEventCodes("PYTHON", [
     {
         code: "SUCCEEDED",
-        resultSchema: z.unknown(),
+        dataSchema: z.unknown(),
     },
     {
         code: "FAILED",
-        resultSchema: z.object({
+        dataSchema: z.object({
             reason: z.string(),
         }),
     },
