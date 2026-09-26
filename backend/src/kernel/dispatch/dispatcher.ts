@@ -42,7 +42,22 @@ async function claimPendingOutboxList(maxAttempts: number): Promise<Outbox[]> {
                 updated_at = NOW()
             FROM candidate
             WHERE o.id = candidate.id
-            RETURNING o.*;
+            RETURNING
+                o.id,
+                o.operation,
+                o.priority,
+                o.payload,
+                o.status,
+                o.attempts,
+                o.last_error AS "lastError",
+                o.created_at AS "createdAt",
+                o.updated_at AS "updatedAt",
+                o.scheduled_at AS "scheduledAt",
+                o.workflow_result_processed_at AS "workflowResultProcessedAt",
+                o.workflow_id AS "workflowId",
+                o.processing_started_at AS "processingStartedAt",
+                o.processing_id AS "processingId",
+                o.source_outbox_id AS "sourceOutboxId";
         `;
 
         return rowList;
