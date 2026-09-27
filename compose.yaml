@@ -1,6 +1,8 @@
 services:
   workspace:
-    image: mcr.microsoft.com/devcontainers/javascript-node:22
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
 
     volumes:
       - .:/workspace:cached

@@ -42,3 +42,9 @@ coverage/
 
 # Angular cache
 .angular/
+
+# Python
+python/.venv/
+python/*.egg-info/
+__pycache__/
+*.py[cod]
