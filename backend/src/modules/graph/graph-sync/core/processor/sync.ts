@@ -27,7 +27,7 @@ export const createProcessor = (
             const request = GraphRefinementRequestSchema.parse({
                 version: "1.0.0",
                 workflowId: input.context.workflowId,
-                intentOutboxId: input.context.sourceOutboxId,
+                intentOutboxId: input.metadata.outboxId,
                 operation: task.taskType,
                 payload: task.payload,
             });
