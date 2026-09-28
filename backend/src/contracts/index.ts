@@ -7,6 +7,7 @@ export {
     type ConceptRegistry,
     ConceptRegistrySchema,
 } from "./concept/registry.js";
+export { type ErrorDetail, ErrorDetailSchema } from "./error.js";
 
 export {
     GraphOperationFailureResultsSchema,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ErrorDetailSchema } from "./error.js";
 
 const GRAPH_REFINEMENT_REQUEST_VERSION = "1.0.0";
 const GRAPH_OPERATION_RESULT_VERSION = "1.0.0";
@@ -12,11 +13,7 @@ export const GraphOperationSuccessResultsSchema = z.object({
 
 export const GraphOperationFailureResultsSchema = z.object({
     status: z.literal("FAILURE"),
-    error: z.object({
-        type: z.string(),
-        message: z.string(),
-        details: z.unknown().optional(),
-    }),
+    error: ErrorDetailSchema,
 });
 
 export const GraphOperationResultPayloadSchema = z.discriminatedUnion(

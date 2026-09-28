@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ErrorDetailSchema } from "./error.js";
 
 export const RESULT_STATUS = {
     SUCCESS: "SUCCESS",
@@ -12,7 +13,7 @@ const SuccessResultSchema = z.object({
 
 const FailureResultSchema = z.object({
     status: z.literal(RESULT_STATUS.FAILURE),
-    error: z.unknown(),
+    error: ErrorDetailSchema,
 });
 
 export const ResultSchema = z.discriminatedUnion("status", [
