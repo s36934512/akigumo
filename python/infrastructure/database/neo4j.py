@@ -29,7 +29,9 @@ class Neo4jClient:
                 connection_timeout=30,
             )
 
-            await self.verify_connectivity()
+            if not await self.verify_connectivity():
+                raise ConnectionError("Neo4j connectivity check failed")
+
             self._connected = True
 
             self.logger.info("Connected to Neo4j")
