@@ -2,14 +2,23 @@ import { logger } from "#app/infrastructure/logger/index.js";
 
 type Dispatch = () => Promise<void>;
 
-export function createDispatchRuntime(dispatch: Dispatch) {
+interface DispatchRuntimeConfig {
+    pollIntervalMs: number;
+}
+
+export function createDispatchRuntime(
+    dispatch: Dispatch,
+    config: DispatchRuntimeConfig,
+) {
     let dispatchRunning = false;
     let dispatchRequested = false;
+    let stopped = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     const requestDispatch = (): void => {
         dispatchRequested = true;
 
-        if (dispatchRunning) {
+        if (dispatchRunning || stopped) {
             return;
         }
 
@@ -17,7 +26,7 @@ export function createDispatchRuntime(dispatch: Dispatch) {
     };
 
     async function runDispatch(): Promise<void> {
-        if (dispatchRunning) {
+        if (dispatchRunning || stopped) {
             return;
         }
 
@@ -28,7 +37,7 @@ export function createDispatchRuntime(dispatch: Dispatch) {
                 dispatchRequested = false;
 
                 await dispatch();
-            } while (dispatchRequested);
+            } while (dispatchRequested && !stopped);
         } catch (error: unknown) {
             logger.error({ error }, "處理待辦任務失敗");
         } finally {
@@ -36,7 +45,45 @@ export function createDispatchRuntime(dispatch: Dispatch) {
         }
     }
 
+    function schedulePoll(): void {
+        if (stopped) {
+            return;
+        }
+
+        timer = setTimeout(() => {
+            requestDispatch();
+            schedulePoll();
+        }, config.pollIntervalMs);
+    }
+
+    function start(): void {
+        if (!stopped) {
+            return;
+        }
+
+        stopped = false;
+        requestDispatch();
+        schedulePoll();
+    }
+
+    async function stop(): Promise<void> {
+        stopped = true;
+
+        if (timer !== undefined) {
+            clearTimeout(timer);
+            timer = undefined;
+        }
+
+        while (dispatchRunning) {
+            await new Promise<void>((resolve) => {
+                setTimeout(resolve, 10);
+            });
+        }
+    }
+
     return {
+        start,
+        stop,
         requestDispatch,
     };
 }

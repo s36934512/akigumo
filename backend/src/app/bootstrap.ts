@@ -52,7 +52,9 @@ export async function bootstrap(): Promise<{
         config: kernelConfig,
     });
 
-    const dispatchRuntime = createDispatchRuntime(dispatch);
+    const dispatchRuntime = createDispatchRuntime(dispatch, {
+        pollIntervalMs: kernelConfig.dispatchPollIntervalMs,
+    });
 
     // Workflow
     const workflowStore = new PrismaWorkflowStore(prisma);
@@ -78,6 +80,7 @@ export async function bootstrap(): Promise<{
 
     registerProcessor(graphSyncProcessor);
 
+    dispatchRuntime.start();
     await outboxListener.start(dispatchRuntime.requestDispatch);
 
     logger.info({ label: "Kernel" }, "秋雲 Akigumo 系統內核已完全啟動");
@@ -85,6 +88,7 @@ export async function bootstrap(): Promise<{
     return {
         stop: async () => {
             await outboxListener.stop();
+            await dispatchRuntime.stop();
             await workflowResultMq.stop();
             await graphRefinementMq.stop();
             await taskQueue.close();
