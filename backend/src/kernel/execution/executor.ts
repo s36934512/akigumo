@@ -5,6 +5,7 @@ import {
     RESULT_STATUS,
     type Result,
     WORKFLOW_RESULT_VERSION,
+    type WorkflowResult,
     WorkflowResultSchema,
 } from "#app/contracts/index.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
@@ -14,17 +15,10 @@ import { OutboxStatus } from "#generated/prisma/enums.js";
 import type { WorkflowResultPublisher } from "../port/workflow-result-publisher.js";
 import type { Task } from "../task/task.js";
 import { NonRetryableError } from "./error.js";
-import {
-    handleFatalError,
-    handleRetryableError,
-    normalizeError,
-    serializeError,
-} from "./failure.js";
+import { toErrorDetail } from "./error-detail.js";
+import { handleFatalError, handleRetryableError } from "./failure.js";
 import type { ProcessorDefinition } from "./processor.js";
 
-/**
- * Type guard used to safely check for non-retryable error markers without using `any`.
- */
 function isNonRetryable(error: unknown): error is NonRetryableError {
     return error instanceof NonRetryableError;
 }
@@ -69,14 +63,13 @@ async function completeOutboxTask(task: Task<unknown>): Promise<void> {
 async function publishFailureResult(
     publisher: WorkflowResultPublisher,
     task: Task<unknown>,
-    error: unknown,
+    result: Result,
 ): Promise<void> {
+    const workflowResult = createWorkflowResult(task, result);
+
     try {
-        await sendWorkflowResult(publisher, task, {
-            status: RESULT_STATUS.FAILURE,
-            error,
-        });
-    } catch (publishError: unknown) {
+        await publisher.publish(workflowResult);
+    } catch (error: unknown) {
         /*
          * The task has already been marked FAILED.
          *
@@ -91,7 +84,7 @@ async function publishFailureResult(
             {
                 outboxId: task.metadata.outboxId,
                 workflowId: task.context.workflowId,
-                error: serializeError(publishError),
+                err: error,
             },
             "Failed to publish workflow failure result",
         );
@@ -114,12 +107,38 @@ async function handleProcessorFailure(
 ): Promise<void> {
     if (isNonRetryable(error)) {
         await handleFatalError(task.metadata, error.message);
-        await publishFailureResult(publisher, task, error);
+        await publishFailureResult(publisher, task, {
+            status: RESULT_STATUS.FAILURE,
+            error: toErrorDetail(error),
+        });
 
         return;
     }
 
-    await handleRetryableError(task.metadata, serializeError(error), config);
+    await handleRetryableError(task.metadata, error, config);
+}
+
+/**
+ * Creates and validates a WorkflowResult.
+ *
+ * Result is already the exact payload of WorkflowResult.result.
+ * Contract validation is performed before the result reaches the publisher.
+ */
+function createWorkflowResult<TPayload>(
+    task: Task<TPayload>,
+    result: Result,
+): WorkflowResult {
+    const workflowResult = {
+        version: WORKFLOW_RESULT_VERSION,
+        workflowId: task.context.workflowId,
+        source: {
+            operation: task.context.operation,
+            outboxId: task.metadata.outboxId,
+        },
+        result,
+    };
+
+    return WorkflowResultSchema.parse(workflowResult);
 }
 
 /**
@@ -175,76 +194,41 @@ export async function executeKernelTask<TSchema extends z.ZodType>(
         return;
     }
 
-    try {
-        await sendWorkflowResult(publisher, task, {
-            status: RESULT_STATUS.SUCCESS,
-            data: logicResult,
-        });
-    } catch (error: unknown) {
-        /*
-         * Processor already succeeded.
-         *
-         * Because result delivery is not durably separated from task
-         * execution yet, retrying the task may execute the processor again.
-         * This is intentional at-least-once semantics.
-         */
-        await handleRetryableError(
-            validatedTask.metadata,
-            serializeError(error),
-            kernelConfig,
-        );
+    /*
+     * WorkflowResult construction and validation happen before entering
+     * the delivery try/catch.
+     *
+     * Therefore errors thrown here are contract/construction errors,
+     * not delivery failures, and are not treated as retryable transport
+     * failures.
+     */
+    const workflowResult = createWorkflowResult(validatedTask, {
+        status: RESULT_STATUS.SUCCESS,
+        data: logicResult,
+    });
 
+    try {
+        /*
+         * At this point the WorkflowResult has already been validated.
+         *
+         * A failure here represents result delivery failure and can be
+         * retried. Retrying may execute the processor again, which is
+         * intentional under at-least-once semantics.
+         */
+        await publisher.publish(workflowResult);
+    } catch (error: unknown) {
+        await handleRetryableError(validatedTask.metadata, error, kernelConfig);
         return;
     }
 
     try {
+        /*
+         * The WorkflowResult has already been delivered successfully, but
+         * durable task completion failed. Retrying may execute the
+         * processor again, so processors must be idempotent.
+         */
         await completeOutboxTask(validatedTask);
     } catch (error: unknown) {
-        /*
-         * Result was already delivered successfully, but durable task
-         * completion failed. Retrying may execute the processor again.
-         * Processor implementations must therefore be idempotent.
-         */
-        await handleRetryableError(
-            validatedTask.metadata,
-            serializeError(error),
-            kernelConfig,
-        );
+        await handleRetryableError(validatedTask.metadata, error, kernelConfig);
     }
-}
-
-/**
- * Sends the normalized processor result through the Workflow result port.
- *
- * WorkflowResultSchema belongs to the shared contract boundary. Kernel
- * validates the message before handing it to the publisher.
- */
-async function sendWorkflowResult<TPayload = unknown>(
-    publisher: WorkflowResultPublisher,
-    task: Task<TPayload>,
-    result: Result,
-): Promise<void> {
-    const workflowResult = {
-        version: WORKFLOW_RESULT_VERSION,
-        workflowId: task.context.workflowId,
-        source: {
-            operation: task.context.operation,
-            outboxId: task.metadata.outboxId,
-        },
-        result:
-            result.status === RESULT_STATUS.FAILURE
-                ? {
-                      ...result,
-                      error: normalizeError(result.error),
-                  }
-                : result,
-    };
-
-    const parseResult = WorkflowResultSchema.safeParse(workflowResult);
-
-    if (!parseResult.success) {
-        throw new NonRetryableError(parseResult.error.message);
-    }
-
-    await publisher.publish(parseResult.data);
 }

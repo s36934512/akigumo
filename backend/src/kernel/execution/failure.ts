@@ -31,9 +31,12 @@ export async function handleFatalError(
 
 export async function handleRetryableError(
     execution: TaskExecutionIdentity,
-    errorString: string,
+    error: unknown,
     config: typeof kernelConfig,
 ): Promise<void> {
+    const errorString =
+        error instanceof Error ? (error.stack ?? error.message) : String(error);
+
     await prisma.$executeRaw`
         UPDATE "outbox"
         SET
@@ -59,18 +62,6 @@ export async function handleRetryableError(
             AND processing_id = ${execution.processingId}::uuid
             AND status = 'PROCESSING'::"OutboxStatus";
     `;
-}
-
-export function serializeError(error: unknown): string {
-    if (error instanceof Error) {
-        return error.stack ?? error.message;
-    }
-
-    try {
-        return JSON.stringify(error);
-    } catch {
-        return String(error);
-    }
 }
 
 export function normalizeError(error: unknown): unknown {
