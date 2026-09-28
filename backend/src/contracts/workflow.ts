@@ -76,3 +76,19 @@ export const PythonEvents = createEventCodes("PYTHON", [
         }),
     },
 ]);
+
+export const GraphOperationResultEvents = createEventCodes(
+    "GRAPH_OPERATION_RESULT",
+    [
+        {
+            code: "SUCCEEDED",
+            dataSchema: z.unknown(),
+        },
+        {
+            code: "FAILED",
+            dataSchema: z.object({
+                reason: z.string(),
+            }),
+        },
+    ],
+);

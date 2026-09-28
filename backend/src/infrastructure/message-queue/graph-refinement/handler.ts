@@ -27,7 +27,7 @@ export class GraphRefinementResultWorker {
             workflowId: result.workflowId,
             sourceOutboxId: result.intentOutboxId,
             operation: GRAPH_OPERATION_RESULT,
-            payload: JSON.parse(JSON.stringify(result.result)),
+            payload: JSON.parse(JSON.stringify(result)),
         };
     }
 }

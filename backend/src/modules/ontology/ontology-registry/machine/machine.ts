@@ -77,7 +77,7 @@ export const machine = setup({
                     actions: "clearNextIntent",
                 },
 
-                PYTHON_SUCCEEDED: {
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
                     actions: "clearNextIntent",
                 },

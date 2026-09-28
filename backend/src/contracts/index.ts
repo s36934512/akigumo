@@ -9,8 +9,11 @@ export {
 } from "./concept/registry.js";
 
 export {
+    GraphOperationFailureResultsSchema,
     type GraphOperationResult,
+    GraphOperationResultPayloadSchema,
     GraphOperationResultSchema,
+    GraphOperationSuccessResultsSchema,
     type GraphRefinementRequest,
     GraphRefinementRequestSchema,
 } from "./graph-refinement.js";
@@ -24,7 +27,7 @@ export {
 export {
     createEventCodes,
     GraphIntentCreatedEvents,
-    PythonEvents,
+    GraphOperationResultEvents,
 } from "./workflow.js";
 
 export {
