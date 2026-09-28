@@ -170,7 +170,7 @@ class BatchProcessor:
     ) -> list[dict[str, Any]]:
         """Build execution results for failed requests."""
         error_data = {
-            "type": type(error).__name__,
+            "code": type(error).__name__,
             "message": str(error),
         }
 
