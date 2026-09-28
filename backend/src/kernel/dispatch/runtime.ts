@@ -38,8 +38,8 @@ export function createDispatchRuntime(
 
                 await dispatch();
             } while (dispatchRequested && !stopped);
-        } catch (error: unknown) {
-            logger.error({ error }, "處理待辦任務失敗");
+        } catch (error) {
+            logger.error({ err: error }, "處理待辦任務失敗");
         } finally {
             dispatchRunning = false;
         }

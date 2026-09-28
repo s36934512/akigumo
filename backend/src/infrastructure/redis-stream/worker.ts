@@ -139,7 +139,8 @@ export class RedisStreamWorker {
                 const messageId = message[0];
 
                 this.log.error(
-                    `Failed to decode Redis Stream message ${messageId}: ${error}`,
+                    { err: error, messageId },
+                    "Failed to decode Redis Stream message",
                 );
             }
         }
@@ -159,7 +160,8 @@ export class RedisStreamWorker {
             await this.acknowledgeMessage(message);
         } catch (error) {
             this.log.error(
-                `Stream message processing failed: ${message.id}: ${error}`,
+                { err: error, messageId: message.id },
+                "Stream message processing failed",
             );
         }
     }
@@ -273,7 +275,7 @@ export class RedisStreamWorker {
              * Background maintenance 不應因單次 Redis
              * 錯誤而停止。
              */
-            this.log.error(`Redis Stream trimming failed: ${error}`);
+            this.log.error({ err: error }, "Redis Stream trimming failed");
         }
     }
 
@@ -373,7 +375,10 @@ export class RedisStreamWorker {
                     break;
                 }
 
-                this.log.error(`Redis Stream worker loop failed: ${error}`);
+                this.log.error(
+                    { err: error },
+                    "Redis Stream worker loop failed",
+                );
 
                 await new Promise((resolve) => setTimeout(resolve, 1000));
             }

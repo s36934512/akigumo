@@ -6,6 +6,7 @@ import fs from "fs-extra";
 import pLimit from "p-limit";
 
 import { prisma } from "#app/infrastructure/database/prisma.js";
+import { logger } from "#app/infrastructure/logger/index.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import type {
     ArchiveCreateManyInput,
@@ -112,13 +113,20 @@ export async function moveMassiveFiles(files: MassiveInput) {
                         overwrite: true,
                     });
                 } catch (error) {
-                    console.error(`搬移失敗: ${file}`, error);
+                    logger.error(
+                        {
+                            err: error,
+                            sourcePath: file.sourcePath,
+                            targetPath: file.targetPath,
+                        },
+                        "Failed to move file",
+                    );
                 }
             });
         });
 
         await Promise.all(moveTasks);
-    } catch (err) {
-        console.error("執行過程中發生重大錯誤:", err);
+    } catch (error) {
+        logger.error({ err: error }, "Massive file move operation failed");
     }
 }
