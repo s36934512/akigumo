@@ -5,6 +5,7 @@ import { createWorkflowEvent } from "./event/index.js";
 import type { WorkflowStore } from "./port/workflow-store.js";
 import {
     createWorkflowMachineFromState,
+    executeWorkflowEvent,
     serializeWorkflowSnapshot,
 } from "./state.js";
 
@@ -59,33 +60,25 @@ export function createWorkflowEngine(store: WorkflowStore) {
 
                     return;
                 }
+
                 try {
                     const actor = createWorkflowMachineFromState(workflow);
+                    const event = createWorkflowEvent(message);
 
-                    try {
-                        actor.start();
+                    const nextSnapshot = executeWorkflowEvent(actor, event);
+                    const nextIntent = nextSnapshot.context.nextIntent;
 
-                        const event = createWorkflowEvent(message);
+                    await tx.updateWorkflowState({
+                        workflowId: message.workflowId,
+                        status: String(nextSnapshot.value),
+                        snapshot: serializeWorkflowSnapshot(nextSnapshot),
+                    });
 
-                        actor.send(event);
-
-                        const nextSnapshot = actor.getSnapshot();
-                        const nextIntent = nextSnapshot.context.nextIntent;
-
-                        await tx.updateWorkflowState({
+                    if (nextIntent) {
+                        await tx.createOutbox({
                             workflowId: message.workflowId,
-                            status: String(nextSnapshot.value),
-                            snapshot: serializeWorkflowSnapshot(nextSnapshot),
+                            ...nextIntent,
                         });
-
-                        if (nextIntent) {
-                            await tx.createOutbox({
-                                workflowId: message.workflowId,
-                                ...nextIntent,
-                            });
-                        }
-                    } finally {
-                        actor.stop();
                     }
                 } catch (error) {
                     await tx.recordWorkflowError({

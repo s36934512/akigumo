@@ -28,10 +28,4 @@ export const OntologyRegistryEvents = createEventCodes(ONTOLOGY_REGISTRY, [
             idList: z.uuid().array(),
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);

@@ -61,3 +61,38 @@ export function createWorkflowMachineFromState(workflow: WorkflowState) {
         snapshot: getSnapshot(workflow.snapshot),
     });
 }
+
+/**
+ * Executes one event against a Workflow actor.
+ *
+ * XState actor errors are reported through the actor error subscription
+ * rather than being propagated through actor.send().
+ */
+export function executeWorkflowEvent<
+    TActor extends ReturnType<typeof createWorkflowMachineFromState>,
+    TEvent extends Parameters<TActor["send"]>[0],
+>(actor: TActor, event: TEvent) {
+    let hasActorError = false;
+    let actorError: unknown;
+
+    const subscription = actor.subscribe({
+        error: (error) => {
+            hasActorError = true;
+            actorError = error;
+        },
+    });
+
+    try {
+        actor.start();
+        actor.send(event);
+
+        if (hasActorError) {
+            throw actorError;
+        }
+
+        return actor.getSnapshot();
+    } finally {
+        subscription.unsubscribe();
+        actor.stop();
+    }
+}
