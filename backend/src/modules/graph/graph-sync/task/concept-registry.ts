@@ -24,7 +24,7 @@ export const conceptRegistryTask = defineGraphSyncTask({
         }
 
         return {
-            taskType: "ConceptExecutor",
+            taskType: "ConceptRegistryExecutor",
             payload: conceptList.map((concept) => {
                 return buildTask({
                     conceptId: concept.id,
