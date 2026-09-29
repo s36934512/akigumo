@@ -9,6 +9,9 @@ from infrastructure.message_queue.publisher import ResultPublisher
 from infrastructure.database.neo4j import Neo4jClient
 
 
+PYTHON_JOB_RESULT_VERSION = "1.0.0"
+
+
 class BatchProcessor:
     """Processes batches of graph refinement tasks."""
 
@@ -150,6 +153,7 @@ class BatchProcessor:
 
         return [
             {
+                "version": PYTHON_JOB_RESULT_VERSION,
                 "workflowId": request["_workflowId"],
                 "intentOutboxId": request["_intentOutboxId"],
                 "status": "SUCCESS",
@@ -176,6 +180,7 @@ class BatchProcessor:
 
         return [
             {
+                "version": PYTHON_JOB_RESULT_VERSION,
                 "workflowId": request["_workflowId"],
                 "intentOutboxId": request["_intentOutboxId"],
                 "status": "FAILURE",
