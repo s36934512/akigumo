@@ -12,7 +12,7 @@ class ConceptRegistryExecutor(GenericNodeBase):
         UNWIND request.payload AS data
         {self._merge_concept}
 
-        RETURN DISTINCT request._intentOutboxId AS intentOutboxId
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """
 
 
@@ -28,7 +28,7 @@ class ConceptDeleteExecutor(GenericNodeBase):
         MATCH (c:Concept {{id: data.conceptId}})
         SET c:Delete
 
-        RETURN DISTINCT request._intentOutboxId AS intentOutboxId
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """
 
 

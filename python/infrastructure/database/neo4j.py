@@ -74,7 +74,7 @@ class Neo4jClient:
         self,
         query: str,
         parameters: dict[str, Any] | None = None,
-    ) -> int:
+    ) -> list[dict[str, Any]]:
         if self.driver is None:
             await self.connect()
 
@@ -87,16 +87,8 @@ class Neo4jClient:
                     query,
                     parameters or {},
                 )
-                summary = await result.consume()
 
-                counters = summary.counters
-
-                return (
-                    counters.nodes_created
-                    + counters.nodes_deleted
-                    + counters.relationships_created
-                    + counters.relationships_deleted
-                )
+                return [record.data() async for record in result]
 
         except Exception:
             self.logger.exception(

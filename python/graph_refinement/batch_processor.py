@@ -60,8 +60,8 @@ class BatchProcessor:
 
             request_groups[operation].append(
                 {
-                    "_workflowId": request["workflowId"],
-                    "_intentOutboxId": request["intentOutboxId"],
+                    "workflowId": request["workflowId"],
+                    "intentOutboxId": request["intentOutboxId"],
                     "payload": request["payload"],
                 }
             )
@@ -154,12 +154,12 @@ class BatchProcessor:
         return [
             {
                 "version": PYTHON_JOB_RESULT_VERSION,
-                "workflowId": request["_workflowId"],
-                "intentOutboxId": request["_intentOutboxId"],
+                "workflowId": request["workflowId"],
+                "intentOutboxId": request["intentOutboxId"],
                 "status": "SUCCESS",
                 "execution": {
                     "records": records_by_intent.get(
-                        request["_intentOutboxId"],
+                        request["intentOutboxId"],
                         [],
                     ),
                 },
@@ -181,8 +181,8 @@ class BatchProcessor:
         return [
             {
                 "version": PYTHON_JOB_RESULT_VERSION,
-                "workflowId": request["_workflowId"],
-                "intentOutboxId": request["_intentOutboxId"],
+                "workflowId": request["workflowId"],
+                "intentOutboxId": request["intentOutboxId"],
                 "status": "FAILURE",
                 "error": error_data,
             }
