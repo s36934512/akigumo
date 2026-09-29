@@ -18,6 +18,7 @@ export const machine = setup({
     },
     actions: {
         handleDeleteSuccess: assign(machineActions.handleDeleteSuccess),
+
         handleFailure: assign(machineActions.handleFailure),
 
         prepareGraphSyncIntent: assign(({ context }) => {
@@ -75,7 +76,8 @@ export const machine = setup({
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
                 },
-                PYTHON_SUCCEEDED: {
+
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
                     actions: ["clearNextIntent"],
                 },
@@ -83,7 +85,7 @@ export const machine = setup({
         },
 
         SUCCESS: {
-            entry: ["clearNextIntent"],
+            entry: "clearNextIntent",
             type: "final",
         },
 

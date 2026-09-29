@@ -24,10 +24,4 @@ export const OntologyDeleteEvents = createEventCodes(ONTOLOGY_DELETE, [
             idList: z.uuid().array(),
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);
