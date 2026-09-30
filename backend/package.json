@@ -21,6 +21,8 @@
         "@keyv/redis": "^5.1.6",
         "@prisma/adapter-pg": "^7.10.0",
         "@prisma/client": "^7.10.0",
+        "@tus/file-store": "^2.1.1",
+        "@tus/server": "^2.4.5",
         "bullmq": "^6.3.8",
         "cache-manager": "^7.2.9",
         "cacheable": "^2.5.0",
