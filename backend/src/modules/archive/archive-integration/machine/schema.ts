@@ -5,7 +5,7 @@
 import { z } from "@hono/zod-openapi";
 import {
     GraphIntentCreatedEvents,
-    PythonEvents,
+    GraphOperationResultEvents,
 } from "#app/contracts/index.js";
 import { MachineContextSchema } from "#app/workflow/index.js";
 
@@ -46,7 +46,7 @@ export const EVENT_SCHEMA_LIST = [
     ...ArchiveTranscodeEvents.schemaList,
     ...ArchiveUncompressEvents.schemaList,
     ...GraphIntentCreatedEvents.schemaList,
-    ...PythonEvents.schemaList,
+    ...GraphOperationResultEvents.schemaList,
 ] as const;
 
 export const EventsSchema = z.discriminatedUnion("type", EVENT_SCHEMA_LIST);

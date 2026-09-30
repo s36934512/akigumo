@@ -30,10 +30,4 @@ export const ArchiveConceptEvents = createEventCodes(ARCHIVE_CONCEPT, [
             entryList: ArchiveConceptEntrySchema.array,
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);

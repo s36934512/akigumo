@@ -25,10 +25,4 @@ export const ArchiveTranscodeEvents = createEventCodes(ARCHIVE_TRANSCODE, [
             idList: z.uuid().array(),
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);

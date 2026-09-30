@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
     GraphIntentCreatedEvents,
-    PythonEvents,
+    GraphOperationResultEvents,
 } from "#app/contracts/index.js";
 import { MachineContextSchema } from "#app/workflow/index.js";
 import { OntologyEditorEvents } from "../core/index.js";
@@ -16,7 +16,7 @@ export type MachineContext = z.infer<typeof ContextSchema>;
 export const EVENT_SCHEMA_LIST = [
     ...OntologyEditorEvents.schemaList,
     ...GraphIntentCreatedEvents.schemaList,
-    ...PythonEvents.schemaList,
+    ...GraphOperationResultEvents.schemaList,
 ] as const;
 
 export const EventsSchema = z.discriminatedUnion("type", EVENT_SCHEMA_LIST);

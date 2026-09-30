@@ -84,13 +84,6 @@ export const GraphIntentCreatedEvents = createEventCodes(
     ],
 );
 
-export const PythonEvents = createEventCodes("PYTHON", [
-    {
-        code: "SUCCEEDED",
-        dataSchema: z.unknown(),
-    },
-]);
-
 export const GraphOperationResultEvents = createEventCodes(
     "GRAPH_OPERATION_RESULT",
     [

@@ -32,17 +32,21 @@ export const machine = setup({
             if (!context.strategy.shouldUncompress) return false;
             return context.processingProgress.totalIds.length === 0;
         },
+
         shouldStartTranscode: ({ context }) => {
             if (!context.strategy.shouldTranscode) return false;
             return context.processingProgress.totalIds.length === 0;
         },
+
         shouldFailUnhandledEvent,
+
         isAllFilesDone: ({ context }) => {
             const { totalIds, successIds, failedIds } =
                 context.processingProgress;
+
             return (
                 totalIds.length > 0 &&
-                successIds.length + failedIds.length + 1 === totalIds.length
+                successIds.length + failedIds.length === totalIds.length
             );
         },
     },
@@ -173,7 +177,7 @@ export const machine = setup({
             };
         }),
 
-        // completedNotify: assign(actions.completedNotify),
+        completedNotify: assign(actions.completedNotify),
 
         handleFailure: assign(actions.handleFailure),
 
@@ -252,7 +256,7 @@ export const machine = setup({
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextTask",
                 },
-                PYTHON_SUCCEEDED: {
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "WAITING_PROCESSING",
                     actions: "prepareRecursiveUncompressTask",
                 },
@@ -260,19 +264,19 @@ export const machine = setup({
         },
         WAITING_PROCESSING: {
             on: {
-                PYTHON_SUCCEEDED: {
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     actions: "clearNextTask",
                 },
                 ARCHIVE_NOTIFY_SUCCESS: [
                     {
-                        guard: "isAllFilesDone",
-                        target: "STORAGE",
-                        actions: "completedNotify",
-                    },
-                    {
                         actions: "completedNotify",
                     },
                 ],
+            },
+
+            always: {
+                guard: "isAllFilesDone",
+                target: "STORAGE",
             },
         },
         TRANSCODING: {
@@ -297,7 +301,7 @@ export const machine = setup({
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextTask",
                 },
-                PYTHON_SUCCEEDED: {
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "NOTIFY_PARENT",
                     actions: "clearNextTask",
                 },
@@ -306,7 +310,7 @@ export const machine = setup({
         NOTIFY_PARENT: {
             entry: "prepareNotifyParent",
             on: {
-                PYTHON_SUCCEEDED: {
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
                 },
             },

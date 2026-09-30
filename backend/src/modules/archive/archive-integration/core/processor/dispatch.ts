@@ -34,10 +34,4 @@ export const ArchiveDispatchEvents = createEventCodes(ARCHIVE_DISPATCH, [
             notifyId: z.uuid(),
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);

@@ -60,57 +60,57 @@ export const actions = {
         };
     },
 
-    // completedNotify({
-    //     context,
-    //     event,
-    // }: {
-    //     context: MachineContext;
-    //     event: MachineEvents;
-    // }) {
-    //     assertEvent(event, EventCode.ARCHIVE_NOTIFY_SUCCESS);
-    //     const fileId = event.payload.fileId;
-    //     const { successIds, failedIds } = context.processingProgress;
+    completedNotify({
+        context,
+        event,
+    }: {
+        context: MachineContext;
+        event: MachineEvents;
+    }) {
+        // assertEvent(event, EventCode.ARCHIVE_NOTIFY_SUCCESS);
+        // const fileId = event.payload.fileId;
+        const { successIds } = context.processingProgress;
 
-    //     if (!context.processingProgress.totalIds.includes(fileId)) {
-    //         logger.warn(
-    //             { fileId },
-    //             "Received notify success for fileId not in totalIds, skipping notification",
-    //         );
-    //         return context;
-    //     }
-    //     if (successIds.includes(fileId) || failedIds.includes(fileId)) {
-    //         logger.warn(
-    //             { fileId },
-    //             "Received notify success for fileId already in successIds or failedIds, skipping notification",
-    //         );
-    //         return context;
-    //     }
+        // if (!context.processingProgress.totalIds.includes(fileId)) {
+        //     logger.warn(
+        //         { fileId },
+        //         "Received notify success for fileId not in totalIds, skipping notification",
+        //     );
+        //     return context;
+        // }
+        // if (successIds.includes(fileId) || failedIds.includes(fileId)) {
+        //     logger.warn(
+        //         { fileId },
+        //         "Received notify success for fileId already in successIds or failedIds, skipping notification",
+        //     );
+        //     return context;
+        // }
 
-    //     // 修正：不再手動組裝 PATCH，直接呼叫統一的補全通知器
-    //     // 這樣當檔案狀態變更為 COMPLETED 時，前端能收到包含新 Metadata 的完整實體
-    //     // notifyIndexPatchesForFileIds(
-    //     //     context.notifyUploadId || 'unknown',
-    //     //     [fileId]
-    //     // ).catch((err) => {
-    //     //     logger.error({ err, fileId }, 'Failed to publish refreshed file INDEX_PATCH');
-    //     // });
+        // 修正：不再手動組裝 PATCH，直接呼叫統一的補全通知器
+        // 這樣當檔案狀態變更為 COMPLETED 時，前端能收到包含新 Metadata 的完整實體
+        // notifyIndexPatchesForFileIds(
+        //     context.notifyUploadId || 'unknown',
+        //     [fileId]
+        // ).catch((err) => {
+        //     logger.error({ err, fileId }, 'Failed to publish refreshed file INDEX_PATCH');
+        // });
 
-    //     // PROGRESS 事件保持，用於進度條
-    //     // notifyClient({
-    //     //     notifyUploadId: context.notifyUploadId || 'unknown',
-    //     //     type: 'PROGRESS',
-    //     //     payload: { processedDelta: 1, fileId },
-    //     // }).catch((err) => {
-    //     //     logger.error({ err, fileId }, 'Failed to publish PROGRESS SSE event');
-    //     // });
+        // PROGRESS 事件保持，用於進度條
+        // notifyClient({
+        //     notifyUploadId: context.notifyUploadId || 'unknown',
+        //     type: 'PROGRESS',
+        //     payload: { processedDelta: 1, fileId },
+        // }).catch((err) => {
+        //     logger.error({ err, fileId }, 'Failed to publish PROGRESS SSE event');
+        // });
 
-    //     return {
-    //         processingProgress: {
-    //             ...context.processingProgress,
-    //             successIds: [...successIds, fileId],
-    //         },
-    //     };
-    // },
+        return {
+            processingProgress: {
+                ...context.processingProgress,
+                successIds: [...successIds],
+            },
+        };
+    },
 
     // async notifyFrontend({ context }: { context: MachineContext }) {
     //     if (!context.notifyId || !context.fileId) return;
@@ -135,6 +135,6 @@ export const actions = {
             return {};
         }
 
-        return { error: event.data.reason };
+        return { error: event.error };
     },
 };

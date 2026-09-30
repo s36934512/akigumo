@@ -44,10 +44,4 @@ export const ArchiveStorageEvents = createEventCodes(ARCHIVE_STORAGE, [
             idList: z.uuid().array(),
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);

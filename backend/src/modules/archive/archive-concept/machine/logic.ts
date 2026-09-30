@@ -16,6 +16,6 @@ export const machineActions = {
             return {};
         }
 
-        return { error: event.data.reason };
+        return { error: event.error };
     },
 };

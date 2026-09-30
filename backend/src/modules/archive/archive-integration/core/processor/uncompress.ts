@@ -98,10 +98,4 @@ export const ArchiveUncompressEvents = createEventCodes(ARCHIVE_UNCOMPRESS, [
             idList: z.uuid().array(),
         }),
     },
-    {
-        code: "FAILED",
-        dataSchema: z.object({
-            reason: z.string(),
-        }),
-    },
 ]);
