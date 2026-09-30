@@ -1,9 +1,11 @@
 import { Component, inject, signal } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
+
+import { UploadTestComponent } from "./core/upload/uppy-upload.component";
 import { ApiService } from "./services/api.service";
 
 @Component({
-    imports: [RouterOutlet],
+    imports: [RouterOutlet, UploadTestComponent],
     selector: "app-root",
     styleUrl: "./app.scss",
     templateUrl: "./app.html",
