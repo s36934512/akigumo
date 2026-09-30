@@ -8,26 +8,26 @@ class GenericNodeBase(BaseExecutor):
     def _merge_file(self):
         return """
         MERGE (f:File {id: data.fileId})
-        ON CREATE SET f.createdTime = datetime()
-        ON MATCH SET f.updatedTime = datetime()
+        ON CREATE SET f.createdAt = datetime()
+        ON MATCH SET f.updatedAt = datetime()
         SET f += data.fileProps
         """
 
     @property
     def _merge_file_container(self) -> str:
         return """
-        MERGE (i:Item:FileContainer {id: data.itemId})
-        ON CREATE SET i.createdTime = datetime()
-        ON MATCH SET i.updatedTime = datetime()
-        SET i += data.itemProps
+        MERGE (i:Item:FileContainer {id: data.archiveId})
+        ON CREATE SET i.createdAt = datetime()
+        ON MATCH SET i.updatedAt = datetime()
+        SET i += data.archiveProps
         """
 
     @property
     def _merge_work(self) -> str:
         return """
         MERGE (i:Item:Work {id: data.itemId})
-        ON CREATE SET i.createdTime = datetime()
-        ON MATCH SET i.updatedTime = datetime()
+        ON CREATE SET i.createdAt = datetime()
+        ON MATCH SET i.updatedAt = datetime()
         SET i += data.itemProps
         """
 
@@ -35,8 +35,8 @@ class GenericNodeBase(BaseExecutor):
     def _merge_concept(self) -> str:
         return """
         MERGE (c:Concept {id: data.conceptId})
-        ON CREATE SET c.createdTime = datetime()
-        ON MATCH SET c.updatedTime = datetime()
+        ON CREATE SET c.createdAt = datetime()
+        ON MATCH SET c.updatedAt = datetime()
         SET c += data.conceptProps
         """
 
@@ -44,7 +44,7 @@ class GenericNodeBase(BaseExecutor):
     def _merge_user(self) -> str:
         return """
         MERGE (u:User {id: data.userId})
-        ON CREATE SET u.createdTime = datetime()
-        ON MATCH SET u.updatedTime = datetime()
+        ON CREATE SET u.createdAt = datetime()
+        ON MATCH SET u.updatedAt = datetime()
         SET u += data.userProps
         """

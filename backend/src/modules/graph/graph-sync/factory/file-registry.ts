@@ -1,28 +1,26 @@
-import { z } from "@hono/zod-openapi";
+import { z } from "zod";
 
-const FileRegistryInputSchema = z.object({
+const InputSchema = z.object({
     fileId: z.uuid(),
-    itemId: z.uuid(),
+    archiveId: z.uuid(),
     fileExtensionCode: z.string().nullish(),
     originalName: z.string().nullish(),
-    storageStatus: z.enum(["PENDING", "on_disk"]).nullish(),
 });
 
-const TaskPayloadSchema = FileRegistryInputSchema.transform((data) => ({
+const TaskPayloadSchema = InputSchema.transform((data) => ({
     fileId: data.fileId,
     fileProps: {
         originalName: data.originalName ?? null,
-        storageStatus: data.storageStatus ?? null,
         fileType: data.fileExtensionCode ?? null,
     },
-    itemId: data.itemId,
-    itemProps: {
+    archiveId: data.archiveId,
+    archiveProps: {
         name: data.originalName ?? data.fileId,
     },
 }));
 
-type FileRegistryInputPayload = z.infer<typeof FileRegistryInputSchema>;
+type InputPayload = z.infer<typeof InputSchema>;
 
-export function buildFileRegistryTask(payload: FileRegistryInputPayload) {
+export function buildFileRegistryTask(payload: InputPayload) {
     return TaskPayloadSchema.parse(payload);
 }

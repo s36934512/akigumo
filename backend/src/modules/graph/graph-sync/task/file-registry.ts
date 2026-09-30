@@ -1,60 +1,93 @@
 import { z } from "zod";
 
 import { prisma } from "#app/infrastructure/database/prisma.js";
+import { NonRetryableError } from "#app/kernel/index.js";
 
 import { defineGraphSyncTask } from "../core/task.js";
 import { buildFileRegistryTask } from "../factory/file-registry.js";
 
-export const PayloadSchema = z
+const PayloadSchema = z
     .object({
         fileId: z.uuid(),
-        itemId: z.uuid(),
+        archiveId: z.uuid(),
     })
     .array();
 
-export type FileRegistryPayload = z.infer<typeof PayloadSchema>;
+type Payload = z.infer<typeof PayloadSchema>;
 
-async function fileRegistryHandler(payload: FileRegistryPayload) {
-    const fileIds = payload.map((item) => item.fileId);
-    const itemIds = payload.map((item) => item.itemId);
+async function fileRegistryHandler(payload: Payload) {
+    const fileIdList = Array.from(new Set(payload.map((item) => item.fileId)));
 
-    const [files, items] = await Promise.all([
+    const archiveIdList = Array.from(
+        new Set(payload.map((item) => item.archiveId)),
+    );
+
+    const [fileList, archiveList] = await Promise.all([
         prisma.file.findMany({
-            where: { id: { in: fileIds } },
-            include: { fileExtension: true },
+            where: {
+                id: {
+                    in: fileIdList,
+                },
+            },
+            include: {
+                fileExtension: true,
+            },
         }),
+
         prisma.archive.findMany({
-            where: { id: { in: itemIds } },
+            where: {
+                id: {
+                    in: archiveIdList,
+                },
+            },
         }),
     ]);
-    if (files.length === 0) throw new Error("File not found");
-    if (items.length === 0) throw new Error("Item not found");
 
-    const fileMap = new Map(files.map((f) => [f.id, f]));
-    const itemMap = new Map(items.map((i) => [i.id, i]));
+    if (fileList.length === 0)
+        throw new NonRetryableError("File not found", fileIdList);
 
-    const task = payload.map((pair) => {
+    if (archiveList.length === 0)
+        throw new NonRetryableError("Archive not found", archiveIdList);
+
+    const fileMap = new Map(fileList.map((item) => [item.id, item]));
+    const archiveMap = new Map(archiveList.map((item) => [item.id, item]));
+
+    const validPairList = [];
+    const missingPairList = [];
+
+    for (const pair of payload) {
         const file = fileMap.get(pair.fileId);
-        const item = itemMap.get(pair.itemId);
+        const archive = archiveMap.get(pair.archiveId);
 
-        // 確保這一組的 file 和 item 都有撈到資料
-        if (!file || !item) {
-            throw new Error(
-                `Missing file or item relation for fileId: ${pair.fileId}, itemId: ${pair.itemId}`,
-            );
+        if (!file || !archive) {
+            missingPairList.push(pair);
+            continue;
         }
 
-        return buildFileRegistryTask({
+        validPairList.push({
+            file,
+            archive,
+        });
+    }
+
+    if (missingPairList.length > 0) {
+        throw new NonRetryableError(
+            "File or Archive not found",
+            missingPairList,
+        );
+    }
+
+    const task = validPairList.map(({ file, archive }) =>
+        buildFileRegistryTask({
             fileId: file.id,
-            itemId: item.id,
+            archiveId: archive.id,
             fileExtensionCode: file.fileExtension.code,
             originalName: file.originalName,
-            storageStatus: "on_disk",
-        });
-    });
+        }),
+    );
 
     return {
-        taskType: "FileExecutor",
+        taskType: "FileRegistryExecutor",
         payload: task,
     };
 }
