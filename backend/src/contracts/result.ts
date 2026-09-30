@@ -8,7 +8,7 @@ export const RESULT_STATUS = {
 
 const SuccessResultSchema = z.object({
     status: z.literal(RESULT_STATUS.SUCCESS),
-    data: z.unknown(),
+    data: z.unknown().optional(),
 });
 
 const FailureResultSchema = z.object({
