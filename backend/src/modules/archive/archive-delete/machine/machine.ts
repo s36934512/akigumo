@@ -20,11 +20,7 @@ export const machine = setup({
         handleSaveSuccess: assign(machineActions.handleSaveSuccess),
 
         handleFailure: assign(machineActions.handleFailure),
-        /**
-         * Build pending SYNC task for asynchronous processor execution
-         *
-         * This decouples transition timing from worker execution timing.
-         */
+
         prepareSyncIntent: assign(({ context }) => {
             if (context.idList.length === 0) {
                 return { nextIntent: undefined };
@@ -76,7 +72,8 @@ export const machine = setup({
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
                 },
-                PYTHON_SUCCEEDED: {
+
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
                     actions: "clearNextIntent",
                 },

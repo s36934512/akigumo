@@ -16,6 +16,7 @@ import type { MachineEvents } from "./schema.js";
 export const machineActions = {
     handleSaveSuccess({ event }: { event: MachineEvents }) {
         assertEvent(event, ArchiveDeleteEvents.SUCCEEDED);
+
         return {
             notifyId: event.data.notifyId,
             idList: event.data.idList,
@@ -27,6 +28,6 @@ export const machineActions = {
             return {};
         }
 
-        return { error: event.data.reason };
+        return { error: event.error };
     },
 };
