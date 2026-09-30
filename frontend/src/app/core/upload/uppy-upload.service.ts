@@ -10,7 +10,7 @@ export class UppyUploadService {
 
     constructor() {
         this.uppy.use(Tus, {
-            endpoint: "http://localhost:3000/api/v1/tus/files",
+            endpoint: "/api/v1/tus/files",
         });
 
         this.uppy.on("upload-success", (file, response) => {
