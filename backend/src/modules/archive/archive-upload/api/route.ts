@@ -5,6 +5,8 @@ import {
     IntentResponseSchema,
     SealRequestSchema,
     SealResponseSchema,
+    StatusRequestSchema,
+    StatusResponseSchema,
 } from "./schema.js";
 
 /**
@@ -75,6 +77,37 @@ export const tusSealRoute = createRoute({
         },
         400: {
             description: "請求格式錯誤",
+        },
+    },
+});
+
+export const statusRoute = createRoute({
+    method: "get",
+    path: "/upload/{workflowId}",
+    summary: "Tus 上傳前確認",
+    description: "查詢 Archive Upload Workflow 狀態，確認是否可以開始 TUS 上傳",
+    request: {
+        params: StatusRequestSchema,
+    },
+    responses: {
+        200: {
+            content: {
+                "application/json": {
+                    schema: StatusResponseSchema,
+                },
+            },
+            description: "Workflow 狀態",
+        },
+        400: {
+            description: "請求格式錯誤",
+        },
+        404: {
+            content: {
+                "application/json": {
+                    schema: StatusRequestSchema,
+                },
+            },
+            description: "Workflow 不存在",
         },
     },
 });

@@ -42,9 +42,6 @@ export const ArchiveSealSchema = createFlexibleSchema(
     z.object({
         notifyId: z.uuid(),
         fileId: z.uuid(),
-        fileName: z.string().openapi({
-            example: "HApnFc4bcAAA77i.jpg",
-        }),
     }),
 );
 
@@ -55,3 +52,11 @@ export const SealRequestSchema = ArchiveSealSchema.single.extend({
 });
 
 export const SealResponseSchema = WorkflowResponseSchema;
+
+export const StatusRequestSchema = z.object({
+    workflowId: z.uuid(),
+});
+
+export const StatusResponseSchema = z.object({
+    status: z.string(),
+});

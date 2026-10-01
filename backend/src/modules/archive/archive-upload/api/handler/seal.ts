@@ -17,11 +17,10 @@ export const handleArchiveSeal = app.openapi(tusSealRoute, async (c) => {
             operation: ARCHIVE_SEAL,
             payload: {
                 fileId: payload.fileId,
-                fileName: payload.fileName,
                 notifyId: payload.notifyId,
             },
         },
     });
 
-    return c.json({ workflowId: payload.workflowId }, 202);
+    return c.json({ workflowId: payload.workflowId }, 200);
 });
