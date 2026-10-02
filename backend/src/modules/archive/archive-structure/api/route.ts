@@ -23,6 +23,7 @@ export const route = createRoute({
                     schema: ResponseSchema,
                 },
             },
+            description: "Archive structure retrieved successfully.",
         },
     },
 });
