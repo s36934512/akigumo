@@ -14,7 +14,7 @@ export const archiveSealProcessor = defineProcessor(
     ARCHIVE_SEAL,
     ArchiveSealSchema.single,
     async (input) => {
-        const { fileId, fileName, notifyId } = input.payload;
+        const { fileId, notifyId } = input.payload;
 
         const sourcePath = Paths.concat("TMP_TUS", fileId);
         const sourceMetadataPath = `${sourcePath}.json`;
@@ -26,7 +26,6 @@ export const archiveSealProcessor = defineProcessor(
 
         await service.updateFileAndIntegrationRequest({
             fileId,
-            fileName,
             originalFilePath,
             notifyId,
         });

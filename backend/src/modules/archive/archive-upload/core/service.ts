@@ -26,12 +26,10 @@ export async function createItemFile({
 
 export async function updateFileAndIntegrationRequest({
     fileId,
-    fileName,
     originalFilePath,
     notifyId,
 }: {
     fileId: string;
-    fileName: string;
     originalFilePath: string;
     notifyId: string;
 }) {
@@ -40,7 +38,6 @@ export async function updateFileAndIntegrationRequest({
             where: { id: fileId },
             data: {
                 physicalPath: originalFilePath,
-                originalName: fileName,
             },
         }),
 
