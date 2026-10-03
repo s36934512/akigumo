@@ -54,6 +54,7 @@ CREATE TABLE "file" (
     "is_original" BOOLEAN NOT NULL DEFAULT false,
     "metadata" JSONB,
     "status" "FileStatus" NOT NULL,
+    "createdByWorkflowId" UUID,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
