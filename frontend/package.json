@@ -26,6 +26,8 @@
         "express": "^5.1.0",
         "rxjs": "~7.8.0",
         "tslib": "^2.3.0",
+        "uppy": "^6.0.4",
+        "uuid": "^14.0.2",
         "zod": "^4.6.5"
     },
     "devDependencies": {
