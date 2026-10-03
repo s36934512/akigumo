@@ -10,3 +10,9 @@ dependencies = [
     "redis",
     "structlog",
 ]
+
+[tool.setuptools.packages.find]
+include = [
+    "infrastructure*",
+    "graph_refinement*",
+]
