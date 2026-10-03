@@ -33,7 +33,7 @@ model File {
     metadata     Json?
     status       FileStatus
 
-    createdByWorkflowId String? @db.Uuid
+    createdByWorkflowId String? @map("created_by_workflow_id") @db.Uuid
 
     createdAt     DateTime  @default(now()) @map("created_at")
     updatedAt     DateTime  @updatedAt @map("updated_at")

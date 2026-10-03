@@ -10,7 +10,7 @@ export class BullMQUploadFinishedQueue implements UploadFinishedQueue {
             "upload-finished",
             { fileId },
             {
-                jobId: `upload-finished:${fileId}`,
+                jobId: `upload-finished-${fileId}`,
             },
         );
     }

@@ -57,7 +57,7 @@ async function claimPendingOutboxList(maxAttempts: number): Promise<Outbox[]> {
                 o.workflow_id AS "workflowId",
                 o.processing_started_at AS "processingStartedAt",
                 o.processing_id AS "processingId",
-                o.source_outbox_id AS "sourceOutboxId";
+                o.source_outbox_id AS "sourceOutboxId"
         `;
 
         return rowList;
