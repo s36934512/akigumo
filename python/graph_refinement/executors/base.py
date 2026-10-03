@@ -16,19 +16,19 @@ class GenericNodeBase(BaseExecutor):
     @property
     def _merge_file_container(self) -> str:
         return """
-        MERGE (i:Item:FileContainer {id: data.archiveId})
-        ON CREATE SET i.createdAt = datetime()
-        ON MATCH SET i.updatedAt = datetime()
-        SET i += data.archiveProps
+        MERGE (af:Archive:FileContainer {id: data.archiveId})
+        ON CREATE SET af.createdAt = datetime()
+        ON MATCH SET af.updatedAt = datetime()
+        SET af += data.archiveProps
         """
 
     @property
     def _merge_work(self) -> str:
         return """
-        MERGE (i:Item:Work {id: data.itemId})
-        ON CREATE SET i.createdAt = datetime()
-        ON MATCH SET i.updatedAt = datetime()
-        SET i += data.itemProps
+        MERGE (aw:Archive:Work {id: data.archiveId})
+        ON CREATE SET aw.createdAt = datetime()
+        ON MATCH SET aw.updatedAt = datetime()
+        SET aw += data.archiveProps
         """
 
     @property
