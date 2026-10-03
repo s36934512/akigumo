@@ -10,21 +10,27 @@ import { createRedisGraphRefinementMq } from "#app/infrastructure/message-queue/
 import { GraphRefinementResultWorker } from "#app/infrastructure/message-queue/graph-refinement/handler.js";
 import { createRedisWorkflowResultMq } from "#app/infrastructure/message-queue/workflow-result/factory.js";
 import { PostgresOutboxListener } from "#app/infrastructure/postgres/outbox-listener.js";
+import { createBullMQUploadFinishedQueue } from "#app/infrastructure/queue/archive-upload-finished/factory.js";
+import { createArchiveUploadFinishedWorker } from "#app/infrastructure/queue/archive-upload-finished/worker.js";
 import { createBullMQTaskQueue } from "#app/infrastructure/queue/bullmq/factory.js";
 import { createBullMQWorker } from "#app/infrastructure/queue/bullmq/worker.js";
+import { createTusServer } from "#app/infrastructure/tus/tus-server.js";
 import {
     createDispatcher,
     createDispatchRuntime,
     registerProcessor,
 } from "#app/kernel/index.js";
 import { createGraphSyncProcessor } from "#app/modules/graph/graph-sync/index.js";
+import { createApp } from "#app/routes.js";
 import {
     createWorkflowEngine,
     PrismaWorkflowStore,
 } from "#app/workflow/index.js";
+
 import { registerModuleRuntime } from "./register-modules.js";
 
 export async function bootstrap(): Promise<{
+    app: ReturnType<typeof createApp>;
     stop: () => Promise<void>;
 }> {
     // Register module runtime capabilities before creating workers.
@@ -37,6 +43,8 @@ export async function bootstrap(): Promise<{
     await postgresListenerClient.connect();
 
     const taskQueue = createBullMQTaskQueue();
+
+    const uploadFinishedQueue = createBullMQUploadFinishedQueue();
 
     const workflowResultMq = createRedisWorkflowResultMq(
         workflowResultMqConfig,
@@ -62,6 +70,7 @@ export async function bootstrap(): Promise<{
 
     // Workers
     const taskWorker = createBullMQWorker(workflowResultMq.publisher);
+    const archiveUploadFinishedWorker = createArchiveUploadFinishedWorker();
 
     const graphRefinementWorker = new GraphRefinementResultWorker(
         graphRefinementMq.consumer,
@@ -69,6 +78,10 @@ export async function bootstrap(): Promise<{
 
     // Listeners
     const outboxListener = new PostgresOutboxListener(postgresListenerClient);
+
+    const tusServer = createTusServer(uploadFinishedQueue);
+
+    const app = createApp(tusServer);
 
     // Start
     void graphRefinementWorker.run();
@@ -86,13 +99,16 @@ export async function bootstrap(): Promise<{
     logger.info({ label: "Kernel" }, "秋雲 Akigumo 系統內核已完全啟動");
 
     return {
+        app,
         stop: async () => {
             await outboxListener.stop();
             await dispatchRuntime.stop();
             await workflowResultMq.stop();
             await graphRefinementMq.stop();
             await taskQueue.close();
+            await uploadFinishedQueue.close();
             await taskWorker.close();
+            await archiveUploadFinishedWorker.close();
             await graphRefinementWorker.stop();
             await postgresListenerClient.end();
         },

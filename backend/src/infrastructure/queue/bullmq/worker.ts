@@ -31,7 +31,7 @@ function extractTaskExecutionIdentity(data: unknown) {
 
 export function createBullMQWorker(publisher: WorkflowResultPublisher): Worker {
     return new Worker(
-        queueConfig.queueName,
+        queueConfig.kernel.queueName,
         async (job: Job) => {
             const result = TaskSchema.safeParse(job.data);
 
@@ -75,7 +75,7 @@ export function createBullMQWorker(publisher: WorkflowResultPublisher): Worker {
             connection: {
                 url: env.redis.url,
             },
-            concurrency: queueConfig.workerConcurrency,
+            concurrency: queueConfig.kernel.workerConcurrency,
         },
     );
 }

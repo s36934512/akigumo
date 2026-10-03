@@ -6,7 +6,7 @@ import { queueConfig } from "#app/config/queue.js";
 import { BullMQTaskQueue } from "./task-queue.js";
 
 export function createBullMQTaskQueue(): BullMQTaskQueue {
-    const queue = new Queue(queueConfig.queueName, {
+    const queue = new Queue(queueConfig.kernel.queueName, {
         connection: {
             url: env.redis.url,
         },
