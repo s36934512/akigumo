@@ -2,20 +2,21 @@ import { assertEvent } from "xstate";
 
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
 
-import { ArchiveIntentEvents } from "../core/processor/intent.js";
-import { ArchiveSealEvents } from "../core/processor/seal.js";
-import type { MachineContext, MachineEvents } from "./schema.js";
+import { ArchiveUploadFinishedEvents } from "../core/processor/upload-finished.js";
+import {
+    ArchiveIntentEvents,
+    type MachineContext,
+    type MachineEvents,
+} from "./schema.js";
 
 export const actions = {
     handleIntentSuccess({ event }: { event: MachineEvents }) {
         assertEvent(event, ArchiveIntentEvents.SUCCEEDED);
 
         return {
-            notifyId: event.data.notifyId,
-            batchId: event.data.batchId,
-            fileList: event.data.fileList,
+            fileList: event.data.fileIdList,
             processingProgress: {
-                totalIdList: [...event.data.fileList],
+                totalIdList: [...event.data.fileIdList],
                 successIdList: [],
             },
         };
@@ -28,7 +29,7 @@ export const actions = {
         context: MachineContext;
         event: MachineEvents;
     }) {
-        assertEvent(event, ArchiveSealEvents.SUCCEEDED);
+        assertEvent(event, ArchiveUploadFinishedEvents.SUCCEEDED);
 
         const fileId = event.data.fileId;
         const { successIdList } = context.processingProgress;

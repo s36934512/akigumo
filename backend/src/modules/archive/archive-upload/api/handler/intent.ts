@@ -1,22 +1,86 @@
 import type { HttpBindings } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { v7 as uuidv7 } from "uuid";
 
-import { publishWorkflow } from "#app/workflow/index.js";
+import {
+    ArchiveStatus,
+    ArchiveType,
+    FileStatus,
+} from "#app/generated/prisma/enums.js";
+import { prisma } from "#app/infrastructure/database/prisma.js";
+import * as Paths from "#app/infrastructure/storage/paths.js";
+import { NonRetryableError } from "#app/kernel/index.js";
+import { getOrCreateDefaultExt } from "#app/modules/archive/archive-integration/extension/default.js";
+import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 
-import { ARCHIVE_INTENT } from "../../core/processor/intent.js";
+import { hasEnoughSpace } from "../../core/disk-guard.js";
 import { WORKFLOW_TYPE } from "../../machine/machine.js";
-import { tusIntentRoute } from "../route.js";
+import { route } from "../route.js";
 
 const app = new OpenAPIHono<{ Bindings: HttpBindings }>();
 
-export const handleArchiveIntent = app.openapi(tusIntentRoute, async (c) => {
-    const payload = c.req.valid("json");
+export const handleArchiveIntent = app.openapi(route, async (c) => {
+    const { fileList } = c.req.valid("json");
 
-    const workflowId = await publishWorkflow({
-        workflowType: WORKFLOW_TYPE,
-        operation: ARCHIVE_INTENT,
-        payload,
-    });
+    const totalSize = fileList.reduce(
+        (acc, f) => acc + BigInt(f.size),
+        BigInt(0),
+    );
 
-    return c.json({ workflowId }, 202);
+    if (!(await hasEnoughSpace(Paths.TMP_TUS, Number(totalSize)))) {
+        throw new NonRetryableError("磁碟空間不足");
+    }
+
+    const defaultExt = await getOrCreateDefaultExt();
+
+    const completeFileList = fileList.map((f) => ({
+        id: f.id,
+        originalName: f.name,
+        size: f.size,
+        isOriginal: true,
+        ...(f.metadata !== undefined && {
+            metadata: f.metadata,
+        }),
+        status: FileStatus.UPLOADING,
+        fileExtensionId: defaultExt.id,
+    }));
+
+    const itemList = completeFileList.map((f) => ({
+        id: f.id,
+        name: f.originalName,
+        type: ArchiveType.FILE_CONTAINER,
+        status: ArchiveStatus.PROCESSING,
+    }));
+
+    const workflowId = uuidv7();
+
+    await prisma.$transaction([
+        prisma.file.createMany({
+            data: completeFileList,
+        }),
+
+        prisma.archive.createMany({
+            data: itemList,
+        }),
+
+        prisma.workflowState.create({
+            data: {
+                id: workflowId,
+                workflowType: WORKFLOW_TYPE,
+                status: "INIT",
+            },
+        }),
+
+        prisma.outbox.create({
+            data: {
+                workflowId,
+                operation: WORKFLOW_BOOTSTRAP,
+                payload: {
+                    fileIdList: fileList.map((f) => f.id),
+                },
+            },
+        }),
+    ]);
+
+    return c.json({ workflowId }, 200);
 });

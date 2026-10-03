@@ -24,39 +24,18 @@ export const IntentFileSchema = createFlexibleSchema(
 );
 export type IntentFile = InferFlexible<typeof IntentFileSchema>;
 
-export const ArchiveIntentSchema = createFlexibleSchema(
+export const RequestSchema = z.object({
+    fileList: IntentFileSchema.array,
+});
+
+export const ResponseSchema = WorkflowResponseSchema;
+
+export const ArchiveUploadFinishedSchema = createFlexibleSchema(
     z.object({
-        notifyId: z.uuid(), // SSE通知頻道
-        batchId: z.uuid(), // 批次ID，用於上傳流程workflow的追蹤與管理
-        fileList: IntentFileSchema.array,
-    }),
-);
-
-export type ArchiveIntent = InferFlexible<typeof ArchiveIntentSchema>;
-
-export const IntentRequestSchema = ArchiveIntentSchema.single;
-
-export const IntentResponseSchema = WorkflowResponseSchema;
-
-export const ArchiveSealSchema = createFlexibleSchema(
-    z.object({
-        notifyId: z.uuid(),
         fileId: z.uuid(),
     }),
 );
 
-export type ArchiveSeal = InferFlexible<typeof ArchiveSealSchema>;
-
-export const SealRequestSchema = ArchiveSealSchema.single.extend({
-    workflowId: z.uuid(),
-});
-
-export const SealResponseSchema = WorkflowResponseSchema;
-
-export const StatusRequestSchema = z.object({
-    workflowId: z.uuid(),
-});
-
-export const StatusResponseSchema = z.object({
-    status: z.string(),
-});
+export type ArchiveUploadFinished = InferFlexible<
+    typeof ArchiveUploadFinishedSchema
+>;

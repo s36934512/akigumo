@@ -1,13 +1,23 @@
 import { z } from "zod";
 
 import {
+    createEventCodes,
     GraphIntentCreatedEvents,
     GraphOperationResultEvents,
 } from "#app/contracts/index.js";
+import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 import { MachineContextSchema } from "#app/workflow/index.js";
 
-import { ArchiveIntentEvents } from "../core/processor/intent.js";
-import { ArchiveSealEvents } from "../core/processor/seal.js";
+import { ArchiveUploadFinishedEvents } from "../core/processor/upload-finished.js";
+
+export const ArchiveIntentEvents = createEventCodes(WORKFLOW_BOOTSTRAP, [
+    {
+        code: "SUCCEEDED",
+        dataSchema: z.object({
+            fileIdList: z.uuid().array(),
+        }),
+    },
+]);
 
 const ProcessingProgressSchema = z.object({
     totalIdList: z.array(z.uuid()),
@@ -15,9 +25,8 @@ const ProcessingProgressSchema = z.object({
 });
 
 const ContextSchema = MachineContextSchema.extend({
-    notifyId: z.uuid().nullable(),
-    batchId: z.uuid().nullable(),
     fileList: z.uuid().array(),
+    graphSyncCompleted: z.boolean(),
     processingProgress: ProcessingProgressSchema,
 });
 
@@ -25,7 +34,7 @@ export type MachineContext = z.infer<typeof ContextSchema>;
 
 export const EVENT_SCHEMA_LIST = [
     ...ArchiveIntentEvents.schemaList,
-    ...ArchiveSealEvents.schemaList,
+    ...ArchiveUploadFinishedEvents.schemaList,
     ...GraphIntentCreatedEvents.schemaList,
     ...GraphOperationResultEvents.schemaList,
 ] as const;

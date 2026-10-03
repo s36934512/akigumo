@@ -5,16 +5,16 @@ import { createEventCodes } from "#app/contracts/index.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
-import { ArchiveSealSchema } from "../../api/schema.js";
+import { ArchiveUploadFinishedSchema } from "../../api/schema.js";
 import * as service from "../service.js";
 
-export const ARCHIVE_SEAL = "ARCHIVE_SEAL";
+export const ARCHIVE_UPLOAD_FINISHED = "ARCHIVE_UPLOAD_FINISHED";
 
-export const archiveSealProcessor = defineProcessor(
-    ARCHIVE_SEAL,
-    ArchiveSealSchema.single,
+export const archiveUploadFinishedProcessor = defineProcessor(
+    ARCHIVE_UPLOAD_FINISHED,
+    ArchiveUploadFinishedSchema.single,
     async (input) => {
-        const { fileId, notifyId } = input.payload;
+        const { fileId } = input.payload;
 
         const sourcePath = Paths.concat("TMP_TUS", fileId);
         const sourceMetadataPath = `${sourcePath}.json`;
@@ -27,19 +27,20 @@ export const archiveSealProcessor = defineProcessor(
         await service.updateFileAndIntegrationRequest({
             fileId,
             originalFilePath,
-            notifyId,
         });
 
         return fileId;
     },
 );
 
-export const ArchiveSealEvents = createEventCodes(ARCHIVE_SEAL, [
-    {
-        code: "SUCCEEDED",
-        dataSchema: z.object({
-            notifyId: z.uuid(),
-            fileId: z.uuid(),
-        }),
-    },
-]);
+export const ArchiveUploadFinishedEvents = createEventCodes(
+    ARCHIVE_UPLOAD_FINISHED,
+    [
+        {
+            code: "SUCCEEDED",
+            dataSchema: z.object({
+                fileId: z.uuid(),
+            }),
+        },
+    ],
+);

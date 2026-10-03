@@ -17,7 +17,10 @@ export const machine = setup({
         isAllFilesDone: ({ context }) => {
             const { totalIdList, successIdList } = context.processingProgress;
 
-            return successIdList.length === totalIdList.length;
+            return (
+                context.graphSyncCompleted &&
+                successIdList.length === totalIdList.length
+            );
         },
 
         shouldFailUnhandledEvent,
@@ -37,9 +40,13 @@ export const machine = setup({
             };
         }),
 
-        clearNextTask: assign({ nextIntent: null }),
+        handleSyncTaskSuccess: assign({
+            graphSyncCompleted: true,
+        }),
 
         markFileUploaded: assign(actions.markFileUploaded),
+
+        clearNextTask: assign({ nextIntent: null }),
 
         handleFailure: assign(actions.handleFailure),
     },
@@ -57,20 +64,19 @@ export const machine = setup({
         fileList: [],
         error: null,
         nextIntent: null,
-        notifyId: null,
-        batchId: null,
         processingProgress: {
             totalIdList: [],
             successIdList: [],
         },
+        graphSyncCompleted: false,
     },
     states: {
         VALIDATING_INTENT: {
             on: {
-                ARCHIVE_INTENT_SUCCEEDED: [
+                WORKFLOW_BOOTSTRAP_SUCCEEDED: [
                     {
-                        guard: ({ event }) => event.data.fileList.length > 0,
-                        target: "SYNCING_INTENT",
+                        guard: ({ event }) => event.data.fileIdList.length > 0,
+                        target: "WAITING",
                         actions: ["handleIntentSuccess", "prepareSyncTask"],
                     },
                     {
@@ -80,21 +86,16 @@ export const machine = setup({
             },
         },
 
-        SYNCING_INTENT: {
+        WAITING: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextTask",
                 },
 
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    target: "WAITING",
-                    actions: "clearNextTask",
+                    actions: ["handleSyncTaskSuccess", "clearNextTask"],
                 },
-            },
-        },
 
-        WAITING: {
-            on: {
                 ARCHIVE_SEAL_SUCCEEDED: {
                     actions: "markFileUploaded",
                 },
