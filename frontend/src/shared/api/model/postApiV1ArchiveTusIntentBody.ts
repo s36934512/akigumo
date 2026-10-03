@@ -7,7 +7,5 @@
 import type { PostApiV1ArchiveTusIntentBodyFileListItem } from './postApiV1ArchiveTusIntentBodyFileListItem';
 
 export type PostApiV1ArchiveTusIntentBody = {
-  notifyId: string;
-  batchId: string;
   fileList: PostApiV1ArchiveTusIntentBodyFileListItem[];
 };

@@ -7,11 +7,6 @@
 import {
   HttpClient
 } from '@angular/common/http';
-import type {
-  HttpContext,
-  HttpEvent,
-  HttpParams
-} from '@angular/common/http';
 
 import {
   Injectable,
@@ -19,21 +14,14 @@ import {
 } from '@angular/core';
 
 import type {
-  Observable
-} from 'rxjs';
-
-import type {
-  GetApiV1UploadWorkflowId200,
   PostApiV1ArchiveConcept202,
   PostApiV1ArchiveConceptBodyItem,
   PostApiV1ArchiveDelete202,
   PostApiV1ArchiveDeleteBodyItem,
+  PostApiV1ArchiveIntent200,
+  PostApiV1ArchiveIntentBody,
   PostApiV1ArchiveStructure200Item,
   PostApiV1ArchiveStructureBody,
-  PostApiV1ArchiveTusIntent202,
-  PostApiV1ArchiveTusIntentBody,
-  PostApiV1ArchiveTusSeal200,
-  PostApiV1ArchiveTusSealBody,
   PostApiV1OntologyDelete202,
   PostApiV1OntologyDeleteBody,
   PostApiV1OntologyEditor202,
@@ -44,49 +32,8 @@ import type {
   PostApiV1OntologyResolverBody
 } from '../model';
 
-import type {
-  HttpHeaders,
-  HttpResponse as AngularHttpResponse
-} from '@angular/common/http';
+import { angularHttp } from '.././angular-http';
 
-
-
-interface HttpClientOptions {
-  readonly headers?: HttpHeaders | Record<string, string | string[]>;
-  readonly context?: HttpContext;
-  readonly params?:
-        | HttpParams
-      | Record<string, string | number | boolean | Array<string | number | boolean>>;
-  readonly reportProgress?: boolean;
-  readonly withCredentials?: boolean;
-  readonly credentials?: RequestCredentials;
-  readonly keepalive?: boolean;
-  readonly priority?: RequestPriority;
-  readonly cache?: RequestCache;
-  readonly mode?: RequestMode;
-  readonly redirect?: RequestRedirect;
-  readonly referrer?: string;
-  readonly integrity?: string;
-  readonly referrerPolicy?: ReferrerPolicy;
-  readonly transferCache?: {includeHeaders?: string[]} | boolean;
-  readonly timeout?: number;
-}
-
-type HttpClientBodyOptions = HttpClientOptions & {
-  readonly observe?: 'body';
-};
-
-type HttpClientEventOptions = HttpClientOptions & {
-  readonly observe: 'events';
-};
-
-type HttpClientResponseOptions = HttpClientOptions & {
-  readonly observe: 'response';
-};
-
-type HttpClientObserveOptions = HttpClientOptions & {
-  readonly observe?: 'body' | 'events' | 'response';
-};
 
 
 
@@ -100,431 +47,141 @@ export class DefaultService {
 /**
  * @summary SSE 事件
  */
- getApiV1Stream( options?: HttpClientBodyOptions): Observable<string>;
- getApiV1Stream( options?: HttpClientEventOptions): Observable<HttpEvent<string>>;
- getApiV1Stream( options?: HttpClientResponseOptions): Observable<AngularHttpResponse<string>>;
-  getApiV1Stream(
-     options?: HttpClientObserveOptions): Observable<string | HttpEvent<string> | AngularHttpResponse<string>> {
-    if (options?.observe === 'events') {
-      return this.http.get(
-      `/api/v1/stream`,{
-        responseType: 'text',
-    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',}
-    ) as Observable<HttpEvent<string>>;
-    }
+ getApiV1Stream<TData = string>(
 
-    if (options?.observe === 'response') {
-      return this.http.get(
-      `/api/v1/stream`,{
-        responseType: 'text',
-    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',}
-    ) as Observable<AngularHttpResponse<string>>;
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/stream`, method: 'GET'
+    },
+      this.http,
+      );
     }
-
-    return this.http.get(
-      `/api/v1/stream`,{
-        responseType: 'text',
-    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',}
-    ) as Observable<string>;
-  }
- postApiV1ArchiveConcept<TData = PostApiV1ArchiveConcept202>(postApiV1ArchiveConceptBodyItem?: PostApiV1ArchiveConceptBodyItem[], options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1ArchiveConcept<TData = PostApiV1ArchiveConcept202>(postApiV1ArchiveConceptBodyItem?: PostApiV1ArchiveConceptBodyItem[], options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1ArchiveConcept<TData = PostApiV1ArchiveConcept202>(postApiV1ArchiveConceptBodyItem?: PostApiV1ArchiveConceptBodyItem[], options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1ArchiveConcept<TData = PostApiV1ArchiveConcept202>(
-    postApiV1ArchiveConceptBodyItem?: PostApiV1ArchiveConceptBodyItem[], options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/archive/concept`,
-      postApiV1ArchiveConceptBodyItem,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
+   postApiV1ArchiveConcept<TData = PostApiV1ArchiveConcept202>(
+    postApiV1ArchiveConceptBodyItem?: PostApiV1ArchiveConceptBodyItem[],
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/concept`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1ArchiveConceptBodyItem
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/archive/concept`,
-      postApiV1ArchiveConceptBodyItem,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
+   postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(
+    postApiV1ArchiveDeleteBodyItem?: PostApiV1ArchiveDeleteBodyItem[],
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/delete`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1ArchiveDeleteBodyItem
+    },
+      this.http,
+      );
     }
-
-    return this.http.post<TData>(
-      `/api/v1/archive/concept`,
-      postApiV1ArchiveConceptBodyItem,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
- postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(postApiV1ArchiveDeleteBodyItem?: PostApiV1ArchiveDeleteBodyItem[], options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(postApiV1ArchiveDeleteBodyItem?: PostApiV1ArchiveDeleteBodyItem[], options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(postApiV1ArchiveDeleteBodyItem?: PostApiV1ArchiveDeleteBodyItem[], options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(
-    postApiV1ArchiveDeleteBodyItem?: PostApiV1ArchiveDeleteBodyItem[], options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/archive/delete`,
-      postApiV1ArchiveDeleteBodyItem,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
-    }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/archive/delete`,
-      postApiV1ArchiveDeleteBodyItem,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/archive/delete`,
-      postApiV1ArchiveDeleteBodyItem,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
+  /**
  * @summary 瀏覽 檔案 結構
  */
- postApiV1ArchiveStructure<TData = PostApiV1ArchiveStructure200Item[]>(postApiV1ArchiveStructureBody?: PostApiV1ArchiveStructureBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1ArchiveStructure<TData = PostApiV1ArchiveStructure200Item[]>(postApiV1ArchiveStructureBody?: PostApiV1ArchiveStructureBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1ArchiveStructure<TData = PostApiV1ArchiveStructure200Item[]>(postApiV1ArchiveStructureBody?: PostApiV1ArchiveStructureBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1ArchiveStructure<TData = PostApiV1ArchiveStructure200Item[]>(
-    postApiV1ArchiveStructureBody?: PostApiV1ArchiveStructureBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/archive/structure`,
-      postApiV1ArchiveStructureBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
+ postApiV1ArchiveStructure<TData = PostApiV1ArchiveStructure200Item[]>(
+    postApiV1ArchiveStructureBody?: PostApiV1ArchiveStructureBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/structure`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1ArchiveStructureBody
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/archive/structure`,
-      postApiV1ArchiveStructureBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/archive/structure`,
-      postApiV1ArchiveStructureBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
+  /**
  * 在 Tus 正式開始前先建立檔案意圖與暫存狀態。
  * @summary 建立 Tus 上傳意圖
  */
- postApiV1ArchiveTusIntent<TData = PostApiV1ArchiveTusIntent202>(postApiV1ArchiveTusIntentBody?: PostApiV1ArchiveTusIntentBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1ArchiveTusIntent<TData = PostApiV1ArchiveTusIntent202>(postApiV1ArchiveTusIntentBody?: PostApiV1ArchiveTusIntentBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1ArchiveTusIntent<TData = PostApiV1ArchiveTusIntent202>(postApiV1ArchiveTusIntentBody?: PostApiV1ArchiveTusIntentBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1ArchiveTusIntent<TData = PostApiV1ArchiveTusIntent202>(
-    postApiV1ArchiveTusIntentBody?: PostApiV1ArchiveTusIntentBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/archive/tus-intent`,
-      postApiV1ArchiveTusIntentBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
+ postApiV1ArchiveIntent<TData = PostApiV1ArchiveIntent200>(
+    postApiV1ArchiveIntentBody?: PostApiV1ArchiveIntentBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/intent`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1ArchiveIntentBody
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/archive/tus-intent`,
-      postApiV1ArchiveTusIntentBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/archive/tus-intent`,
-      postApiV1ArchiveTusIntentBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
- * 上傳完成後進行最終確認，更新檔案狀態並觸發後續同步。
- * @summary Tus 上傳最終確認
- */
- postApiV1ArchiveTusSeal<TData = PostApiV1ArchiveTusSeal200>(postApiV1ArchiveTusSealBody?: PostApiV1ArchiveTusSealBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1ArchiveTusSeal<TData = PostApiV1ArchiveTusSeal200>(postApiV1ArchiveTusSealBody?: PostApiV1ArchiveTusSealBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1ArchiveTusSeal<TData = PostApiV1ArchiveTusSeal200>(postApiV1ArchiveTusSealBody?: PostApiV1ArchiveTusSealBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1ArchiveTusSeal<TData = PostApiV1ArchiveTusSeal200>(
-    postApiV1ArchiveTusSealBody?: PostApiV1ArchiveTusSealBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/archive/tus-seal`,
-      postApiV1ArchiveTusSealBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
-    }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/archive/tus-seal`,
-      postApiV1ArchiveTusSealBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/archive/tus-seal`,
-      postApiV1ArchiveTusSealBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
- * 查詢 Archive Upload Workflow 狀態，確認是否可以開始 TUS 上傳
- * @summary Tus 上傳前確認
- */
- getApiV1UploadWorkflowId<TData = GetApiV1UploadWorkflowId200>(workflowId: string, options?: HttpClientBodyOptions): Observable<TData>;
- getApiV1UploadWorkflowId<TData = GetApiV1UploadWorkflowId200>(workflowId: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- getApiV1UploadWorkflowId<TData = GetApiV1UploadWorkflowId200>(workflowId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  getApiV1UploadWorkflowId<TData = GetApiV1UploadWorkflowId200>(
-    workflowId: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.get<TData>(
-      `/api/v1/upload/${workflowId}`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
-    }
-
-    if (options?.observe === 'response') {
-      return this.http.get<TData>(
-      `/api/v1/upload/${workflowId}`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.get<TData>(
-      `/api/v1/upload/${workflowId}`,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
+  /**
  * 刪除一個實體，並刪除關聯。
  * @summary 刪除實體
  */
- postApiV1OntologyDelete<TData = PostApiV1OntologyDelete202>(postApiV1OntologyDeleteBody?: PostApiV1OntologyDeleteBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1OntologyDelete<TData = PostApiV1OntologyDelete202>(postApiV1OntologyDeleteBody?: PostApiV1OntologyDeleteBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1OntologyDelete<TData = PostApiV1OntologyDelete202>(postApiV1OntologyDeleteBody?: PostApiV1OntologyDeleteBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1OntologyDelete<TData = PostApiV1OntologyDelete202>(
-    postApiV1OntologyDeleteBody?: PostApiV1OntologyDeleteBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/delete`,
-      postApiV1OntologyDeleteBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
+ postApiV1OntologyDelete<TData = PostApiV1OntologyDelete202>(
+    postApiV1OntologyDeleteBody?: PostApiV1OntologyDeleteBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/ontology/delete`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1OntologyDeleteBody
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/delete`,
-      postApiV1OntologyDeleteBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/ontology/delete`,
-      postApiV1OntologyDeleteBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
+  /**
  * @summary 修改實體的資料
  */
- postApiV1OntologyEditor<TData = PostApiV1OntologyEditor202>(postApiV1OntologyEditorBody?: PostApiV1OntologyEditorBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1OntologyEditor<TData = PostApiV1OntologyEditor202>(postApiV1OntologyEditorBody?: PostApiV1OntologyEditorBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1OntologyEditor<TData = PostApiV1OntologyEditor202>(postApiV1OntologyEditorBody?: PostApiV1OntologyEditorBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1OntologyEditor<TData = PostApiV1OntologyEditor202>(
-    postApiV1OntologyEditorBody?: PostApiV1OntologyEditorBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/editor`,
-      postApiV1OntologyEditorBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
+ postApiV1OntologyEditor<TData = PostApiV1OntologyEditor202>(
+    postApiV1OntologyEditorBody?: PostApiV1OntologyEditorBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/ontology/editor`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1OntologyEditorBody
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/editor`,
-      postApiV1OntologyEditorBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
+   postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(
+    postApiV1OntologyRegistryBody?: PostApiV1OntologyRegistryBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/ontology/registry`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1OntologyRegistryBody
+    },
+      this.http,
+      );
     }
-
-    return this.http.post<TData>(
-      `/api/v1/ontology/editor`,
-      postApiV1OntologyEditorBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
- postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(postApiV1OntologyRegistryBody?: PostApiV1OntologyRegistryBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(postApiV1OntologyRegistryBody?: PostApiV1OntologyRegistryBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(postApiV1OntologyRegistryBody?: PostApiV1OntologyRegistryBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(
-    postApiV1OntologyRegistryBody?: PostApiV1OntologyRegistryBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/registry`,
-      postApiV1OntologyRegistryBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
-    }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/registry`,
-      postApiV1OntologyRegistryBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/ontology/registry`,
-      postApiV1OntologyRegistryBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
+  /**
  * @summary 取得實體圖形與資訊
  */
- postApiV1OntologyResolver<TData = PostApiV1OntologyResolver202>(postApiV1OntologyResolverBody?: PostApiV1OntologyResolverBody, options?: HttpClientBodyOptions): Observable<TData>;
- postApiV1OntologyResolver<TData = PostApiV1OntologyResolver202>(postApiV1OntologyResolverBody?: PostApiV1OntologyResolverBody, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- postApiV1OntologyResolver<TData = PostApiV1OntologyResolver202>(postApiV1OntologyResolverBody?: PostApiV1OntologyResolverBody, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  postApiV1OntologyResolver<TData = PostApiV1OntologyResolver202>(
-    postApiV1OntologyResolverBody?: PostApiV1OntologyResolverBody, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
-    if (options?.observe === 'events') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/resolver`,
-      postApiV1OntologyResolverBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',
-      }
-    );
+ postApiV1OntologyResolver<TData = PostApiV1OntologyResolver202>(
+    postApiV1OntologyResolverBody?: PostApiV1OntologyResolverBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/ontology/resolver`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1OntologyResolverBody
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.post<TData>(
-      `/api/v1/ontology/resolver`,
-      postApiV1OntologyResolverBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',
-      }
-    );
-    }
-
-    return this.http.post<TData>(
-      `/api/v1/ontology/resolver`,
-      postApiV1OntologyResolverBody,{
-        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',
-      }
-    );
-  }
-/**
+  /**
  * 以 fileId 從磁碟讀取原始檔案，回傳 binary content 與正確的 Content-Type。圖片類型可直接作為 <img src="..."> 使用。
  * @summary 讀取檔案原始內容
  */
- getApiV1RawFileId(fileId: string, options?: HttpClientBodyOptions): Observable<Blob>;
- getApiV1RawFileId(fileId: string, options?: HttpClientEventOptions): Observable<HttpEvent<Blob>>;
- getApiV1RawFileId(fileId: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<Blob>>;
-  getApiV1RawFileId(
-    fileId: string, options?: HttpClientObserveOptions): Observable<Blob | HttpEvent<Blob> | AngularHttpResponse<Blob>> {
-    if (options?.observe === 'events') {
-      return this.http.get(
-      `/api/v1/raw/${fileId}`,{
-        responseType: 'blob',
-    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'events',}
-    ) as Observable<HttpEvent<Blob>>;
+ getApiV1RawFileId<TData = Blob>(
+    fileId: string,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/raw/${fileId}`, method: 'GET',
+        responseType: 'blob'
+    },
+      this.http,
+      );
     }
-
-    if (options?.observe === 'response') {
-      return this.http.get(
-      `/api/v1/raw/${fileId}`,{
-        responseType: 'blob',
-    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'response',}
-    ) as Observable<AngularHttpResponse<Blob>>;
-    }
-
-    return this.http.get(
-      `/api/v1/raw/${fileId}`,{
-        responseType: 'blob',
-    ...(options as Omit<NonNullable<typeof options>, 'observe'>),
-        observe: 'body',}
-    ) as Observable<Blob>;
-  }
-};
+  };
 
 export type GetApiV1StreamClientResult = NonNullable<string>
 export type PostApiV1ArchiveConceptClientResult = NonNullable<PostApiV1ArchiveConcept202>
 export type PostApiV1ArchiveDeleteClientResult = NonNullable<PostApiV1ArchiveDelete202>
 export type PostApiV1ArchiveStructureClientResult = NonNullable<PostApiV1ArchiveStructure200Item[]>
-export type PostApiV1ArchiveTusIntentClientResult = NonNullable<PostApiV1ArchiveTusIntent202>
-export type PostApiV1ArchiveTusSealClientResult = NonNullable<PostApiV1ArchiveTusSeal200>
-export type GetApiV1UploadWorkflowIdClientResult = NonNullable<GetApiV1UploadWorkflowId200>
+export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveIntent200>
 export type PostApiV1OntologyDeleteClientResult = NonNullable<PostApiV1OntologyDelete202>
 export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyEditor202>
 export type PostApiV1OntologyRegistryClientResult = NonNullable<PostApiV1OntologyRegistry202>

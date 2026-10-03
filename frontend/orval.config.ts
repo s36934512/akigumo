@@ -11,6 +11,12 @@ export default defineConfig({
             schemas: "./src/shared/api/model",
             client: "angular",
             mock: false,
+            override: {
+                mutator: {
+                    path: "./src/shared/api/angular-http.ts",
+                    name: "angularHttp",
+                },
+            },
         },
     },
 });

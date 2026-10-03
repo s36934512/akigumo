@@ -5,7 +5,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostApiV1ArchiveTusSealBody = {
-  fileId: string;
+export type PostApiV1ArchiveTusIntent200 = {
   workflowId: string;
 };
