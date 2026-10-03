@@ -1,4 +1,10 @@
 export const queueConfig = {
-    workerConcurrency: 5,
-    queueName: "sys_kernel_tasks",
+    kernel: {
+        queueName: "sys_kernel_tasks",
+        workerConcurrency: 5,
+    },
+
+    archiveUploadFinished: {
+        queueName: "archive-upload-finished",
+    },
 };

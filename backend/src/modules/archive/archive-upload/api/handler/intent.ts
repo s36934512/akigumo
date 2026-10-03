@@ -33,6 +33,8 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
 
     const defaultExt = await getOrCreateDefaultExt();
 
+    const workflowId = uuidv7();
+
     const completeFileList = fileList.map((f) => ({
         id: f.id,
         originalName: f.name,
@@ -43,6 +45,7 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
         }),
         status: FileStatus.UPLOADING,
         fileExtensionId: defaultExt.id,
+        createdByWorkflowId: workflowId,
     }));
 
     const itemList = completeFileList.map((f) => ({
@@ -51,8 +54,6 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
         type: ArchiveType.FILE_CONTAINER,
         status: ArchiveStatus.PROCESSING,
     }));
-
-    const workflowId = uuidv7();
 
     await prisma.$transaction([
         prisma.file.createMany({
