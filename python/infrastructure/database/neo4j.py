@@ -20,7 +20,7 @@ class Neo4jClient:
 
         try:
             self.driver = AsyncGraphDatabase.driver(
-                config.neo4j_uri,
+                config.neo4j_url,
                 auth=(
                     config.neo4j_username,
                     config.neo4j_password,

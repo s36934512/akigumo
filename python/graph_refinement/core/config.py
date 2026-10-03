@@ -4,18 +4,6 @@ from pydantic import field_validator, ConfigDict
 from pydantic_settings import BaseSettings
 
 
-def _find_env_file() -> Path | None:
-    """Find .env file by traversing up from current file."""
-    current = Path(__file__).resolve()
-
-    for parent in current.parents:
-        env_file = parent / ".env"
-        if env_file.exists():
-            return env_file
-
-    return None
-
-
 class GraphRefinementConfig(BaseSettings):
     """Configuration for graph refinement engine."""
 
@@ -33,7 +21,7 @@ class GraphRefinementConfig(BaseSettings):
     redis_trim_interval_seconds: int = 600
 
     # Neo4j configuration
-    neo4j_uri: str
+    neo4j_url: str
     neo4j_username: str
     neo4j_password: str
 
@@ -46,8 +34,6 @@ class GraphRefinementConfig(BaseSettings):
     neo4j_log_level: str = "WARNING"
 
     model_config = ConfigDict(
-        env_file=_find_env_file(),
-        env_file_encoding="utf-8",
         env_prefix="",
         case_sensitive=False,
         extra="ignore",
