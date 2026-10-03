@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "#app/infrastructure/database/prisma.js";
 
 import { defineGraphSyncTask } from "../core/task.js";
-import { buildTask } from "../factory/tag-provisioning.js";
+import { buildTask } from "../factory/concept-registry.js";
 
 const PayloadSchema = z.uuid().array();
 
