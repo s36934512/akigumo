@@ -1,30 +1,19 @@
-import { Component, inject, signal } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 
-import { UploadTestComponent } from "./core/upload/uppy-upload.component";
-import { ApiService } from "./services/api.service";
+import { ArchiveStore } from "#app/entities/archive/model/archive.model";
+import { uploadProviders } from "#app/features/upload-file/providers";
+import { UploadDropDirective } from "#app/features/upload-file/ui/upload-drop.directive";
 
 @Component({
-    imports: [RouterOutlet, UploadTestComponent],
+    imports: [RouterOutlet, UploadDropDirective],
     selector: "app-root",
     styleUrl: "./app.scss",
     templateUrl: "./app.html",
+    providers: [uploadProviders],
 })
 export class App {
-    private readonly api = inject(ApiService);
+    private readonly archiveStore = inject(ArchiveStore);
 
-    protected readonly title = signal("frontend");
-    protected readonly health = signal("尚未取得 API 資料");
-
-    constructor() {
-        this.api.getHealth().subscribe({
-            next: (response) => {
-                this.health.set(`${response.service}: ${response.status}`);
-            },
-            error: (error) => {
-                console.error("API request failed:", error);
-                this.health.set("API 連線失敗");
-            },
-        });
-    }
+    protected readonly archives = this.archiveStore.archives;
 }
