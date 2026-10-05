@@ -21,7 +21,8 @@ export async function getArchiveStructureFromGraph({
     );
 
     const structure = records.map((r) => ({
-        id: z.uuid().parse(r.get("id")),
+        id: z.uuid().parse(r.get("archiveId")),
+        currentFileId: z.uuid().nullable().parse(r.get("currentFileId")),
         conceptList: r.get("conceptList"),
     }));
 
@@ -30,6 +31,14 @@ export async function getArchiveStructureFromGraph({
             id: {
                 in: structure.map((i) => i.id),
             },
+        },
+        select: {
+            id: true,
+            name: true,
+            type: true,
+            publishedDate: true,
+            createdAt: true,
+            updatedAt: true,
         },
     });
 

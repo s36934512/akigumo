@@ -5,23 +5,21 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PostApiV1ArchiveStructure200ItemConceptListItem } from './postApiV1ArchiveStructure200ItemConceptListItem';
-import type { PostApiV1ArchiveStructure200ItemStatus } from './postApiV1ArchiveStructure200ItemStatus';
 import type { PostApiV1ArchiveStructure200ItemType } from './postApiV1ArchiveStructure200ItemType';
 
 export type PostApiV1ArchiveStructure200Item = {
   id: string;
   name: string;
-  /** @nullable */
-  description: string | null;
-  metadata?: unknown;
   type: PostApiV1ArchiveStructure200ItemType;
-  status: PostApiV1ArchiveStructure200ItemStatus;
   /** @nullable */
   publishedDate: string | null;
   createdAt: string;
   updatedAt: string;
-  /** @nullable */
-  deletedAt: string | null;
+  /**
+     * 檔案 ID，若無則為 null
+     * @nullable
+     */
+  currentFileId: string | null;
   /** 項目的屬性 種類:標籤UUID */
   conceptList: PostApiV1ArchiveStructure200ItemConceptListItem[];
 };
