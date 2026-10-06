@@ -1,11 +1,16 @@
+import { provideHttpClient } from "@angular/common/http";
 import {
-    ApplicationConfig,
+    type ApplicationConfig,
     provideBrowserGlobalErrorListeners,
 } from "@angular/core";
-import { provideRouter } from "@angular/router";
-import { routes } from "./app.routes";
 import { provideClientHydration } from "@angular/platform-browser";
-import { provideHttpClient } from "@angular/common/http";
+import { provideRouter } from "@angular/router";
+import {
+    provideTanStackQuery,
+    QueryClient,
+} from "@tanstack/angular-query-experimental";
+
+import { routes } from "./app.routes";
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -13,5 +18,6 @@ export const appConfig: ApplicationConfig = {
         provideBrowserGlobalErrorListeners(),
         provideRouter(routes),
         provideClientHydration(),
+        provideTanStackQuery(new QueryClient()),
     ],
 };
