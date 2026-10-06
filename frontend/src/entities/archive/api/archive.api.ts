@@ -6,9 +6,7 @@ import { DefaultService } from "#app/shared/api";
 export class ArchiveApi {
     private readonly defaultService = inject(DefaultService);
 
-    public getList(showDeleted = false) {
-        return this.defaultService.postApiV1ArchiveStructure({
-            showDeleted,
-        });
+    public getList() {
+        return this.defaultService.postApiV1ArchiveStructure({});
     }
 }

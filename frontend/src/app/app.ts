@@ -1,7 +1,8 @@
 import { Component, inject } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
+import { injectQuery } from "@tanstack/angular-query-experimental";
 
-import { ArchiveStore } from "#app/entities/archive/model/archive.model";
+import { ArchiveQuery } from "#app/entities/archive/model/archive.query";
 import { uploadProviders } from "#app/features/upload-file/providers";
 import { UploadDropDirective } from "#app/features/upload-file/ui/upload-drop.directive";
 
@@ -13,7 +14,7 @@ import { UploadDropDirective } from "#app/features/upload-file/ui/upload-drop.di
     providers: [uploadProviders],
 })
 export class App {
-    private readonly archiveStore = inject(ArchiveStore);
+    private readonly archiveQuery = inject(ArchiveQuery);
 
-    protected readonly archives = this.archiveStore.archives;
+    protected readonly archives = injectQuery(() => this.archiveQuery.list());
 }
