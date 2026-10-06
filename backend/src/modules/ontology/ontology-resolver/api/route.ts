@@ -17,13 +17,13 @@ export const route = createRoute({
         },
     },
     responses: {
-        202: {
+        200: {
             content: {
                 "application/json": {
                     schema: ResponseSchema,
                 },
             },
-            description: "請求成功，回傳流程追蹤 ID",
+            description: "成功",
         },
         400: {
             description: "請求格式錯誤",

@@ -9,13 +9,10 @@ export type PostApiV1OntologyResolverBody = {
   showDeleted?: boolean;
   operate: 'CHILDREN';
   parentId: string;
-  notifyId: string;
 } | {
   showDeleted?: boolean;
   operate: 'ROOT';
-  notifyId: string;
 } | {
   showDeleted?: boolean;
   operate: 'ALL';
-  notifyId: string;
 };

@@ -28,7 +28,7 @@ import type {
   PostApiV1OntologyEditorBody,
   PostApiV1OntologyRegistry202,
   PostApiV1OntologyRegistryBody,
-  PostApiV1OntologyResolver202,
+  PostApiV1OntologyResolver200,
   PostApiV1OntologyResolverBody
 } from '../model';
 
@@ -150,7 +150,7 @@ export class DefaultService {
   /**
  * @summary 取得實體圖形與資訊
  */
- postApiV1OntologyResolver<TData = PostApiV1OntologyResolver202>(
+ postApiV1OntologyResolver<TData = PostApiV1OntologyResolver200>(
     postApiV1OntologyResolverBody?: PostApiV1OntologyResolverBody,
  ) {
       return angularHttp<TData>(
@@ -185,5 +185,5 @@ export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveInt
 export type PostApiV1OntologyDeleteClientResult = NonNullable<PostApiV1OntologyDelete202>
 export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyEditor202>
 export type PostApiV1OntologyRegistryClientResult = NonNullable<PostApiV1OntologyRegistry202>
-export type PostApiV1OntologyResolverClientResult = NonNullable<PostApiV1OntologyResolver202>
+export type PostApiV1OntologyResolverClientResult = NonNullable<PostApiV1OntologyResolver200>
 export type GetApiV1RawFileIdClientResult = NonNullable<Blob>
