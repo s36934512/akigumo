@@ -7,8 +7,10 @@ export async function updateFileAndIntegrationRequest({
     fileId: string;
     originalFilePath: string;
 }) {
-    prisma.file.update({
-        where: { id: fileId },
+    await prisma.file.update({
+        where: {
+            id: fileId,
+        },
         data: {
             physicalPath: originalFilePath,
         },

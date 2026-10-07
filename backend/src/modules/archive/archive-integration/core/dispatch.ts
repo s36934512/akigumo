@@ -144,7 +144,9 @@ export async function dispatchFile({
                 workflowType: WORKFLOW_TYPE,
                 status: "INIT",
                 correlationId,
-                uncompressMaxDepth,
+                data: {
+                    uncompressMaxDepth,
+                },
             })),
         });
 

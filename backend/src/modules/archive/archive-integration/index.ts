@@ -7,6 +7,11 @@ import {
 
 import { machine, WORKFLOW_TYPE } from "./machine/machine.js";
 
+export {
+    ARCHIVE_DISPATCH,
+    ArchiveDispatchEvents,
+} from "./core/processor/dispatch.js";
+
 export const capability = {
     workflows: [
         {

@@ -2,8 +2,7 @@ import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
 import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
-
-import { ARCHIVE_DISPATCH } from "../../archive-integration/core/processor/dispatch.js";
+import { ARCHIVE_DISPATCH } from "../../archive-integration/index.js";
 import { actions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
 
@@ -15,12 +14,18 @@ export const machine = setup({
         events: {} as MachineEvents,
     },
     guards: {
-        isAllFilesDone: ({ context }) => {
-            const { uploadedIdList } = context.processingProgress;
+        isAllFilesUploaded: ({ context }) => {
+            return (
+                context.processingProgress.uploadedIdList.length ===
+                context.fileList.length
+            );
+        },
+
+        shouldDispatch: ({ context }) => {
+            const { pendingDispatchIdList } = context.processingProgress;
 
             return (
-                context.graphSyncCompleted &&
-                uploadedIdList.length === context.fileList.length
+                context.graphSyncCompleted && pendingDispatchIdList.length > 0
             );
         },
 
@@ -61,7 +66,7 @@ export const machine = setup({
                 nextIntent: {
                     operation: ARCHIVE_DISPATCH,
                     payload: {
-                        fileIdList: pendingDispatchIdList,
+                        fileIdList: [...pendingDispatchIdList],
                         uncompressMaxDepth: 3,
                     },
                 },
@@ -78,7 +83,7 @@ export const machine = setup({
         handleFailure: assign(actions.handleFailure),
     },
 }).createMachine({
-    id: "createFile",
+    id: "archiveUpload",
     initial: "VALIDATING_INTENT",
     on: {
         "*": {
@@ -114,28 +119,51 @@ export const machine = setup({
         },
 
         WAITING: {
-            on: {
-                GRAPH_INTENT_CREATED_SUCCEEDED: {
-                    actions: "clearNextIntent",
+            initial: "COLLECTING",
+
+            states: {
+                COLLECTING: {
+                    on: {
+                        GRAPH_INTENT_CREATED_SUCCEEDED: {
+                            actions: "clearNextIntent",
+                        },
+
+                        GRAPH_OPERATION_RESULT_SUCCEEDED: {
+                            actions: "handleSyncTaskSuccess",
+                        },
+
+                        ARCHIVE_UPLOAD_FINISHED_SUCCEEDED: {
+                            actions: "markFileUploaded",
+                        },
+                    },
+
+                    always: [
+                        {
+                            guard: "shouldDispatch",
+                            target: "DISPATCHING",
+                            actions: "prepareDispatchIntent",
+                        },
+                        {
+                            guard: "isAllFilesUploaded",
+                            target: "#archiveUpload.SUCCESS",
+                        },
+                    ],
                 },
 
-                GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    actions: ["handleSyncTaskSuccess", "prepareDispatchIntent"],
+                DISPATCHING: {
+                    on: {
+                        ARCHIVE_DISPATCH_SUCCEEDED: {
+                            target: "COLLECTING",
+                            actions: "clearNextIntent",
+                        },
+                    },
                 },
-
-                ARCHIVE_UPLOAD_FINISHED_SUCCEEDED: {
-                    actions: ["markFileUploaded", "prepareDispatchIntent"],
-                },
-            },
-
-            always: {
-                guard: "isAllFilesDone",
-                target: "SUCCESS",
             },
         },
 
         SUCCESS: {
             type: "final",
+            entry: "clearNextIntent",
         },
 
         FAILED: {

@@ -29,7 +29,7 @@ export const archiveUploadFinishedProcessor = defineProcessor(
             originalFilePath,
         });
 
-        return fileId;
+        return { fileId };
     },
 );
 
