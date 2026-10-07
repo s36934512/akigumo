@@ -5,9 +5,6 @@ CREATE TYPE "ArchiveType" AS ENUM ('WORK', 'SERIES', 'COLLECTION', 'FILE_CONTAIN
 CREATE TYPE "ArchiveStatus" AS ENUM ('ONGOING', 'COMPLETED', 'HIATUS', 'UPCOMING', 'DRAFT', 'PRIVATE', 'ACTIVE', 'ARCHIVED', 'LOCKED', 'HIDDEN', 'PROCESSING', 'DELETED', 'FAILED');
 
 -- CreateEnum
-CREATE TYPE "FileStatus" AS ENUM ('UPLOADING', 'PENDING', 'AVAILABLE', 'IN_USE', 'PROCESSING', 'SCANNING', 'LOCKED', 'FAILED', 'REJECTED', 'ARCHIVED', 'DELETED');
-
--- CreateEnum
 CREATE TYPE "OutboxStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED');
 
 -- CreateTable
@@ -49,41 +46,19 @@ CREATE TABLE "file" (
     "original_name" TEXT,
     "system_name" TEXT,
     "physical_path" TEXT,
+    "extension_code" TEXT,
+    "mime_type" TEXT,
     "size" BIGINT,
     "checksum" TEXT,
-    "is_original" BOOLEAN NOT NULL DEFAULT false,
     "metadata" JSONB,
-    "status" "FileStatus" NOT NULL,
+    "is_original" BOOLEAN NOT NULL DEFAULT false,
     "created_by_workflow_id" UUID,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
     "last_scanned_at" TIMESTAMP(3),
-    "file_extension_id" INTEGER NOT NULL,
 
     CONSTRAINT "file_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "file_category" (
-    "id" SERIAL NOT NULL,
-    "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-
-    CONSTRAINT "file_category_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "file_extension" (
-    "id" SERIAL NOT NULL,
-    "code" TEXT NOT NULL,
-    "mimeType" TEXT,
-    "name" TEXT,
-    "description" TEXT,
-    "file_category_id" INTEGER NOT NULL,
-
-    CONSTRAINT "file_extension_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -130,16 +105,16 @@ CREATE INDEX "archive_type_idx" ON "archive"("type");
 CREATE INDEX "archive_status_idx" ON "archive"("status");
 
 -- CreateIndex
-CREATE INDEX "file_status_idx" ON "file"("status");
+CREATE INDEX "file_extension_code_idx" ON "file"("extension_code");
 
 -- CreateIndex
-CREATE INDEX "file_file_extension_id_idx" ON "file"("file_extension_id");
+CREATE INDEX "file_mime_type_idx" ON "file"("mime_type");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "file_category_code_key" ON "file_category"("code");
+CREATE INDEX "file_checksum_idx" ON "file"("checksum");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "file_extension_code_key" ON "file_extension"("code");
+CREATE INDEX "file_created_by_workflow_id_idx" ON "file"("created_by_workflow_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "outbox_source_outbox_id_key" ON "outbox"("source_outbox_id");
@@ -152,9 +127,3 @@ CREATE INDEX "outbox_workflow_id_idx" ON "outbox"("workflow_id");
 
 -- CreateIndex
 CREATE INDEX "workflow_state_correlation_id_idx" ON "workflow_state"("correlation_id");
-
--- AddForeignKey
-ALTER TABLE "file" ADD CONSTRAINT "file_file_extension_id_fkey" FOREIGN KEY ("file_extension_id") REFERENCES "file_extension"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "file_extension" ADD CONSTRAINT "file_extension_file_category_id_fkey" FOREIGN KEY ("file_category_id") REFERENCES "file_category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
