@@ -8,6 +8,7 @@ import { ARCHIVE_UPLOAD_FINISHED } from "#app/modules/archive/archive-upload/cor
 
 const UploadFinishedJobSchema = z.object({
     fileId: z.uuid(),
+    uploadId: z.string(),
 });
 
 export function createArchiveUploadFinishedWorker(): Worker {
@@ -22,7 +23,7 @@ export function createArchiveUploadFinishedWorker(): Worker {
                 );
             }
 
-            const { fileId } = result.data;
+            const { fileId, uploadId } = result.data;
 
             const record = await prisma.file.findUnique({
                 where: {
@@ -43,6 +44,7 @@ export function createArchiveUploadFinishedWorker(): Worker {
                     operation: ARCHIVE_UPLOAD_FINISHED,
                     payload: {
                         fileId,
+                        uploadId,
                     },
                 },
             });

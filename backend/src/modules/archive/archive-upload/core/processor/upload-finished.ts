@@ -14,9 +14,9 @@ export const archiveUploadFinishedProcessor = defineProcessor(
     ARCHIVE_UPLOAD_FINISHED,
     ArchiveUploadFinishedSchema.single,
     async (input) => {
-        const { fileId } = input.payload;
+        const { fileId, uploadId } = input.payload;
 
-        const sourcePath = Paths.concat("TMP_TUS", fileId);
+        const sourcePath = Paths.concat("TMP_TUS", uploadId);
         const sourceMetadataPath = `${sourcePath}.json`;
         const targetDir = Paths.concat("TMP_PROCESS", fileId);
         const originalFilePath = Paths.concat(targetDir, "original");

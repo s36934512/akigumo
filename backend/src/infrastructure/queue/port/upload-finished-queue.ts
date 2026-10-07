@@ -1,5 +1,5 @@
 export interface UploadFinishedQueue {
-    add(fileId: string): Promise<void>;
+    add(message: { fileId: string; uploadId: string }): Promise<void>;
 
     close(): Promise<void>;
 }

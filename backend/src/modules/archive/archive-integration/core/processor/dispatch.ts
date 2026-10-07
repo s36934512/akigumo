@@ -11,7 +11,6 @@ export const DispatchInputSchema = z.object({
     fileIdList: z.uuid().array(),
     uncompressMaxDepth: z.number().default(3),
     correlationId: z.uuid().optional(),
-    notifyId: z.uuid().optional(),
 });
 
 export const archiveDispatchProcessor = defineProcessor(

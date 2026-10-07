@@ -123,7 +123,7 @@ export const machine = setup({
                     actions: ["handleSyncTaskSuccess", "prepareDispatchIntent"],
                 },
 
-                ARCHIVE_SEAL_SUCCEEDED: {
+                ARCHIVE_UPLOAD_FINISHED_SUCCEEDED: {
                     actions: ["markFileUploaded", "prepareDispatchIntent"],
                 },
             },

@@ -20,7 +20,10 @@ export function createTusServer(uploadFinishedQueue: UploadFinishedQueue) {
                 throw new Error("TUS upload is missing fileId metadata");
             }
 
-            await uploadFinishedQueue.add(fileId);
+            await uploadFinishedQueue.add({
+                fileId,
+                uploadId: upload.id,
+            });
 
             return {};
         },
