@@ -8,7 +8,7 @@ import { dispatchFile } from "../dispatch.js";
 export const ARCHIVE_DISPATCH = "ARCHIVE_DISPATCH";
 
 export const DispatchInputSchema = z.object({
-    fileId: z.uuid(),
+    fileIdList: z.uuid().array(),
     uncompressMaxDepth: z.number().default(3),
     correlationId: z.uuid().optional(),
     notifyId: z.uuid().optional(),

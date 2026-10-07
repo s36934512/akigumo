@@ -86,57 +86,85 @@ export async function analyzeFile(path: string, fileName: string | null) {
 }
 
 export async function dispatchFile({
-    fileId,
+    fileIdList,
     correlationId,
-    notifyId,
     uncompressMaxDepth,
 }: {
-    fileId: string;
+    fileIdList: string[];
     correlationId?: string;
-    notifyId?: string;
     uncompressMaxDepth: number;
 }) {
-    const file = await prisma.file.findUnique({
-        where: { id: fileId },
+    const fileList = await prisma.file.findMany({
+        where: {
+            id: {
+                in: fileIdList,
+            },
+        },
     });
-    if (!file?.physicalPath) {
-        throw new NonRetryableError(`File ${fileId} not found`);
+
+    if (!fileList.length) {
+        throw new NonRetryableError(`Files not found`);
     }
 
-    const analysis = await analyzeFile(file.physicalPath, file.originalName);
-    const strategy =
-        FILE_PROCESSING_STRATEGIES[resolveStrategyKey(analysis.categoryCode)];
+    if (fileList.length < fileIdList.length) {
+        const foundIds = fileList.map((f) => f.id);
+        const missingIds = fileIdList.filter((id) => !foundIds.includes(id));
 
-    await prisma.$transaction([
-        prisma.workflowState.create({
-            data: {
-                id: fileId,
+        throw new NonRetryableError(`File not found`, missingIds);
+    }
+
+    const fileProcessList = await Promise.all(
+        fileList.map(async (file) => {
+            if (!file.physicalPath) {
+                throw new NonRetryableError(`File ${file.id} not found`);
+            }
+
+            const analysis = await analyzeFile(
+                file.physicalPath,
+                file.originalName,
+            );
+
+            const strategy =
+                FILE_PROCESSING_STRATEGIES[
+                    resolveStrategyKey(analysis.categoryCode)
+                ];
+
+            return {
+                file,
+                analysis,
+                strategy,
+            };
+        }),
+    );
+
+    await prisma.$transaction(async (tx) => {
+        await tx.workflowState.createMany({
+            data: fileProcessList.map(({ file }) => ({
+                id: file.id,
                 workflowType: WORKFLOW_TYPE,
                 status: "INIT",
-                correlationId: correlationId,
-            },
-        }),
+                correlationId,
+                uncompressMaxDepth,
+            })),
+        });
 
-        prisma.file.update({
-            where: { id: fileId },
-            data: {
-                size: analysis.size,
-                checksum: analysis.checksum,
-                fileExtensionId: analysis.extensionId,
-                metadata: {
-                    ...((file.metadata ?? {}) as Record<string, unknown>),
-                    ...analysis.metadata,
+        for (const { file, analysis } of fileProcessList) {
+            await tx.file.update({
+                where: {
+                    id: file.id,
                 },
-            },
-        }),
-    ]);
+                data: {
+                    size: analysis.size,
+                    checksum: analysis.checksum,
+                    fileExtensionId: analysis.extensionId,
+                    metadata: {
+                        ...((file.metadata ?? {}) as Record<string, unknown>),
+                        ...analysis.metadata,
+                    },
+                },
+            });
+        }
+    });
 
-    return {
-        fileId,
-        strategy,
-        uncompressMaxDepth,
-        extensionCode: analysis.extensionCode,
-        conceptId: analysis.conceptId,
-        notifyId,
-    };
+    return {};
 }

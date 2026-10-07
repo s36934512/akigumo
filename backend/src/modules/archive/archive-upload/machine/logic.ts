@@ -15,10 +15,6 @@ export const actions = {
 
         return {
             fileList: event.data.fileIdList,
-            processingProgress: {
-                totalIdList: [...event.data.fileIdList],
-                successIdList: [],
-            },
         };
     },
 
@@ -32,14 +28,15 @@ export const actions = {
         assertEvent(event, ArchiveUploadFinishedEvents.SUCCEEDED);
 
         const fileId = event.data.fileId;
-        const { successIdList } = context.processingProgress;
+        const { uploadedIdList, pendingDispatchIdList } =
+            context.processingProgress;
 
-        if (successIdList.includes(fileId)) return context;
+        if (uploadedIdList.includes(fileId)) return context;
 
         return {
             processingProgress: {
-                ...context.processingProgress,
-                successIdList: [...successIdList, fileId],
+                uploadedIdList: [...uploadedIdList, fileId],
+                pendingDispatchIdList: [...pendingDispatchIdList, fileId],
             },
         };
     },

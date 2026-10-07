@@ -33,6 +33,7 @@ export const ResponseSchema = WorkflowResponseSchema;
 export const ArchiveUploadFinishedSchema = createFlexibleSchema(
     z.object({
         fileId: z.uuid(),
+        uploadId: z.string(),
     }),
 );
 

@@ -3,6 +3,7 @@ import { assign, setup } from "xstate";
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
 import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
+import { ARCHIVE_DISPATCH } from "../../archive-integration/core/processor/dispatch.js";
 import { actions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
 
@@ -15,11 +16,11 @@ export const machine = setup({
     },
     guards: {
         isAllFilesDone: ({ context }) => {
-            const { totalIdList, successIdList } = context.processingProgress;
+            const { uploadedIdList } = context.processingProgress;
 
             return (
                 context.graphSyncCompleted &&
-                successIdList.length === totalIdList.length
+                uploadedIdList.length === context.fileList.length
             );
         },
 
@@ -46,7 +47,33 @@ export const machine = setup({
 
         markFileUploaded: assign(actions.markFileUploaded),
 
-        clearNextTask: assign({ nextIntent: null }),
+        prepareDispatchIntent: assign(({ context }) => {
+            const { pendingDispatchIdList } = context.processingProgress;
+
+            if (
+                pendingDispatchIdList.length === 0 ||
+                context.graphSyncCompleted === false
+            ) {
+                return {};
+            }
+
+            return {
+                nextIntent: {
+                    operation: ARCHIVE_DISPATCH,
+                    payload: {
+                        fileIdList: pendingDispatchIdList,
+                        uncompressMaxDepth: 3,
+                    },
+                },
+
+                processingProgress: {
+                    ...context.processingProgress,
+                    pendingDispatchIdList: [],
+                },
+            };
+        }),
+
+        clearNextIntent: assign({ nextIntent: null }),
 
         handleFailure: assign(actions.handleFailure),
     },
@@ -65,8 +92,8 @@ export const machine = setup({
         error: null,
         nextIntent: null,
         processingProgress: {
-            totalIdList: [],
-            successIdList: [],
+            uploadedIdList: [],
+            pendingDispatchIdList: [],
         },
         graphSyncCompleted: false,
     },
@@ -89,15 +116,15 @@ export const machine = setup({
         WAITING: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
-                    actions: "clearNextTask",
+                    actions: "clearNextIntent",
                 },
 
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    actions: ["handleSyncTaskSuccess", "clearNextTask"],
+                    actions: ["handleSyncTaskSuccess", "prepareDispatchIntent"],
                 },
 
                 ARCHIVE_SEAL_SUCCEEDED: {
-                    actions: "markFileUploaded",
+                    actions: ["markFileUploaded", "prepareDispatchIntent"],
                 },
             },
 
@@ -109,12 +136,11 @@ export const machine = setup({
 
         SUCCESS: {
             type: "final",
-            entry: "clearNextTask",
         },
 
         FAILED: {
             type: "final",
-            entry: "clearNextTask",
+            entry: "clearNextIntent",
         },
     },
 });
