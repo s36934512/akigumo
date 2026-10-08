@@ -32,16 +32,13 @@ export const archiveStorageProcessor = defineProcessor(
             Paths.STORAGE_ORIGINALS,
         );
 
-        return input.payload;
+        return {};
     },
 );
 
 export const ArchiveStorageEvents = createEventCodes(ARCHIVE_STORAGE, [
     {
         code: "SUCCEEDED",
-        dataSchema: z.object({
-            notifyId: z.uuid(),
-            idList: z.uuid().array(),
-        }),
+        dataSchema: z.object({}),
     },
 ]);

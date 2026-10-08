@@ -81,47 +81,52 @@ export const machine = setup({
                 nextIntent: {
                     operation: ARCHIVE_TRANSCODE,
                     payload: {
-                        id: context.fileId,
+                        fileId: context.fileId,
                     },
                 },
             };
         }),
 
         prepareStorageTask: assign(({ context }) => {
+            const { fileId, derivedFileId, processingProgress } = context;
+
+            if (!fileId) {
+                throw new Error(
+                    "ArchiveIntegration workflow invariant violated: fileId is required",
+                );
+            }
+
+            const fileList = [
+                ...processingProgress.totalIds,
+                fileId,
+                ...(derivedFileId ? [derivedFileId] : []),
+            ];
+
             return {
                 nextIntent: {
                     operation: ARCHIVE_STORAGE,
                     payload: {
-                        fileId: context.fileId,
-                        fileList: context.processingProgress.totalIds,
+                        fileId,
+                        fileList,
                     },
                 },
             };
         }),
 
         prepareSyncTask: assign(({ context }) => {
-            if (context.processingProgress.totalIds.length === 0) {
-                logger.warn(
-                    { context },
-                    "No files to sync for fileId: %s",
-                    context.fileId,
-                );
-                return {};
-            }
-
-            if (context.processingProgress.totalIds.length > 1) {
+            if (context.derivedFileId) {
                 return {
-                    nextIntent: createSyncIntentOutbox("archive-uncompress", {
+                    nextIntent: createSyncIntentOutbox("archive-transcode", {
                         fileId: context.fileId,
-                        derivedFileIds: context.processingProgress.totalIds,
+                        derivedFileId: context.derivedFileId,
                     }),
                 };
             }
 
             return {
-                nextIntent: createSyncIntentOutbox("archive-transcode", {
+                nextIntent: createSyncIntentOutbox("archive-uncompress", {
                     fileId: context.fileId,
-                    derivedFileId: context.processingProgress.totalIds[0],
+                    derivedFileIds: context.processingProgress.totalIds,
                 }),
             };
         }),
@@ -148,7 +153,7 @@ export const machine = setup({
     },
 }).createMachine({
     id: "processFileItem",
-    initial: "DECIDING_PROCESS",
+    initial: "BOOTSTRAPPING",
     on: {
         "*": {
             target: ".FAILED",
@@ -157,6 +162,7 @@ export const machine = setup({
     },
     context: {
         fileId: null,
+        derivedFileId: null,
         extensionCode: null,
         uncompressMaxDepth: 0,
         strategy: {
@@ -172,19 +178,22 @@ export const machine = setup({
         error: null,
     },
     states: {
-        DECIDING_PROCESS: {
+        BOOTSTRAPPING: {
             on: {
                 WORKFLOW_BOOTSTRAP_SUCCEEDED: {
+                    target: "DECIDING_PROCESS",
                     actions: "handleIntegrationBootstrapSuccess",
                 },
             },
+        },
 
+        DECIDING_PROCESS: {
             always: [
-                {
-                    guard: "shouldStartUncompress",
-                    target: "UNCOMPRESSING",
-                    actions: "prepareUncompressTask",
-                },
+                // {
+                //     guard: "shouldStartUncompress",
+                //     target: "UNCOMPRESSING",
+                //     actions: "prepareUncompressTask",
+                // },
                 {
                     guard: "shouldStartTranscode",
                     target: "TRANSCODING",
@@ -192,49 +201,50 @@ export const machine = setup({
                 },
                 {
                     target: "STORAGE",
-                    actions: "prepareStorageTask",
                 },
             ],
         },
-        UNCOMPRESSING: {
-            on: {
-                ARCHIVE_UNCOMPRESS_SUCCEEDED: {
-                    target: "SYNCING_INTENT",
-                    actions: [
-                        "handleUncompressSuccess",
-                        "prepareSyncIntentTask",
-                    ],
-                },
-            },
-        },
-        SYNCING_INTENT: {
-            on: {
-                GRAPH_INTENT_CREATED_SUCCEEDED: {
-                    actions: "clearNextIntent",
-                },
-                GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    target: "WAITING_PROCESSING",
-                    actions: "prepareRecursiveUncompressTask",
-                },
-            },
-        },
-        WAITING_PROCESSING: {
-            on: {
-                GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    actions: "clearNextIntent",
-                },
-                ARCHIVE_NOTIFY_SUCCESS: [
-                    {
-                        actions: "completedNotify",
-                    },
-                ],
-            },
 
-            always: {
-                guard: "isAllFilesDone",
-                target: "STORAGE",
-            },
-        },
+        // UNCOMPRESSING: {
+        //     on: {
+        //         ARCHIVE_UNCOMPRESS_SUCCEEDED: {
+        //             target: "SYNCING_FILE",
+        //             actions: ["handleUncompressSuccess", "prepareSyncTask"],
+        //         },
+        //     },
+        // },
+
+        // SYNCING: {
+        //     on: {
+        //         GRAPH_INTENT_CREATED_SUCCEEDED: {
+        //             actions: "clearNextIntent",
+        //         },
+
+        //         GRAPH_OPERATION_RESULT_SUCCEEDED: {
+        //             target: "WAITING_PROCESSING",
+        //             actions: "prepareRecursiveUncompressTask",
+        //         },
+        //     },
+        // },
+
+        // WAITING_PROCESSING: {
+        //     on: {
+        //         GRAPH_OPERATION_RESULT_SUCCEEDED: {
+        //             actions: "clearNextIntent",
+        //         },
+        //         ARCHIVE_NOTIFY_SUCCESS: [
+        //             {
+        //                 actions: "completedNotify",
+        //             },
+        //         ],
+        //     },
+
+        //     always: {
+        //         guard: "isAllFilesDone",
+        //         target: "STORAGE",
+        //     },
+        // },
+
         TRANSCODING: {
             on: {
                 ARCHIVE_TRANSCODE_SUCCEEDED: {
@@ -243,8 +253,10 @@ export const machine = setup({
                 },
             },
         },
+
         STORAGE: {
             entry: "prepareStorageTask",
+
             on: {
                 ARCHIVE_STORAGE_SUCCEEDED: {
                     target: "SYNCING_FILE",
@@ -258,6 +270,7 @@ export const machine = setup({
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
                 },
+
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
                     actions: "clearNextIntent",
@@ -269,6 +282,7 @@ export const machine = setup({
             type: "final",
             entry: "clearNextIntent",
         },
+
         FAILED: {
             type: "final",
             entry: "clearNextIntent",

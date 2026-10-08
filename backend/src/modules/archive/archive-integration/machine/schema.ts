@@ -24,6 +24,7 @@ const ProcessingProgressSchema = z.object({
 
 export const ContextSchema = MachineContextSchema.extend({
     fileId: z.uuid().nullable(),
+    derivedFileId: z.uuid().nullable(),
     extensionCode: z.string().nullable(),
     uncompressMaxDepth: z.int(),
     strategy: StrategySchema,
