@@ -22,6 +22,7 @@ export const ArchiveIntentEvents = createEventCodes(WORKFLOW_BOOTSTRAP, [
 const ProcessingProgressSchema = z.object({
     uploadedIdList: z.uuid().array(),
     pendingDispatchIdList: z.uuid().array(),
+    dispatchedIdList: z.uuid().array(),
 });
 
 const ContextSchema = MachineContextSchema.extend({

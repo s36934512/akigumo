@@ -2,6 +2,7 @@ import { assertEvent } from "xstate";
 
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
 
+import { ArchiveDispatchEvents } from "../../archive-integration/index.js";
 import { ArchiveUploadFinishedEvents } from "../core/processor/upload-finished.js";
 import {
     ArchiveIntentEvents,
@@ -14,7 +15,7 @@ export const actions = {
         assertEvent(event, ArchiveIntentEvents.SUCCEEDED);
 
         return {
-            fileList: event.data.fileIdList,
+            fileList: Array.from(new Set(event.data.fileIdList)),
         };
     },
 
@@ -28,6 +29,11 @@ export const actions = {
         assertEvent(event, ArchiveUploadFinishedEvents.SUCCEEDED);
 
         const fileId = event.data.fileId;
+
+        if (!context.fileList.includes(fileId)) {
+            return context;
+        }
+
         const { uploadedIdList, pendingDispatchIdList } =
             context.processingProgress;
 
@@ -35,8 +41,34 @@ export const actions = {
 
         return {
             processingProgress: {
+                ...context.processingProgress,
                 uploadedIdList: [...uploadedIdList, fileId],
                 pendingDispatchIdList: [...pendingDispatchIdList, fileId],
+            },
+        };
+    },
+
+    handleDispatchSuccess({
+        context,
+        event,
+    }: {
+        context: MachineContext;
+        event: MachineEvents;
+    }) {
+        assertEvent(event, ArchiveDispatchEvents.SUCCEEDED);
+
+        const dispatchedIdSet = new Set(
+            context.processingProgress.dispatchedIdList,
+        );
+
+        for (const fileId of event.data.fileIdList) {
+            dispatchedIdSet.add(fileId);
+        }
+
+        return {
+            processingProgress: {
+                ...context.processingProgress,
+                dispatchedIdList: Array.from(dispatchedIdSet),
             },
         };
     },

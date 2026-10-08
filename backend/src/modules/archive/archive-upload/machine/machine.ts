@@ -2,6 +2,7 @@ import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
 import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
+
 import { ARCHIVE_DISPATCH } from "../../archive-integration/index.js";
 import { actions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
@@ -15,9 +16,22 @@ export const machine = setup({
     },
     guards: {
         isAllFilesUploaded: ({ context }) => {
-            return (
-                context.processingProgress.uploadedIdList.length ===
-                context.fileList.length
+            const uploadedIdSet = new Set(
+                context.processingProgress.uploadedIdList,
+            );
+
+            return context.fileList.every((fileId) =>
+                uploadedIdSet.has(fileId),
+            );
+        },
+
+        isFlowCompleted: ({ context }) => {
+            const dispatchedIdSet = new Set(
+                context.processingProgress.dispatchedIdList,
+            );
+
+            return context.fileList.every((fileId) =>
+                dispatchedIdSet.has(fileId),
             );
         },
 
@@ -33,6 +47,8 @@ export const machine = setup({
     },
     actions: {
         handleIntentSuccess: assign(actions.handleIntentSuccess),
+
+        handleDispatchSuccess: assign(actions.handleDispatchSuccess),
 
         prepareSyncTask: assign(({ context }) => {
             return {
@@ -62,18 +78,20 @@ export const machine = setup({
                 return {};
             }
 
+            const dispatchIdList = [...pendingDispatchIdList];
+
             return {
                 nextIntent: {
                     operation: ARCHIVE_DISPATCH,
                     payload: {
-                        fileIdList: [...pendingDispatchIdList],
+                        fileIdList: dispatchIdList,
                         uncompressMaxDepth: 3,
                     },
                 },
-
                 processingProgress: {
                     ...context.processingProgress,
                     pendingDispatchIdList: [],
+                    dispatchingIdList: dispatchIdList,
                 },
             };
         }),
@@ -99,6 +117,7 @@ export const machine = setup({
         processingProgress: {
             uploadedIdList: [],
             pendingDispatchIdList: [],
+            dispatchedIdList: [],
         },
         graphSyncCompleted: false,
     },
@@ -144,7 +163,7 @@ export const machine = setup({
                             actions: "prepareDispatchIntent",
                         },
                         {
-                            guard: "isAllFilesUploaded",
+                            guard: "isFlowCompleted",
                             target: "#archiveUpload.SUCCESS",
                         },
                     ],
@@ -152,9 +171,16 @@ export const machine = setup({
 
                 DISPATCHING: {
                     on: {
+                        ARCHIVE_UPLOAD_FINISHED_SUCCEEDED: {
+                            actions: "markFileUploaded",
+                        },
+
                         ARCHIVE_DISPATCH_SUCCEEDED: {
                             target: "COLLECTING",
-                            actions: "clearNextIntent",
+                            actions: [
+                                "handleDispatchSuccess",
+                                "clearNextIntent",
+                            ],
                         },
                     },
                 },
