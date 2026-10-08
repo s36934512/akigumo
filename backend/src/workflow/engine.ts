@@ -1,8 +1,9 @@
 import type { WorkflowResult } from "#app/contracts/index.js";
 import { logger } from "#app/infrastructure/logger/index.js";
-import { createWorkflowEvent } from "./event/index.js";
 
+import { createWorkflowEvent } from "./event/index.js";
 import type { WorkflowStore } from "./port/workflow-store.js";
+import { serializeWorkflowStatus } from "./serialize-workflow-status.js";
 import {
     createWorkflowMachineFromState,
     executeWorkflowEvent,
@@ -70,7 +71,7 @@ export function createWorkflowEngine(store: WorkflowStore) {
 
                     await tx.updateWorkflowState({
                         workflowId: message.workflowId,
-                        status: String(nextSnapshot.value),
+                        status: serializeWorkflowStatus(nextSnapshot.value),
                         snapshot: serializeWorkflowSnapshot(nextSnapshot),
                     });
 
