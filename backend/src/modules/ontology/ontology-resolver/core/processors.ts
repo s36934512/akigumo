@@ -3,10 +3,8 @@ import { CyElementSchema } from "../contract/cytoscape.js";
 import * as service from "./service.js";
 
 export async function ontologyResolverProcessor(input: OntologyResolver) {
-    const { notifyId, ...obj } = input;
-
     const { nodeIdList, nodeList, edgeList } =
-        await service.getConceptStructure(obj);
+        await service.getConceptStructure(input);
 
     const conceptList = await service.findConcept(nodeIdList);
 
