@@ -2,15 +2,10 @@ import type { HttpBindings } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { v7 as uuidv7 } from "uuid";
 
-import {
-    ArchiveStatus,
-    ArchiveType,
-    FileStatus,
-} from "#app/generated/prisma/enums.js";
+import { ArchiveStatus, ArchiveType } from "#app/generated/prisma/enums.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { NonRetryableError } from "#app/kernel/index.js";
-import { getOrCreateDefaultExt } from "#app/modules/archive/archive-integration/extension/default.js";
 import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 
 import { hasEnoughSpace } from "../../core/disk-guard.js";
@@ -31,8 +26,6 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
         throw new NonRetryableError("磁碟空間不足");
     }
 
-    const defaultExt = await getOrCreateDefaultExt();
-
     const workflowId = uuidv7();
 
     const completeFileList = fileList.map((f) => ({
@@ -43,8 +36,6 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
         ...(f.metadata !== undefined && {
             metadata: f.metadata,
         }),
-        status: FileStatus.UPLOADING,
-        fileExtensionId: defaultExt.id,
         createdByWorkflowId: workflowId,
     }));
 

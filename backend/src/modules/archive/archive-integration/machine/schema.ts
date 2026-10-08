@@ -1,8 +1,5 @@
-/**
- * @file State machine context and event schemas for process-file-item workflow
- * Defines persisted context shape and event contract for item-level file processing
- */
 import { z } from "@hono/zod-openapi";
+
 import {
     GraphIntentCreatedEvents,
     GraphOperationResultEvents,
@@ -10,16 +7,14 @@ import {
 import { MachineContextSchema } from "#app/workflow/index.js";
 
 import {
-    ArchiveDispatchEvents,
+    ArchiveIntegrationBootstrapEvents,
+    StrategySchema,
+} from "../core/processor/dispatch.js";
+import {
     ArchiveStorageEvents,
     ArchiveTranscodeEvents,
     ArchiveUncompressEvents,
 } from "../core/processor/index.js";
-
-const StrategySchema = z.object({
-    shouldUncompress: z.boolean(),
-    shouldTranscode: z.boolean(),
-});
 
 const ProcessingProgressSchema = z.object({
     totalIds: z.uuid().array(),
@@ -29,10 +24,8 @@ const ProcessingProgressSchema = z.object({
 
 export const ContextSchema = MachineContextSchema.extend({
     fileId: z.uuid().nullable(),
-    notifyId: z.uuid().nullable(),
     extensionCode: z.string().nullable(),
-    conceptId: z.uuid().nullable(),
-    uncompressMaxDepth: z.number(),
+    uncompressMaxDepth: z.int(),
     strategy: StrategySchema,
 
     processingProgress: ProcessingProgressSchema,
@@ -41,7 +34,7 @@ export const ContextSchema = MachineContextSchema.extend({
 export type MachineContext = z.infer<typeof ContextSchema>;
 
 export const EVENT_SCHEMA_LIST = [
-    ...ArchiveDispatchEvents.schemaList,
+    ...ArchiveIntegrationBootstrapEvents.schemaList,
     ...ArchiveStorageEvents.schemaList,
     ...ArchiveTranscodeEvents.schemaList,
     ...ArchiveUncompressEvents.schemaList,

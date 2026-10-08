@@ -1,17 +1,9 @@
-/**
- * @file State machine definition for file-integration child workflow
- *
- * Each file item runs its own instance of this machine so one slow or failed
- * item cannot block the rest of the batch. The machine drives a linear
- * DECIDING_PROCESS branch that routes to archive extraction, image
- * transcoding, or direct graph-sync depending on the strategy flags set by
- * the SEAL processor.
- */
-
 import { assign, setup } from "xstate";
+
 import { logger } from "#app/infrastructure/logger/index.js";
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
 import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
+
 import {
     ARCHIVE_STORAGE,
     ARCHIVE_TRANSCODE,
@@ -51,18 +43,14 @@ export const machine = setup({
         },
     },
     actions: {
-        handleDispatchSuccess: assign(actions.handleDispatchSuccess),
+        handleIntegrationBootstrapSuccess: assign(
+            actions.handleIntegrationBootstrapSuccess,
+        ),
 
         handleTranscodeSuccess: assign(actions.handleTranscodeSuccess),
 
         handleUncompressSuccess: assign(actions.handleUncompressSuccess),
 
-        /**
-         * Archive extraction must precede graph sync
-         *
-         * Graph labels and child-file metadata cannot be determined until the
-         * archive contents are known, so extraction always runs before sync.
-         */
         prepareUncompressTask: assign(({ context }) => {
             return {
                 nextIntent: {
@@ -88,12 +76,6 @@ export const machine = setup({
             };
         }),
 
-        /**
-         * Derived WebP assets must exist before the node is considered complete
-         *
-         * The source image alone cannot fulfill display requirements; at least
-         * one transcoded derivative must be produced before graph sync runs.
-         */
         prepareTranscodeTask: assign(({ context }) => {
             return {
                 nextIntent: {
@@ -117,12 +99,6 @@ export const machine = setup({
             };
         }),
 
-        /**
-         * Schedule a Neo4j MERGE for the completed file node
-         *
-         * Sync runs before notifying the parent so the parent's
-         * completion count only increments once the graph node is durable.
-         */
         prepareSyncTask: assign(({ context }) => {
             if (context.processingProgress.totalIds.length === 0) {
                 logger.warn(
@@ -166,29 +142,13 @@ export const machine = setup({
             };
         }),
 
-        prepareNotifyParent: assign(({ context }) => {
-            return {
-                // nextIntent: {
-                //     operation: ACTION_LIST.NOTIFY_PARENT.code,
-                //     payload: {
-                //         fileId: context.fileId,
-                //     },
-                // },
-            };
-        }),
-
-        completedNotify: assign(actions.completedNotify),
-
         handleFailure: assign(actions.handleFailure),
 
-        clearNextTask: assign({ nextIntent: null }),
-        notifyFrontend: ({ context }) => {
-            // void actions.notifyFrontend({ context });
-        },
+        clearNextIntent: assign({ nextIntent: null }),
     },
 }).createMachine({
     id: "processFileItem",
-    initial: "WAITING_START",
+    initial: "DECIDING_PROCESS",
     on: {
         "*": {
             target: ".FAILED",
@@ -197,9 +157,7 @@ export const machine = setup({
     },
     context: {
         fileId: null,
-        notifyId: null,
         extensionCode: null,
-        conceptId: null,
         uncompressMaxDepth: 0,
         strategy: {
             shouldUncompress: false,
@@ -214,15 +172,13 @@ export const machine = setup({
         error: null,
     },
     states: {
-        WAITING_START: {
+        DECIDING_PROCESS: {
             on: {
-                ARCHIVE_DISPATCH_SUCCEEDED: {
-                    target: "DECIDING_PROCESS",
-                    actions: "handleDispatchSuccess",
+                WORKFLOW_BOOTSTRAP_SUCCEEDED: {
+                    actions: "handleIntegrationBootstrapSuccess",
                 },
             },
-        },
-        DECIDING_PROCESS: {
+
             always: [
                 {
                     guard: "shouldStartUncompress",
@@ -254,7 +210,7 @@ export const machine = setup({
         SYNCING_INTENT: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
-                    actions: "clearNextTask",
+                    actions: "clearNextIntent",
                 },
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "WAITING_PROCESSING",
@@ -265,7 +221,7 @@ export const machine = setup({
         WAITING_PROCESSING: {
             on: {
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    actions: "clearNextTask",
+                    actions: "clearNextIntent",
                 },
                 ARCHIVE_NOTIFY_SUCCESS: [
                     {
@@ -296,32 +252,26 @@ export const machine = setup({
                 },
             },
         },
+
         SYNCING_FILE: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
-                    actions: "clearNextTask",
+                    actions: "clearNextIntent",
                 },
-                GRAPH_OPERATION_RESULT_SUCCEEDED: {
-                    target: "NOTIFY_PARENT",
-                    actions: "clearNextTask",
-                },
-            },
-        },
-        NOTIFY_PARENT: {
-            entry: "prepareNotifyParent",
-            on: {
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
+                    actions: "clearNextIntent",
                 },
             },
         },
+
         SUCCESS: {
             type: "final",
-            entry: ["clearNextTask", "notifyFrontend"],
+            entry: "clearNextIntent",
         },
         FAILED: {
             type: "final",
-            entry: "clearNextTask",
+            entry: "clearNextIntent",
         },
     },
 });

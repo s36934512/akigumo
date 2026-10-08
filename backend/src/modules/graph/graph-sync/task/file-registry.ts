@@ -29,9 +29,6 @@ async function fileRegistryHandler(payload: Payload) {
                     in: fileIdList,
                 },
             },
-            include: {
-                fileExtension: true,
-            },
         }),
 
         prisma.archive.findMany({
@@ -81,7 +78,7 @@ async function fileRegistryHandler(payload: Payload) {
         buildFileRegistryTask({
             fileId: file.id,
             archiveId: archive.id,
-            fileExtensionCode: file.fileExtension.code,
+            fileExtensionCode: file.extensionCode,
             originalName: file.originalName,
         }),
     );

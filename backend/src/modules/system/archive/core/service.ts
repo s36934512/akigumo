@@ -28,7 +28,7 @@ export async function getFileMetadata(fileId: string) {
                 select: {
                     physicalPath: true,
                     systemName: true,
-                    fileExtension: { select: { mimeType: true } },
+                    mimeType: true,
                 },
             });
 
@@ -37,8 +37,7 @@ export async function getFileMetadata(fileId: string) {
             return {
                 physicalPath: file.physicalPath,
                 systemName: file.systemName,
-                mimeType:
-                    file.fileExtension?.mimeType ?? "application/octet-stream",
+                mimeType: file.mimeType ?? "application/octet-stream",
             };
         },
     );

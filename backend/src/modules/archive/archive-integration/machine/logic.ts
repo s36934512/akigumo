@@ -1,22 +1,20 @@
 import { assertEvent } from "xstate";
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
+import { ArchiveIntegrationBootstrapEvents } from "../core/processor/dispatch.js";
 import {
-    ArchiveDispatchEvents,
     ArchiveTranscodeEvents,
     ArchiveUncompressEvents,
 } from "../core/processor/index.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
 
 export const actions = {
-    handleDispatchSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, ArchiveDispatchEvents.SUCCEEDED);
+    handleIntegrationBootstrapSuccess({ event }: { event: MachineEvents }) {
+        assertEvent(event, ArchiveIntegrationBootstrapEvents.SUCCEEDED);
 
         return {
-            // fileId: event.payload.fileId,
-            // notifyId: event.payload.notifyId ?? null,
-            // extensionCode: event.payload.extensionCode,
-            // strategy: event.payload.strategy,
-            // uncompressMaxDepth: event.payload.uncompressMaxDepth,
+            fileId: event.data.fileId,
+            strategy: event.data.strategy,
+            uncompressMaxDepth: event.data.uncompressMaxDepth,
         };
     },
 
@@ -30,13 +28,13 @@ export const actions = {
         assertEvent(event, ArchiveTranscodeEvents.SUCCEEDED);
 
         return {
-            // processingProgress: {
-            //     ...context.processingProgress,
-            //     totalIds: [
-            //         ...context.processingProgress.totalIds,
-            //         event.payload.fileId,
-            //     ],
-            // },
+            processingProgress: {
+                ...context.processingProgress,
+                totalIds: [
+                    ...context.processingProgress.totalIds,
+                    event.data.fileId,
+                ],
+            },
         };
     },
 

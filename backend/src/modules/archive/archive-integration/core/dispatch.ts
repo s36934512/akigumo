@@ -1,89 +1,11 @@
-import crypto from "node:crypto";
-import { pipeline } from "node:stream/promises";
-import { type FileTypeResult, fileTypeFromFile } from "file-type";
-import fs, { type Stats } from "fs-extra";
-import mime from "mime-types";
-import sharp from "sharp";
-
+import type { Prisma } from "#app/generated/prisma/client.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
-import * as Paths from "#app/infrastructure/storage/paths.js";
 import { NonRetryableError } from "#app/kernel/index.js";
-import { getFileExtensionId } from "#app/modules/system/file/index.js";
+import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 
-import { FILE_PROCESSING_STRATEGIES } from "../constants.js";
 import { WORKFLOW_TYPE } from "../machine/machine.js";
-import { resolveStrategyKey } from "./strategy.js";
-
-export async function analyzeFile(path: string, fileName: string | null) {
-    let stats: Stats;
-    let fileType: FileTypeResult | undefined;
-
-    try {
-        [stats, fileType] = await Promise.all([
-            fs.stat(path),
-            fileTypeFromFile(path),
-        ]);
-    } catch {
-        throw new NonRetryableError("File not found");
-    }
-
-    if (!stats.isFile()) {
-        throw new NonRetryableError("Not a file");
-    }
-
-    const finalExt = fileType?.ext || Paths.ext(fileName || "") || "bin";
-    const finalMime =
-        fileType?.mime ||
-        mime.lookup(fileName || "") ||
-        "application/octet-stream";
-
-    const { extensionId, conceptId } = await getFileExtensionId(
-        finalExt,
-        finalMime,
-    );
-    const extension = await prisma.fileExtension.findUnique({
-        where: { id: extensionId },
-        include: { category: true },
-    });
-
-    const hashStream = crypto.createHash("sha256");
-    const isImage = finalMime.startsWith("image/");
-
-    let metadata = {};
-
-    if (isImage) {
-        // 一邊讀 Stream 算 Hash，一邊讓 sharp 讀檔案元資料
-        const [imageMetadata, _] = await Promise.all([
-            sharp(path)
-                .metadata()
-                .catch(() => null), // 防呆：萬一圖片損毀，不影響 Hash 計算
-            pipeline(fs.createReadStream(path), hashStream),
-        ]);
-
-        if (imageMetadata) {
-            metadata = {
-                width: imageMetadata.width,
-                height: imageMetadata.height,
-            };
-        }
-    } else {
-        // 非圖片檔案：只做 Hash 計算
-        await pipeline(fs.createReadStream(path), hashStream);
-    }
-
-    const checksum = hashStream.digest("hex");
-
-    return {
-        size: stats.size,
-        checksum,
-        conceptId,
-        extensionId,
-        extensionCode: finalExt,
-        mimeType: finalMime,
-        categoryCode: extension?.category.code || "OTHERS",
-        metadata,
-    };
-}
+import { analyzeFile } from "./file-analysis.js";
+import { resolveFileProcessingStrategy } from "./strategy.js";
 
 export async function dispatchFile({
     fileIdList,
@@ -94,29 +16,44 @@ export async function dispatchFile({
     correlationId?: string;
     uncompressMaxDepth: number;
 }) {
+    if (fileIdList.length === 0) {
+        throw new NonRetryableError(
+            "At least one file is required for dispatch.",
+        );
+    }
+
     const fileList = await prisma.file.findMany({
         where: {
             id: {
                 in: fileIdList,
             },
         },
+        select: {
+            id: true,
+            physicalPath: true,
+            originalName: true,
+            metadata: true,
+        },
     });
 
-    if (!fileList.length) {
-        throw new NonRetryableError(`Files not found`);
+    if (fileList.length !== fileIdList.length) {
+        const foundIdSet = new Set(fileList.map((file) => file.id));
+
+        const missingFileIdList = fileIdList.filter(
+            (fileId) => !foundIdSet.has(fileId),
+        );
+
+        throw new NonRetryableError(
+            `File not found: ${missingFileIdList.join(", ")}`,
+        );
     }
 
-    if (fileList.length < fileIdList.length) {
-        const foundIds = fileList.map((f) => f.id);
-        const missingIds = fileIdList.filter((id) => !foundIds.includes(id));
-
-        throw new NonRetryableError(`File not found`, missingIds);
-    }
-
-    const fileProcessList = await Promise.all(
+    const dispatchItemList = await Promise.all(
         fileList.map(async (file) => {
             if (!file.physicalPath) {
-                throw new NonRetryableError(`File ${file.id} not found`);
+                throw new NonRetryableError(
+                    `File ${file.id} does not have a physical path.`,
+                );
             }
 
             const analysis = await analyzeFile(
@@ -124,10 +61,9 @@ export async function dispatchFile({
                 file.originalName,
             );
 
-            const strategy =
-                FILE_PROCESSING_STRATEGIES[
-                    resolveStrategyKey(analysis.categoryCode)
-                ];
+            const strategy = resolveFileProcessingStrategy(
+                analysis.extensionCode,
+            );
 
             return {
                 file,
@@ -138,35 +74,55 @@ export async function dispatchFile({
     );
 
     await prisma.$transaction(async (tx) => {
-        await tx.workflowState.createMany({
-            data: fileProcessList.map(({ file }) => ({
-                id: file.id,
-                workflowType: WORKFLOW_TYPE,
-                status: "INIT",
-                correlationId,
-                data: {
-                    uncompressMaxDepth,
-                },
-            })),
-        });
+        for (const { file, analysis, strategy } of dispatchItemList) {
+            const fileId = file.id;
 
-        for (const { file, analysis } of fileProcessList) {
+            const metadata: Prisma.JsonObject = {
+                ...(file.metadata &&
+                typeof file.metadata === "object" &&
+                !Array.isArray(file.metadata)
+                    ? file.metadata
+                    : {}),
+                ...(analysis.metadata ?? {}),
+            };
+
             await tx.file.update({
                 where: {
-                    id: file.id,
+                    id: fileId,
                 },
                 data: {
                     size: analysis.size,
                     checksum: analysis.checksum,
-                    fileExtensionId: analysis.extensionId,
-                    metadata: {
-                        ...((file.metadata ?? {}) as Record<string, unknown>),
-                        ...analysis.metadata,
+                    extensionCode: analysis.extensionCode,
+                    mimeType: analysis.mimeType,
+                    metadata,
+                },
+            });
+
+            await tx.workflowState.create({
+                data: {
+                    id: fileId,
+                    workflowType: WORKFLOW_TYPE,
+                    status: "INIT",
+                    correlationId,
+                },
+            });
+
+            await tx.outbox.create({
+                data: {
+                    workflowId: fileId,
+                    operation: WORKFLOW_BOOTSTRAP,
+                    payload: {
+                        fileId,
+                        uncompressMaxDepth,
+                        strategy,
                     },
                 },
             });
         }
     });
 
-    return {};
+    return {
+        fileIdList: dispatchItemList.map((item) => item.file.id),
+    };
 }
