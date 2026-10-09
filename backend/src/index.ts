@@ -17,19 +17,66 @@ const server = serve({
 
 logger.info({ label: "Akigumo" }, "Core Modules Loaded");
 
-const shutdown = async () => {
-    await new Promise<void>((resolve, reject) => {
-        server.close((error) => {
-            if (error) {
-                reject(error);
-                return;
-            }
+let shutdownPromise: Promise<void> | undefined;
 
-            resolve();
-        });
+const shutdown = (): Promise<void> => {
+    if (shutdownPromise) {
+        return shutdownPromise;
+    }
+
+    shutdownPromise = (async () => {
+        const errorList: unknown[] = [];
+
+        try {
+            await new Promise<void>((resolve, reject) => {
+                server.close((error) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    resolve();
+                });
+            });
+        } catch (error: unknown) {
+            errorList.push(error);
+        }
+
+        try {
+            await runtime.stop();
+        } catch (error: unknown) {
+            errorList.push(error);
+        }
+
+        if (errorList.length > 0) {
+            throw new AggregateError(errorList, "應用程式停止時發生錯誤");
+        }
+    })();
+
+    return shutdownPromise;
+};
+
+void runtime.failure
+    .then((error: unknown) => {
+        logger.fatal(
+            { err: error },
+            "背景工作失敗，正在關閉 HTTP server 與 runtime",
+        );
+
+        return shutdown();
+    })
+    .catch((error: unknown) => {
+        logger.error({ err: error }, "背景工作失敗後的關閉流程未能完整完成");
     });
 
-    await runtime.stop();
+const handleSignal = (signal: NodeJS.Signals): void => {
+    logger.info({ label: "Shutdown", signal }, "收到關閉訊號");
+
+    void shutdown().catch((error: unknown) => {
+        logger.error({ label: "Shutdown", err: error }, "應用程式關閉失敗");
+        process.exitCode = 1;
+    });
 };
-process.once("SIGINT", () => void shutdown());
-process.once("SIGTERM", () => void shutdown());
+
+process.once("SIGINT", () => handleSignal("SIGINT"));
+process.once("SIGTERM", () => handleSignal("SIGTERM"));

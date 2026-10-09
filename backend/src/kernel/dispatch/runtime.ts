@@ -10,38 +10,43 @@ export function createDispatchRuntime(
     dispatch: Dispatch,
     config: DispatchRuntimeConfig,
 ) {
-    let dispatchRunning = false;
-    let dispatchRequested = false;
     let stopped = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    let dispatchRequested = false;
 
-    const requestDispatch = (): void => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let runningPromise: Promise<void> | undefined;
+
+    function requestDispatch(): void {
+        if (stopped) {
+            return;
+        }
+
         dispatchRequested = true;
 
-        if (dispatchRunning || stopped) {
+        if (runningPromise) {
             return;
         }
 
-        void runDispatch();
-    };
+        runningPromise = runDispatch();
+    }
 
     async function runDispatch(): Promise<void> {
-        if (dispatchRunning || stopped) {
-            return;
-        }
-
-        dispatchRunning = true;
-
         try {
-            do {
+            while (dispatchRequested && !stopped) {
                 dispatchRequested = false;
 
-                await dispatch();
-            } while (dispatchRequested && !stopped);
-        } catch (error) {
-            logger.error({ err: error }, "處理待辦任務失敗");
+                try {
+                    await dispatch();
+                } catch (error) {
+                    logger.error({ err: error }, "處理待辦任務失敗");
+                }
+            }
         } finally {
-            dispatchRunning = false;
+            runningPromise = undefined;
+
+            if (dispatchRequested && !stopped) {
+                requestDispatch();
+            }
         }
     }
 
@@ -51,6 +56,8 @@ export function createDispatchRuntime(
         }
 
         timer = setTimeout(() => {
+            timer = undefined;
+
             requestDispatch();
             schedulePoll();
         }, config.pollIntervalMs);
@@ -62,23 +69,21 @@ export function createDispatchRuntime(
         }
 
         stopped = false;
+
         requestDispatch();
         schedulePoll();
     }
 
     async function stop(): Promise<void> {
         stopped = true;
+        dispatchRequested = false;
 
         if (timer !== undefined) {
             clearTimeout(timer);
             timer = undefined;
         }
 
-        while (dispatchRunning) {
-            await new Promise<void>((resolve) => {
-                setTimeout(resolve, 10);
-            });
-        }
+        await runningPromise;
     }
 
     return {

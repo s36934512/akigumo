@@ -24,4 +24,9 @@ export const verifyDbConnection = async (): Promise<void> => {
     console.log("PostgreSQL connected via Prisma");
 };
 
+export const closeDatabase = async (): Promise<void> => {
+    await prisma.$disconnect();
+    await pool.end();
+};
+
 export type { Prisma as PrismaTypes };

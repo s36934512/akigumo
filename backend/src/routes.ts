@@ -27,7 +27,7 @@ export function createApp(tusServer: Server) {
         return await tusServer.handleWeb(c.req.raw);
     });
 
-    app.route("/", sseHandler);
+    // app.route("/", sseHandler);
 
     registerModules(app);
 

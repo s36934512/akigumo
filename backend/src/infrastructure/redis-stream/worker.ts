@@ -24,7 +24,13 @@ export class RedisStreamWorker {
     private readonly trimIntervalSeconds: number;
 
     private running = false;
+
+    private runPromise: Promise<void> | undefined;
+    private trimPromise: Promise<void> | undefined;
+    private stopPromise: Promise<void> | undefined;
+
     private trimTimer: NodeJS.Timeout | null = null;
+    private trimTimerResolve: (() => void) | undefined;
 
     /**
      * XAUTOCLAIM 的掃描 cursor。
@@ -280,126 +286,242 @@ export class RedisStreamWorker {
     }
 
     /**
-     * 啟動背景 Stream trimming。
+     * 等待下一次 trimming。
+     *
+     * stop() 會清除 timer 並呼叫 resolver，
+     * 因此不會讓 trimPromise 卡在計時器上。
+     */
+    private waitForNextTrim(): Promise<void> {
+        return new Promise((resolve) => {
+            this.trimTimerResolve = resolve;
+
+            this.trimTimer = setTimeout(() => {
+                this.trimTimer = null;
+                this.trimTimerResolve = undefined;
+                resolve();
+            }, this.trimIntervalSeconds * 1000);
+        });
+    }
+
+    /**
+     * 清除 trimming 排程，並喚醒等待中的迴圈。
+     */
+    private clearTrimTimer(): void {
+        if (this.trimTimer !== null) {
+            clearTimeout(this.trimTimer);
+            this.trimTimer = null;
+        }
+
+        const resolve = this.trimTimerResolve;
+        this.trimTimerResolve = undefined;
+
+        resolve?.();
+    }
+
+    /**
+     * 執行 trimming 背景迴圈。
+     */
+    private async runTrimLoop(): Promise<void> {
+        while (this.running) {
+            await this.trimStream();
+
+            if (!this.running) {
+                break;
+            }
+
+            await this.waitForNextTrim();
+        }
+    }
+
+    /**
+     * 啟動 trimming 背景工作並追蹤其生命週期。
      */
     private startTrimLoop(): void {
-        const scheduleNextTrim = (): void => {
+        const trimPromise = this.runTrimLoop().finally(() => {
+            if (this.trimPromise === trimPromise) {
+                this.trimPromise = undefined;
+            }
+        });
+
+        this.trimPromise = trimPromise;
+    }
+
+    /**
+     * 執行 Worker 主迴圈。
+     *
+     * batchSize 僅控制 Redis Stream 每次 delivery 的 message 數量。
+     * Handler 與 ACK 都以單一 message 為粒度。
+     */
+    private async runLoop(
+        handler: (message: StreamMessage) => Promise<void>,
+    ): Promise<void> {
+        try {
+            await this.setupConsumerGroup();
+
             if (!this.running) {
                 return;
             }
 
-            this.trimTimer = setTimeout(() => {
-                void this.trimLoop();
-            }, this.trimIntervalSeconds * 1000);
-        };
+            this.startTrimLoop();
 
-        void this.trimStream().finally(scheduleNextTrim);
-    }
+            this.log.info(`started (batchSize=${this.batchSize})`);
 
-    private async trimLoop(): Promise<void> {
-        await this.trimStream();
+            while (this.running) {
+                try {
+                    /**
+                     * 1. 優先處理 stale pending messages。
+                     */
+                    await this.claimPendingMessages(handler);
 
-        if (!this.running) {
-            return;
+                    if (!this.running) {
+                        break;
+                    }
+
+                    /**
+                     * 2. 等待新的 Stream messages。
+                     *
+                     * BLOCK 發生在 consumerRedis。
+                     * Producer 使用的 redis connection 不會被阻塞。
+                     */
+                    const response = await this.consumerRedis.xreadgroup(
+                        "GROUP",
+                        this.consumerGroup,
+                        this.consumerName,
+                        "COUNT",
+                        this.batchSize,
+                        "BLOCK",
+                        2000,
+                        "STREAMS",
+                        this.streamName,
+                        ">",
+                    );
+
+                    /**
+                     * stop() 可能在 XREADGROUP 等待期間被呼叫。
+                     * 此時不再啟動新批次的 handler。
+                     */
+                    if (!this.running) {
+                        break;
+                    }
+
+                    if (!response) {
+                        continue;
+                    }
+
+                    for (const [, messages] of response) {
+                        if (!this.running) {
+                            break;
+                        }
+
+                        if (messages.length === 0) {
+                            continue;
+                        }
+
+                        await this.handleMessageBatch(messages, handler);
+                    }
+                } catch (error) {
+                    if (!this.running) {
+                        break;
+                    }
+
+                    this.log.error(
+                        { err: error },
+                        "Redis Stream worker loop failed",
+                    );
+
+                    await new Promise<void>((resolve) => {
+                        setTimeout(resolve, 1000);
+                    });
+                }
+            }
+        } finally {
+            this.running = false;
+            this.clearTrimTimer();
         }
-
-        this.trimTimer = setTimeout(() => {
-            void this.trimLoop();
-        }, this.trimIntervalSeconds * 1000);
     }
 
     /**
      * 啟動 Worker。
      *
-     * batchSize 僅控制 Redis Stream 每次 delivery 的 message 數量。
-     * Handler 與 ACK 都以單一 message 為粒度。
+     * 同一個 Worker 不允許同時執行多個主迴圈。
      */
     public async run(
         handler: (message: StreamMessage) => Promise<void>,
     ): Promise<void> {
-        if (this.running) {
-            throw new Error("RedisStreamWorker is already running");
+        if (this.running || this.runPromise || this.stopPromise) {
+            return Promise.reject(
+                new Error(
+                    "RedisStreamWorker cannot be started in its current state",
+                ),
+            );
         }
 
         this.running = true;
 
-        await this.setupConsumerGroup();
-
-        this.startTrimLoop();
-
-        this.log.info(`started (batchSize=${this.batchSize})`);
-
-        while (this.running) {
-            try {
-                /**
-                 * 1. 優先處理 stale pending messages。
-                 */
-                await this.claimPendingMessages(handler);
-
-                if (!this.running) {
-                    break;
-                }
-
-                /**
-                 * 2. 等待新的 Stream messages。
-                 *
-                 * BLOCK 發生在 consumerRedis。
-                 * Producer 使用的 redis connection 不會被阻塞。
-                 */
-                const response = await this.consumerRedis.xreadgroup(
-                    "GROUP",
-                    this.consumerGroup,
-                    this.consumerName,
-                    "COUNT",
-                    this.batchSize,
-                    "BLOCK",
-                    2000,
-                    "STREAMS",
-                    this.streamName,
-                    ">",
-                );
-
-                if (!response) {
-                    continue;
-                }
-
-                for (const [, messages] of response) {
-                    if (messages.length === 0) {
-                        continue;
-                    }
-
-                    await this.handleMessageBatch(messages, handler);
-                }
-            } catch (error) {
-                if (!this.running) {
-                    break;
-                }
-
-                this.log.error(
-                    { err: error },
-                    "Redis Stream worker loop failed",
-                );
-
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+        const runPromise = this.runLoop(handler).finally(() => {
+            if (this.runPromise === runPromise) {
+                this.runPromise = undefined;
             }
-        }
+        });
+
+        this.runPromise = runPromise;
+
+        return runPromise;
     }
 
     /**
-     * 停止 Worker 並關閉 Redis connections。
+     * 停止 Worker 並關閉 Redis connection。
+     *
+     * 關閉順序：
+     * 1. 停止接收新工作。
+     * 2. 清除 trimming 排程。
+     * 3. 等待主迴圈及 trimming 工作結束。
+     * 4. 關閉 Redis connection。
+     *
+     * 即使某個步驟失敗，也會繼續執行其餘關閉步驟。
      */
-    public async stop(): Promise<void> {
-        if (!this.running) {
-            return;
+    public stop(): Promise<void> {
+        if (this.stopPromise) {
+            return this.stopPromise;
         }
 
         this.running = false;
+        this.clearTrimTimer();
 
-        if (this.trimTimer) {
-            clearTimeout(this.trimTimer);
-            this.trimTimer = null;
-        }
+        const runPromise = this.runPromise;
+        const trimPromise = this.trimPromise;
 
-        await this.consumerRedis.quit();
+        this.stopPromise = (async () => {
+            const errorList: unknown[] = [];
+
+            const backgroundPromiseList = [runPromise, trimPromise].filter(
+                (promise): promise is Promise<void> => promise !== undefined,
+            );
+
+            const resultList = await Promise.allSettled(backgroundPromiseList);
+
+            for (const result of resultList) {
+                if (result.status === "rejected") {
+                    errorList.push(result.reason);
+                }
+            }
+
+            try {
+                await this.consumerRedis.quit();
+            } catch (error) {
+                errorList.push(error);
+            }
+
+            if (errorList.length > 0) {
+                throw new AggregateError(
+                    errorList,
+                    "RedisStreamWorker failed to stop cleanly",
+                );
+            }
+
+            this.log.info("stopped");
+        })();
+
+        return this.stopPromise;
     }
 }
