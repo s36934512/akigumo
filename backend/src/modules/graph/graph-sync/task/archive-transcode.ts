@@ -18,9 +18,10 @@ export const archiveTranscodeTask = defineGraphSyncTask({
 
         const files = await prisma.file.findMany({
             where: {
-                id: { in: [fileId, derivedFileId] },
+                id: {
+                    in: [fileId, derivedFileId],
+                },
             },
-            include: { fileExtension: true },
         });
 
         // 分離結果
@@ -45,22 +46,21 @@ export const archiveTranscodeTask = defineGraphSyncTask({
         const fileMeta = getDimensions(file.metadata);
         const derivedMeta = getDimensions(derivedFile.metadata);
 
-        const task = buildArchiveTranscodeTask({
-            fileId: derivedFile.id,
-            width: derivedMeta?.width,
-            height: derivedMeta?.height,
-            storageStatus: "on_disk",
-            fileExtensionCode: derivedFile.fileExtension.code,
-
-            originalFileId: file.id,
-            originalFileWidth: fileMeta?.width,
-            originalFileHeight: fileMeta?.height,
-            originalFileExtensionCode: file.fileExtension.code,
-        });
-
         return {
-            taskType: "ArchiveExecutor",
-            payload: task,
+            taskType: "CreateDerivedFileExecutor",
+            payload: [
+                buildArchiveTranscodeTask({
+                    fileId: derivedFile.id,
+                    fileExtensionCode: derivedFile.extensionCode,
+                    width: derivedMeta?.width,
+                    height: derivedMeta?.height,
+
+                    originalFileId: file.id,
+                    originalFileExtensionCode: file.extensionCode,
+                    originalFileWidth: fileMeta?.width,
+                    originalFileHeight: fileMeta?.height,
+                }),
+            ],
         };
     },
 });

@@ -27,6 +27,7 @@ export async function transcode(fileId: string) {
             size: result.size,
             checksum: result.checksum,
             isOriginal: false,
+            extensionCode: "webp",
             metadata: {
                 width: result.width,
                 height: result.height,

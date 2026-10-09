@@ -38,3 +38,30 @@ class FileRegistryExecutor(GenericNodeBase):
 
         RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """
+
+
+class CreateDerivedFileExecutor(GenericNodeBase):
+    REQUIRED_IDENTITY = ["originalFileId", "fileId"]
+
+    @property
+    def template(self) -> str:
+        return f"""
+        UNWIND $requests AS request
+        UNWIND request.payload AS data
+
+        MATCH (af:Archive:FileContainer)-[:CONTAINS]->(of:File {{id: data.originalFileId}})
+        SET of.updatedAt = datetime()
+        SET of += data.originalFileProps
+
+        {self._merge_file}
+
+        MERGE (af)-[:CONTAINS]->(f)
+        MERGE (af)-[:DISPLAY_AS]->(f)
+        MERGE (of)-[:DERIVED]->(f)
+        
+        WITH request, af, of
+        OPTIONAL MATCH (af)-[r:DISPLAY_AS]->(of)
+        DELETE r
+
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
+        """
