@@ -9,6 +9,7 @@ from infrastructure.message_queue.publisher import ResultPublisher
 from infrastructure.database.neo4j import Neo4jClient
 
 
+GRAPH_OPERATION_REQUEST_VERSION = "1.0.0"
 PYTHON_JOB_RESULT_VERSION = "1.0.0"
 
 
@@ -17,13 +18,12 @@ class BatchProcessor:
 
     def __init__(
         self,
-            neo4j_client: Neo4jClient,
-            result_publisher: ResultPublisher
+        neo4j_client: Neo4jClient,
+        result_publisher: ResultPublisher
     ):
         self.logger = structlog.get_logger(__name__)
         self.neo4j_client = neo4j_client
         self.result_publisher = result_publisher
-
         self.executors = load_executors()
         self.logger.debug(
             self.executors,
@@ -34,39 +34,42 @@ class BatchProcessor:
         if not jobs:
             return
 
-        requests = [job["data"] for job in jobs]
-        valid_requests = self.validate_requests(requests)
+        valid_request_list = []
+        invalid_request_list = []
 
-        if not valid_requests:
-            self.logger.debug("No valid requests to process")
-            return
+        for job in jobs:
+            request = job["data"]
 
-        await self._process_with_executors(valid_requests)
+            if self._is_valid_request(request):
+                valid_request_list.append(request)
+            else:
+                invalid_request_list.append(request)
+
+        await self._publish_results(
+            self._build_failure_results(
+                invalid_request_list,
+                ValueError("Invalid graph refinement request"),
+            )
+        )
+
+        await self._process_with_executors(valid_request_list)
 
         self.logger.debug(
             "Batch processed successfully",
-            batch_size=len(valid_requests),
+            batch_size=len(valid_request_list),
         )
 
     async def _process_with_executors(
         self,
-        requests: list[dict[str, Any]],
+        request_list: list[dict[str, Any]],
     ) -> None:
         """Process requests using the corresponding executors."""
-        request_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        request_group_map: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
-        for request in requests:
-            operation = request["operation"]
+        for request in request_list:
+            request_group_map[request["operation"]].append(request)
 
-            request_groups[operation].append(
-                {
-                    "workflowId": request["workflowId"],
-                    "intentOutboxId": request["intentOutboxId"],
-                    "payload": request["payload"],
-                }
-            )
-
-        for operation, request_list in request_groups.items():
+        for operation, grouped_request_list in request_group_map.items():
             executor = self.executors.get(operation)
 
             if executor is None:
@@ -74,17 +77,57 @@ class BatchProcessor:
                     "No executor found for operation",
                     operation=operation,
                 )
-                continue
 
-            try:
-                execution_result = await executor.execute(
-                    self.neo4j_client,
-                    request_list,
+                error = ValueError(
+                    f"No executor found for operation: {operation}"
                 )
 
+                await self._publish_results(
+                    self._build_failure_results(
+                        grouped_request_list,
+                        error,
+                    )
+                )
+                continue
+
+            executor_request_list = [
+                {
+                    "workflowId": request["workflowId"],
+                    "intentOutboxId": request["intentOutboxId"],
+                    "payload": request["payload"],
+                }
+                for request in request_list
+            ]
+
+            try:
+                execution_result, skipped_request_list = (
+                    await executor.execute(
+                        self.neo4j_client,
+                        executor_request_list,
+                    )
+                )
+
+                skipped_id_set = {
+                    request["intentOutboxId"]
+                    for request in skipped_request_list
+                }
+
+                executed_request_list = [
+                    request
+                    for request in grouped_request_list
+                    if request["intentOutboxId"] not in skipped_id_set
+                ]
+
                 result_list = self._build_success_results(
-                    request_list,
+                    executed_request_list,
                     execution_result,
+                )
+
+                result_list.extend(
+                    self._build_failure_results(
+                        skipped_request_list,
+                        ValueError("Request cannot be executed by executor"),
+                    )
                 )
 
             except Exception as error:
@@ -94,37 +137,26 @@ class BatchProcessor:
                 )
 
                 result_list = self._build_failure_results(
-                    request_list,
+                    grouped_request_list,
                     error,
                 )
 
-            for result in result_list:
-                await self.result_publisher.publish(result)
+            await self._publish_results(result_list)
 
-    def validate_requests(
+    async def _publish_results(
         self,
-        requests: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
-        """Validate graph refinement requests."""
-        valid_requests = []
-
-        for request in requests:
-            if self._is_valid_request(request):
-                valid_requests.append(request)
-            else:
-                self.logger.warning(
-                    "Invalid graph refinement request",
-                    request=request,
-                )
-
-        return valid_requests
+        result_list: list[dict[str, Any]],
+    ) -> None:
+        """Publish execution results."""
+        for result in result_list:
+            await self.result_publisher.publish(result)
 
     @staticmethod
     def _is_valid_request(
         request: dict[str, Any],
     ) -> bool:
         """Validate the required graph refinement request fields."""
-        required = [
+        required_key_list = [
             "version",
             "workflowId",
             "intentOutboxId",
@@ -132,10 +164,10 @@ class BatchProcessor:
             "payload",
         ]
 
-        if not all(request.get(key) is not None for key in required):
-            return False
-
-        return request["version"] == "1.0.0"
+        return (
+            all(request.get(key) is not None for key in required_key_list)
+            and request["version"] == GRAPH_OPERATION_REQUEST_VERSION
+        )
 
     @staticmethod
     def _build_success_results(
@@ -173,18 +205,24 @@ class BatchProcessor:
         error: Exception,
     ) -> list[dict[str, Any]]:
         """Build execution results for failed requests."""
-        error_data = {
-            "code": type(error).__name__,
-            "message": str(error),
-        }
-
         return [
-            {
-                "version": PYTHON_JOB_RESULT_VERSION,
-                "workflowId": request["workflowId"],
-                "intentOutboxId": request["intentOutboxId"],
-                "status": "FAILURE",
-                "error": error_data,
-            }
+            BatchProcessor._build_failure_result(request, error)
             for request in request_list
         ]
+
+    @staticmethod
+    def _build_failure_result(
+        request: dict[str, Any],
+        error: Exception,
+    ) -> dict[str, Any]:
+        """Build a FAILURE result for a single request."""
+        return {
+            "version": PYTHON_JOB_RESULT_VERSION,
+            "workflowId": request.get("workflowId"),
+            "intentOutboxId": request.get("intentOutboxId"),
+            "status": "FAILURE",
+            "error": {
+                "code": type(error).__name__,
+                "message": str(error),
+            },
+        }

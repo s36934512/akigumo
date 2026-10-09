@@ -16,54 +16,66 @@ class BaseExecutor(ABC):
         self,
         db: Any,
         request_list: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         logger = structlog.get_logger(__name__)
 
-        valid_request_list = [
-            request
-            for request in request_list
-            if request.get("intentOutboxId") is not None
-            and isinstance(request.get("payload"), list)
-        ]
+        prepared_request_list: list[dict[str, Any]] = []
+        skipped_request_list: list[dict[str, Any]] = []
 
-        if not valid_request_list:
-            logger.debug(
-                "Executor skipped invalid requests",
-                executor=self.__class__.__name__,
-                request_count=len(request_list),
+        for request in request_list:
+            payload = request.get("payload")
+
+            if not isinstance(payload, list):
+                logger.warning(
+                    "Executor skipped request: payload is not a list",
+                    executor=self.__class__.__name__,
+                )
+                skipped_request_list.append(request)
+                continue
+
+            if not payload:
+                logger.warning(
+                    "Executor skipped request: payload is empty",
+                    executor=self.__class__.__name__,
+                )
+                skipped_request_list.append(request)
+                continue
+
+            invalid_payload = any(
+                not isinstance(data, dict)
+                or any(
+                    data.get(key) is None
+                    for key in self.REQUIRED_IDENTITY
+                )
+                for data in payload
             )
-            return []
 
-        prepared_request_list = [
-            {
-                "intentOutboxId": request["intentOutboxId"],
-                "payload": [
-                    data
-                    for data in request["payload"]
-                    if isinstance(data, dict)
-                    and all(
-                        key in data and data[key] is not None
-                        for key in self.REQUIRED_IDENTITY
-                    )
-                ],
-            }
-            for request in valid_request_list
-        ]
+            if invalid_payload:
+                logger.warning(
+                    "Executor skipped request: invalid payload identity",
+                    executor=self.__class__.__name__,
+                    required_identity=self.REQUIRED_IDENTITY,
+                )
+                skipped_request_list.append(request)
+                continue
 
-        prepared_request_list = [
-            request
-            for request in prepared_request_list
-            if request["payload"]
-        ]
+            prepared_request_list.append(
+                {
+                    "intentOutboxId": request["intentOutboxId"],
+                    "payload": payload,
+                }
+            )
 
         if not prepared_request_list:
-            return []
+            return [], skipped_request_list
 
         try:
-            return await db.execute_write_query(
+            execution_result = await db.execute_write_query(
                 self.template,
                 {"requests": prepared_request_list},
             )
+
+            return execution_result, skipped_request_list
 
         except Exception:
             logger.exception(
