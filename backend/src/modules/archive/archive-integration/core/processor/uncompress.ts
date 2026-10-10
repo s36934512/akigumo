@@ -3,19 +3,13 @@ import { z } from "zod";
 
 import { createEventCodes } from "#app/contracts/index.js";
 import type { Prisma } from "#app/generated/prisma/client.js";
+import { ArchiveStatus, ArchiveType } from "#app/generated/prisma/enums.js";
 import {
-    ArchiveStatus,
-    ArchiveType,
-    FileStatus,
-} from "#app/generated/prisma/enums.js";
-import {
-    ArchiveCreateManyInputObjectZodSchema,
-    FileCreateManyInputObjectZodSchema,
+    ArchiveCreateInputObjectZodSchema,
+    FileCreateInputObjectZodSchema,
 } from "#app/generated/zod/schemas/index.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { defineProcessor, NonRetryableError } from "#app/kernel/index.js";
-
-import { getOrCreateDefaultExt } from "../../extension/default.js";
 
 import {
     createExtractedFiles,
@@ -27,53 +21,53 @@ export const ARCHIVE_UNCOMPRESS = "ARCHIVE_UNCOMPRESS";
 
 export const UncompressInputSchema = z.object({
     fileId: z.uuid(),
-    extensionCode: z.string(),
 });
 
 export const archiveUncompressProcessor = defineProcessor(
     ARCHIVE_UNCOMPRESS,
     UncompressInputSchema,
     async (input) => {
-        const extractedFiles = await extractArchive(
-            input.payload.fileId,
-            input.payload.extensionCode,
-        );
-        const defaultExt = await getOrCreateDefaultExt();
+        const extractedFiles = await extractArchive(input.payload.fileId);
 
         const fileListWithPaths = extractedFiles.map((absolutePath) => {
             const id = uuidv7();
             const physicalPath = Paths.concat("TMP_PROCESS", id, "original");
 
-            const result = FileCreateManyInputObjectZodSchema.safeParse({
+            const result = FileCreateInputObjectZodSchema.safeParse({
                 id,
                 originalName: Paths.basename(absolutePath),
                 physicalPath: physicalPath,
-                isOriginal: true,
-                status: FileStatus.PROCESSING,
-                fileExtensionId: defaultExt.id,
+                isOriginal: false,
+                metadata: {
+                    path: absolutePath,
+                },
             });
 
             if (!result.success) {
                 throw new NonRetryableError(result.error.message);
             }
+
             return {
-                result: result.data as Prisma.FileCreateManyInput,
+                result: result.data as Prisma.FileCreateInput,
                 absolutePath,
                 physicalPath,
             };
         });
+
         const fileList = fileListWithPaths.map((f) => f.result);
         const itemList = fileList.map((f) => {
-            const result = ArchiveCreateManyInputObjectZodSchema.safeParse({
+            const result = ArchiveCreateInputObjectZodSchema.safeParse({
                 id: f.id,
                 name: f.originalName,
                 type: ArchiveType.FILE_CONTAINER,
                 status: ArchiveStatus.PROCESSING,
             });
+
             if (!result.success) {
                 throw new NonRetryableError(result.error.message);
             }
-            return result.data as Prisma.ArchiveCreateManyInput;
+
+            return result.data as Prisma.ArchiveCreateInput;
         });
 
         await moveMassiveFiles(

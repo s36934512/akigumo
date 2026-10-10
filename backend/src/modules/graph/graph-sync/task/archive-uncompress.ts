@@ -23,12 +23,16 @@ export const archiveUncompressTask = defineGraphSyncTask({
             async (tx) => {
                 const [file, derivedFiles] = await Promise.all([
                     tx.file.findUnique({
-                        where: { id: fileId },
-                        include: { fileExtension: true },
+                        where: {
+                            id: fileId,
+                        },
                     }),
                     tx.file.findMany({
-                        where: { id: { in: derivedFileIds } },
-                        include: { fileExtension: true },
+                        where: {
+                            id: {
+                                in: derivedFileIds,
+                            },
+                        },
                     }),
                 ]);
 
@@ -53,7 +57,7 @@ export const archiveUncompressTask = defineGraphSyncTask({
             itemId: item.id,
             itemName: Paths.basename(item.name, false),
             childrenFileIds: derivedFiles.map((f) => f.id),
-            fileExtensionCode: file.fileExtension?.code,
+            fileExtensionCode: file.extensionCode,
         });
 
         return {

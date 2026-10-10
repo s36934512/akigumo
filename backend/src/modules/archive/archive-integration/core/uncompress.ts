@@ -1,32 +1,32 @@
-import { execFile } from "node:child_process";
 import path from "node:path";
-import { promisify } from "node:util";
 import { z } from "@hono/zod-openapi";
 import fs from "fs-extra";
 import pLimit from "p-limit";
 
 import { prisma } from "#app/infrastructure/database/prisma.js";
 import { logger } from "#app/infrastructure/logger/index.js";
+import { extractArchiveWithPython } from "#app/infrastructure/storage/archive/extract.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
+import { NonRetryableError } from "#app/kernel/index.js";
 import type {
-    ArchiveCreateManyInput,
-    FileCreateManyInput,
+    ArchiveCreateInput,
+    FileCreateInput,
 } from "#generated/prisma/models.js";
 
-const execFileAsync = promisify(execFile);
 const CONCURRENCY_LIMIT = 20;
 
 export async function createExtractedFiles({
     fileList,
     itemList,
 }: {
-    fileList: FileCreateManyInput[];
-    itemList: ArchiveCreateManyInput[];
+    fileList: FileCreateInput[];
+    itemList: ArchiveCreateInput[];
 }) {
     await prisma.$transaction([
         prisma.file.createMany({
             data: fileList,
         }),
+
         prisma.archive.createMany({
             data: itemList,
         }),
@@ -51,43 +51,42 @@ async function listFilesRecursively(dir: string) {
     return results;
 }
 
-export async function extractArchive(fileId: string, extensionCode: string) {
-    const archivePath = Paths.concat("TMP_PROCESS", fileId, "original");
-    const outputDir = Paths.concat("TMP_PROCESS", fileId, "extracted");
-    const scriptPath = Paths.concat(
-        "ROOT",
-        "akigumo",
-        "shared",
-        "utils",
-        "utils_py",
-        "extract_archive.py",
-    );
+export async function extractArchive(fileId: string) {
+    const file = await prisma.file.findUnique({
+        where: {
+            id: fileId,
+        },
+        select: {
+            physicalPath: true,
+            extensionCode: true,
+        },
+    });
 
-    await fs.ensureDir(outputDir);
-
-    if (extensionCode !== "zip" && extensionCode !== "rar") {
-        throw new Error(
-            `Unsupported archive format: ${extensionCode || "unknown"}`,
-        );
+    if (!file?.physicalPath) {
+        throw new NonRetryableError(`File not found: ${fileId}`);
     }
 
-    const normalizedArchivePath = Paths.concat(
-        "TMP_PROCESS",
-        fileId,
-        `archive.${extensionCode}`,
-    );
-    await fs.copy(archivePath, normalizedArchivePath, { overwrite: true });
+    if (!file.extensionCode) {
+        throw new NonRetryableError(`File extension Code not found: ${fileId}`);
+    }
 
-    // Keep python binary configurable for local/dev-container differences.
-    const pythonCommand = process.env.PYTHON_BIN || "python3";
+    const processDir = path.dirname(file.physicalPath);
+    const outputDir = Paths.concat(processDir, "extracted");
+
+    const archivePath = Paths.concat(
+        processDir,
+        `archive.${file.extensionCode}`,
+    );
+    await fs.copy(file.physicalPath, archivePath, { overwrite: true });
+
     try {
-        await execFileAsync(pythonCommand, [
-            scriptPath,
-            normalizedArchivePath,
-            outputDir,
-        ]);
+        await extractArchiveWithPython({ archivePath, outputDir });
+    } catch (error) {
+        throw new NonRetryableError(
+            error instanceof Error ? error.message : String(error),
+        );
     } finally {
-        await fs.remove(normalizedArchivePath);
+        await fs.remove(archivePath);
     }
 
     return await listFilesRecursively(outputDir);
