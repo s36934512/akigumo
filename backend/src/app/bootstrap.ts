@@ -14,6 +14,7 @@ import { createBullMQUploadFinishedQueue } from "#app/infrastructure/queue/archi
 import { createArchiveUploadFinishedWorker } from "#app/infrastructure/queue/archive-upload-finished/worker.js";
 import { createBullMQTaskQueue } from "#app/infrastructure/queue/bullmq/factory.js";
 import { createBullMQWorker } from "#app/infrastructure/queue/bullmq/worker.js";
+import { closeSse } from "#app/infrastructure/sse/index.js";
 import { createTusServer } from "#app/infrastructure/tus/tus-server.js";
 import {
     createDispatcher,
@@ -122,6 +123,7 @@ export async function bootstrap(): Promise<{
 
     try {
         cleanup.register("database", closeDatabase);
+        cleanup.register("sse", closeSse);
 
         // Register module runtime capabilities before creating workers.
         registerModuleRuntime();

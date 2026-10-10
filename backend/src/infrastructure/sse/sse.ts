@@ -12,3 +12,18 @@ export const sseLiveBus = new SseLiveBus();
 export const sseBroker = new SseBroker(sseStream, sseLiveBus);
 
 export const sseEventPublisher = new SseEventPublisher(redis, sseStream);
+
+export async function closeSse(): Promise<void> {
+    const resultList = await Promise.allSettled([
+        sseLiveBus.close(),
+        redis.quit(),
+    ]);
+
+    const errorList = resultList.flatMap((result) =>
+        result.status === "rejected" ? [result.reason] : [],
+    );
+
+    if (errorList.length > 0) {
+        throw new AggregateError(errorList, "SSE resources failed to close");
+    }
+}
