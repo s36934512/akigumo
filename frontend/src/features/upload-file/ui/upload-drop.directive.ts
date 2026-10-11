@@ -1,6 +1,6 @@
 import { Directive, HostListener, inject } from "@angular/core";
 
-import { UploadService } from "../model/upload.service";
+import { UploadService } from "../model/upload-file.service";
 
 @Directive({
     selector: "[featuresUploadDrop]",

@@ -1,4 +1,4 @@
-import { UploadApi } from "./api/upload.api";
-import { UploadService } from "./model/upload.service";
+import { UploadFileApi } from "./api/upload-file.api";
+import { UploadService } from "./model/upload-file.service";
 
-export const uploadProviders = [UploadApi, UploadService];
+export const uploadProviders = [UploadFileApi, UploadService];

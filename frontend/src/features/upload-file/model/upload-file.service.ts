@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, inject } from "@angular/core";
 import { Tus, Uppy } from "uppy";
 import { v7 as uuidv7 } from "uuid";
 
-import { UploadApi } from "../api/upload.api";
+import { UploadFileApi } from "../api/upload-file.api";
 import {
     type ScannedFile,
     ScannedFileSchema,
@@ -13,7 +13,7 @@ import {
 @Injectable()
 export class UploadService {
     private readonly destroyRef = inject(DestroyRef);
-    private readonly uploadApi = inject(UploadApi);
+    private readonly uploadApi = inject(UploadFileApi);
 
     private uppy: Uppy<UppyFileMeta, UppyFileResponse> | null = null;
     private fileScanMap = new Map<string, File>();
