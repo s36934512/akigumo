@@ -3,7 +3,7 @@ import { prisma } from "#app/infrastructure/database/prisma.js";
 import { NonRetryableError } from "#app/kernel/index.js";
 import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 
-import { WORKFLOW_TYPE } from "../machine/machine.js";
+import { WORKFLOW_TYPE } from "../workflow.js";
 import { analyzeFile } from "./file-analysis.js";
 import { resolveFileProcessingStrategy } from "./strategy.js";
 

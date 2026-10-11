@@ -4,8 +4,8 @@ import {
     archiveTranscodeProcessor,
     archiveUncompressProcessor,
 } from "./core/processor/index.js";
-
-import { machine, WORKFLOW_TYPE } from "./machine/machine.js";
+import { machine } from "./machine/machine.js";
+import { WORKFLOW_TYPE } from "./workflow.js";
 
 export {
     ARCHIVE_DISPATCH,

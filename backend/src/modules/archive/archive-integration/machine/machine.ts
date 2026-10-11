@@ -1,6 +1,5 @@
 import { assign, setup } from "xstate";
 
-import { logger } from "#app/infrastructure/logger/index.js";
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
 import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
@@ -11,8 +10,6 @@ import {
 } from "../core/processor/index.js";
 import { actions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
-
-export const WORKFLOW_TYPE = "ARCHIVE_INTEGRATION_FLOW_V1";
 
 export const machine = setup({
     types: {
