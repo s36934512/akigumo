@@ -5,7 +5,6 @@ import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
 export const ArchiveDeleteSchema = createFlexibleSchema(
     z.object({
-        notifyId: z.uuid(),
         idList: z.uuid().array(),
     }),
 );

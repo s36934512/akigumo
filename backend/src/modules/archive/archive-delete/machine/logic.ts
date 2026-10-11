@@ -18,7 +18,6 @@ export const machineActions = {
         assertEvent(event, ArchiveDeleteEvents.SUCCEEDED);
 
         return {
-            notifyId: event.data.notifyId,
             idList: event.data.idList,
         };
     },

@@ -22,7 +22,6 @@ export const ArchiveDeleteEvents = createEventCodes(ARCHIVE_DELETE, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            notifyId: z.uuid(),
             idList: z.uuid().array(),
         }),
     },

@@ -6,6 +6,5 @@
  */
 
 export type PostApiV1ArchiveDeleteBodyItem = {
-  notifyId: string;
   idList: string[];
 };
