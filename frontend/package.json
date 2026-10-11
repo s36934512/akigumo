@@ -13,6 +13,7 @@
   "private": true,
   "packageManager": "npm@10.9.8",
   "dependencies": {
+    "@angular/cdk": "^22.2.2",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
     "@angular/core": "^22.1.0",
@@ -30,6 +31,7 @@
     "tslib": "^2.3.0",
     "uppy": "^6.0.4",
     "uuid": "^14.0.2",
+    "xstate": "^5.33.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {
