@@ -1,0 +1,63 @@
+<article class="relative min-w-0 w-full p-3 pb-4 text-zinc-100">
+    <div class="archive-card__frame" [class.archive-card__frame--selected]="selected()">
+        <div class="archive-card__surface">
+            @if (showCover()) {
+                <img
+                    class="archive-card__cover"
+                    [src]="coverUrl()!"
+                    [alt]="archive().name"
+                    loading="lazy"
+                    decoding="async"
+                    (error)="onImageError()"
+                />
+            } @else {
+                <div class="absolute inset-0 z-[2] grid place-items-center text-[#d8d4d1]">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                        class="size-[5.25rem] opacity-60"
+                    >
+                        <path [attr.d]="iconPath()" />
+                    </svg>
+                </div>
+            }
+
+            <div [class]="'archive-card__gradient ' + gradientClass()" aria-hidden="true"></div>
+
+            <div class="absolute bottom-2 left-2 right-2 z-[4] flex items-end">
+                <span
+                    class="bg-[#d9a491] px-2 py-1 text-[0.625rem] font-extrabold uppercase tracking-[0.04em] text-zinc-900"
+                >
+                    {{ typeLabel() }}
+                </span>
+            </div>
+
+            @if (selected()) {
+                <div
+                    class="absolute right-2 top-2 z-[6] grid size-7 place-items-center rounded-full border border-white/50 bg-[#3bb2bf] text-[#050505]"
+                    aria-label="已選取"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        aria-hidden="true"
+                        class="size-4"
+                    >
+                        <path d="m5 12 4 4L19 6" />
+                    </svg>
+                </div>
+            }
+        </div>
+    </div>
+
+    <p
+        class="mt-2 line-clamp-2 w-full break-words text-[0.8125rem] leading-[1.4]"
+        [class.text-[#3bb2bf]]="selected()"
+        [title]="archive().name"
+    >
+        {{ archive().name }}
+    </p>
+</article>

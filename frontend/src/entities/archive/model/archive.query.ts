@@ -14,7 +14,7 @@ export class ArchiveQuery {
 
     public list() {
         return queryOptions({
-            queryKey: ["archive", "list"] as const,
+            queryKey: archiveListQueryKey,
             queryFn: async (): Promise<Archive[]> => {
                 const response = await this.archiveApi.getList();
 

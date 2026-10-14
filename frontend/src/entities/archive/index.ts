@@ -15,3 +15,5 @@ export {
     type Work,
     WorkSchema,
 } from "./model/types";
+
+export { ArchiveCardComponent } from "./ui/archive-card.component";
