@@ -1,10 +1,10 @@
-<article class="relative min-w-0 w-full p-3 pb-4 text-zinc-100">
+<article class="relative min-w-0 w-full p-3 pb-4 text-zinc-100" (click)="onClick()">
     <div class="archive-card__frame" [class.archive-card__frame--selected]="selected()">
         <div class="archive-card__surface">
-            @if (showCover()) {
+            @if (coverUrl(); as url) {
                 <img
                     class="archive-card__cover"
-                    [src]="coverUrl()!"
+                    [src]="url"
                     [alt]="archive().name"
                     loading="lazy"
                     decoding="async"
@@ -25,14 +25,6 @@
 
             <div [class]="'archive-card__gradient ' + gradientClass()" aria-hidden="true"></div>
 
-            <div class="absolute bottom-2 left-2 right-2 z-[4] flex items-end">
-                <span
-                    class="bg-[#d9a491] px-2 py-1 text-[0.625rem] font-extrabold uppercase tracking-[0.04em] text-zinc-900"
-                >
-                    {{ typeLabel() }}
-                </span>
-            </div>
-
             @if (selected()) {
                 <div
                     class="absolute right-2 top-2 z-[6] grid size-7 place-items-center rounded-full border border-white/50 bg-[#3bb2bf] text-[#050505]"
@@ -52,12 +44,4 @@
             }
         </div>
     </div>
-
-    <p
-        class="mt-2 line-clamp-2 w-full break-words text-[0.8125rem] leading-[1.4]"
-        [class.text-[#3bb2bf]]="selected()"
-        [title]="archive().name"
-    >
-        {{ archive().name }}
-    </p>
 </article>

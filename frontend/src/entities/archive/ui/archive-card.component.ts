@@ -1,4 +1,5 @@
-import { Component, computed, input, signal } from "@angular/core";
+import { Component, computed, input, output, signal } from "@angular/core";
+
 import { getArchiveIconPath } from "../model/archive-icon";
 import type { Archive } from "../model/types";
 
@@ -12,18 +13,18 @@ export class ArchiveCardComponent {
     readonly archive = input.required<Archive>();
     readonly selected = input(false);
 
-    readonly coverUrl = computed(() => {
-        const fileId = this.archive().currentFileId;
-
-        return fileId ? `/api/v1/raw/${fileId}` : null;
-    });
+    readonly cardClick = output<Archive>();
 
     readonly imageErrorFileId = signal<string | null>(null);
 
-    readonly showCover = computed(() => {
+    readonly coverUrl = computed(() => {
         const fileId = this.archive().currentFileId;
 
-        return fileId !== null && this.imageErrorFileId() !== fileId;
+        if (!fileId || this.imageErrorFileId() === fileId) {
+            return null;
+        }
+
+        return `/api/v1/raw/${fileId}`;
     });
 
     readonly gradientClass = computed(() => {
@@ -43,18 +44,9 @@ export class ArchiveCardComponent {
         return getArchiveIconPath(this.archive().type);
     });
 
-    readonly typeLabel = computed(() => {
-        switch (this.archive().type) {
-            case "WORK":
-                return "Work";
-            case "SERIES":
-                return "Series";
-            case "COLLECTION":
-                return "Collection";
-            case "FILE_CONTAINER":
-                return "File";
-        }
-    });
+    onClick(): void {
+        this.cardClick.emit(this.archive());
+    }
 
     onImageError(): void {
         const fileId = this.archive().currentFileId;
