@@ -1,0 +1,21 @@
+<section class="archive-detail-panel__content">
+    <header class="archive-detail-panel__header">
+        <h2 class="archive-detail-panel__title">
+            {{ archive().name }}
+        </h2>
+
+        <button
+            type="button"
+            class="archive-detail-panel__close"
+            aria-label="關閉詳細資訊"
+            title="關閉"
+            (click)="onClose()"
+        >
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </header>
+
+    <div class="archive-detail-panel__body">
+        <!-- 詳細資訊內容之後再實作 -->
+    </div>
+</section>

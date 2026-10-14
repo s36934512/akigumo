@@ -1,1 +1,1 @@
-export { ExplorerPage } from "./explorer.component";
+export { ExplorerPage } from "./ui/explorer.component";

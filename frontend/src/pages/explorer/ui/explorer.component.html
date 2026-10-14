@@ -1,0 +1,39 @@
+<main class="explorer">
+    <widget-archive-browser class="explorer__browser" (archiveOpen)="onArchiveOpen($event)" />
+
+    @if (openedArchive(); as archive) {
+        @if (detailPanelMode() === "inline") {
+            <div class="explorer__detail">
+                <div class="explorer__detail-toolbar">
+                    <button type="button" (click)="setDetailPanelMode('overlay')">覆蓋模式</button>
+                </div>
+
+                <div class="explorer__detail-content">
+                    <page-explorer-archive-detail-panel
+                        [archive]="archive"
+                        (closed)="onArchiveClose()"
+                    />
+                </div>
+            </div>
+        } @else {
+            <p-drawer
+                [visible]="true"
+                position="right"
+                [modal]="false"
+                [style]="{ width: '24rem', maxWidth: '100vw' }"
+                (onHide)="onArchiveClose()"
+            >
+                <div class="explorer__overlay-toolbar">
+                    <button type="button" (click)="setDetailPanelMode('inline')">固定面板</button>
+                </div>
+
+                <div class="explorer__overlay-content">
+                    <page-explorer-archive-detail-panel
+                        [archive]="archive"
+                        (closed)="onArchiveClose()"
+                    />
+                </div>
+            </p-drawer>
+        }
+    }
+</main>
