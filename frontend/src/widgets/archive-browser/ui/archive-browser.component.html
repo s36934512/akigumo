@@ -1,0 +1,17 @@
+<section class="archive-browser">
+    @if (isEmpty()) {
+        <div class="archive-browser__empty">
+            <p>目前沒有 Archive</p>
+        </div>
+    } @else {
+        <div class="archive-browser__grid">
+            @for (archive of archiveList(); track archive.id) {
+                <entity-archive-card
+                    [archive]="archive"
+                    [selected]="isSelected(archive.id)"
+                    (click)="onArchiveClick(archive)"
+                />
+            }
+        </div>
+    }
+</section>
