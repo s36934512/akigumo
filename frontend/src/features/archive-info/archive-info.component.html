@@ -1,0 +1,34 @@
+<div class="archive-info">
+    <section class="archive-info__section">
+        <h3 class="archive-info__section-title">基本資訊</h3>
+
+        <dl class="archive-info__metadata">
+            <div class="archive-info__metadata-item">
+                <dt>類型</dt>
+                <dd>{{ archive().type }}</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="archive-info__section">
+        <div class="archive-info__section-header">
+            <h3 class="archive-info__section-title">Concept</h3>
+        </div>
+
+        @if (conceptEntryList().length > 0) {
+            <ul class="archive-info__concept-list">
+                @for (entry of conceptEntryList(); track entry.concept.id) {
+                    <li class="archive-info__concept-item">
+                        <span class="archive-info__concept-type">
+                            {{ entry.type }}
+                        </span>
+
+                        <entity-concept-chip [entry]="entry.concept" />
+                    </li>
+                }
+            </ul>
+        } @else {
+            <p class="archive-info__empty">尚未關聯 Concept</p>
+        }
+    </section>
+</div>
