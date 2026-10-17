@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ErrorDetailSchema } from "./error.js";
 
 type EventDefinition = {
@@ -6,17 +7,17 @@ type EventDefinition = {
     dataSchema: z.ZodType;
 };
 
-type EventCodes<
+type EventContract<
     TProcessor extends string,
-    TDefinitions extends readonly EventDefinition[],
+    TDefinition extends readonly EventDefinition[],
 > = {
-    [TDefinition in TDefinitions[number] as TDefinition["code"]]: `${TProcessor}_${TDefinition["code"]}`;
+    [TItem in TDefinition[number] as TItem["code"]]: `${TProcessor}_${TItem["code"]}`;
 } & {
     FAILED: `${TProcessor}_FAILED`;
 
     schemaList: [
         ...{
-            [K in keyof TDefinitions]: TDefinitions[K] extends {
+            [K in keyof TDefinition]: TDefinition[K] extends {
                 code: infer TCode extends string;
                 dataSchema: infer TDataSchema extends z.ZodType;
             }
@@ -34,18 +35,18 @@ type EventCodes<
 };
 
 /**
- * Creates workflow event codes and schemas.
+ * Defines a workflow event contract.
  *
  * FAILED is a built-in event with a standardized ErrorDetail payload.
- * Only successful event payloads are defined by the caller.
+ * Only successful event payload schemas are defined by the caller.
  */
-export function createEventCodes<
+export function defineEventContract<
     const TProcessor extends string,
-    const TDefinitions extends readonly [EventDefinition, ...EventDefinition[]],
+    const TDefinition extends readonly [EventDefinition, ...EventDefinition[]],
 >(
     processorName: TProcessor,
-    definitionList: TDefinitions,
-): EventCodes<TProcessor, TDefinitions> {
+    definitionList: TDefinition,
+): EventContract<TProcessor, TDefinition> {
     const successSchemaList = definitionList.map(({ code, dataSchema }) =>
         z.object({
             type: z.literal(`${processorName}_${code}`),
@@ -58,23 +59,23 @@ export function createEventCodes<
         error: ErrorDetailSchema,
     });
 
-    const schemaList = [...successSchemaList, failedSchema] as EventCodes<
+    const schemaList = [...successSchemaList, failedSchema] as EventContract<
         TProcessor,
-        TDefinitions
+        TDefinition
     >["schemaList"];
 
-    const eventCodes = Object.fromEntries(
+    const eventCodeMap = Object.fromEntries(
         definitionList.map(({ code }) => [code, `${processorName}_${code}`]),
     );
 
     return {
-        ...eventCodes,
+        ...eventCodeMap,
         FAILED: `${processorName}_FAILED`,
         schemaList,
-    } as EventCodes<TProcessor, TDefinitions>;
+    } as EventContract<TProcessor, TDefinition>;
 }
 
-export const GraphIntentCreatedEvents = createEventCodes(
+export const GraphIntentCreatedEvent = defineEventContract(
     "GRAPH_INTENT_CREATED",
     [
         {
@@ -84,7 +85,7 @@ export const GraphIntentCreatedEvents = createEventCodes(
     ],
 );
 
-export const GraphOperationResultEvents = createEventCodes(
+export const GraphOperationResultEvent = defineEventContract(
     "GRAPH_OPERATION_RESULT",
     [
         {

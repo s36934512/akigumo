@@ -26,9 +26,9 @@ export {
 } from "./result.js";
 
 export {
-    createEventCodes,
-    GraphIntentCreatedEvents,
-    GraphOperationResultEvents,
+    defineEventContract,
+    GraphIntentCreatedEvent,
+    GraphOperationResultEvent,
 } from "./workflow.js";
 
 export {
