@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 
 import { WorkflowResponseSchema } from "#app/api/response.js";
 import { ConceptRegistrySchema } from "#app/contracts/index.js";
@@ -6,7 +6,6 @@ import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
 export const OntologyRegistrySchema = createFlexibleSchema(
     z.object({
-        notifyId: z.uuid(),
         registryList: ConceptRegistrySchema.array,
     }),
 );

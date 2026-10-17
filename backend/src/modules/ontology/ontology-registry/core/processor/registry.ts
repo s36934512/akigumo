@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
 import { OntologyRegistrySchema } from "../../api/schema.js";
@@ -12,20 +12,19 @@ export const ontologyRegistryProcessor = defineProcessor(
     ONTOLOGY_REGISTRY,
     OntologyRegistrySchema.single,
     async (input) => {
-        const idList = await service.createConceptList(
+        const conceptIdList = await service.createConceptBatch(
             input.payload.registryList,
         );
 
-        return { notifyId: input.payload.notifyId, idList };
+        return { conceptIdList };
     },
 );
 
-export const OntologyRegistryEvents = createEventCodes(ONTOLOGY_REGISTRY, [
+export const OntologyRegistryEvent = defineEventContract(ONTOLOGY_REGISTRY, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            notifyId: z.uuid(),
-            idList: z.uuid().array(),
+            conceptIdList: z.uuid().array(),
         }),
     },
 ]);

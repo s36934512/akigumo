@@ -1,5 +1,5 @@
 export {
     ONTOLOGY_REGISTRY,
-    OntologyRegistryEvents,
+    OntologyRegistryEvent,
     ontologyRegistryProcessor,
 } from "./processor/registry.js";

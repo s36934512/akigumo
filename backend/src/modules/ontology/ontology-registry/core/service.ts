@@ -5,7 +5,9 @@ import { prisma } from "#app/infrastructure/database/prisma.js";
 
 import { ONTOLOGY_NAMESPACE } from "../../constants.js";
 
-export async function createConceptList(conceptList: ConceptRegistry["array"]) {
+export async function createConceptBatch(
+    conceptList: ConceptRegistry["array"],
+) {
     const created = await prisma.concept.createManyAndReturn({
         data: conceptList.map((concept) => ({
             id: uuidv5(concept.name, ONTOLOGY_NAMESPACE),

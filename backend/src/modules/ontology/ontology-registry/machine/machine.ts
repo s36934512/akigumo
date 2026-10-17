@@ -1,7 +1,6 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
-import { shouldFailUnhandledEvent } from "#app/workflow/machine/helper.js";
 
 import { machineActions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
@@ -13,23 +12,21 @@ export const machine = setup({
         context: {} as MachineContext,
         events: {} as MachineEvents,
     },
-    guards: {
-        shouldFailUnhandledEvent,
-    },
+
     actions: {
         handleRegistrySuccess: assign(machineActions.handleRegistrySuccess),
 
         handleFailure: assign(machineActions.handleFailure),
 
         prepareGraphSyncIntent: assign(({ context }) => {
-            if (context.idList.length === 0) {
-                return { nextTask: undefined };
+            if (context.conceptIdList === null) {
+                return { nextIntent: undefined };
             }
 
             return {
                 nextIntent: createSyncIntentOutbox(
                     "concept-registry",
-                    context.idList,
+                    context.conceptIdList,
                 ),
             };
         }),
@@ -38,7 +35,7 @@ export const machine = setup({
     },
 }).createMachine({
     id: "ontologyRegistry",
-    initial: "SAVING_CONCEPT",
+    initial: "CREATING_CONCEPT",
     on: {
         "*": {
             target: ".FAILED",
@@ -46,18 +43,18 @@ export const machine = setup({
         },
     },
     context: {
-        notifyId: null,
-        idList: [],
         error: null,
         nextIntent: null,
+        conceptIdList: null,
     },
     states: {
-        SAVING_CONCEPT: {
+        CREATING_CONCEPT: {
             on: {
                 ONTOLOGY_REGISTRY_SUCCEEDED: [
                     {
-                        guard: ({ event }) => event.data.idList.length > 0,
-                        target: "SYNCING_CONCEPT",
+                        guard: ({ event }) =>
+                            event.data.conceptIdList.length > 0,
+                        target: "SYNCING_GRAPH",
                         actions: [
                             "handleRegistrySuccess",
                             "prepareGraphSyncIntent",
@@ -65,13 +62,12 @@ export const machine = setup({
                     },
                     {
                         target: "SUCCESS",
-                        actions: "clearNextIntent",
                     },
                 ],
             },
         },
 
-        SYNCING_CONCEPT: {
+        SYNCING_GRAPH: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
@@ -79,7 +75,6 @@ export const machine = setup({
 
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
-                    actions: "clearNextIntent",
                 },
             },
         },
