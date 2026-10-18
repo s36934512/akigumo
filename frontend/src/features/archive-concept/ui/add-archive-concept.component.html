@@ -1,0 +1,69 @@
+<section class="archive-concept-dialog">
+    <p>選取要關聯至此 Archive 的 Concept。</p>
+
+    <label class="archive-concept-dialog__search">
+        <span>搜尋 Concept</span>
+        <input
+            pInputText
+            type="search"
+            [ngModel]="store.searchKeyword()"
+            placeholder="輸入名稱或描述"
+            [disabled]="isPending()"
+            (ngModelChange)="setSearchKeyword($event)"
+        />
+    </label>
+
+    @if (conceptListQuery.isPending()) {
+        <p class="archive-concept-dialog__message">正在載入 Concept…</p>
+    } @else if (conceptListQuery.isError()) {
+        <p class="archive-concept-dialog__message">載入 Concept 失敗，請稍後再試。</p>
+    } @else {
+        <div class="archive-concept-dialog__list">
+            @for (concept of filteredConceptList(); track concept.id) {
+                <label
+                    class="archive-concept-dialog__item"
+                    [class.archive-concept-dialog__item--selected]="
+                        selectionStore.isSelected(concept.id)
+                    "
+                >
+                    <p-checkbox
+                        [inputId]="'concept-' + concept.id"
+                        [binary]="true"
+                        [ngModel]="selectionStore.isSelected(concept.id)"
+                        [disabled]="isPending()"
+                        (ngModelChange)="toggleConceptSelection(concept.id)"
+                    />
+
+                    <span class="archive-concept-dialog__item-content">
+                        <span class="archive-concept-dialog__item-name">
+                            {{ concept.name }}
+                        </span>
+
+                        @if (concept.description) {
+                            <span class="archive-concept-dialog__item-description">
+                                {{ concept.description }}
+                            </span>
+                        }
+                    </span>
+                </label>
+            } @empty {
+                <p class="archive-concept-dialog__message">沒有符合條件的 Concept。</p>
+            }
+        </div>
+    }
+
+    <footer class="archive-concept-dialog__footer">
+        <span> 已選取 {{ selectionStore.selectedCount() }} 個 </span>
+
+        <p-button
+            [label]="isPending() ? '新增中…' : '新增關聯'"
+            [disabled]="
+                !selectionStore.hasSelection() ||
+                isPending() ||
+                conceptListQuery.isPending() ||
+                conceptListQuery.isError()
+            "
+            (onClick)="submit()"
+        />
+    </footer>
+</section>

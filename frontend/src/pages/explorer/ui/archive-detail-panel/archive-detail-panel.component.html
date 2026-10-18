@@ -17,5 +17,16 @@
 
     <div class="archive-detail-panel__body">
         <feature-archive-info [archive]="archive()" />
+
+        <div class="archive-detail-panel__actions">
+            <button
+                type="button"
+                class="archive-detail-panel__add-concept"
+                (click)="onAddConcept()"
+            >
+                <span class="material-symbols-outlined" aria-hidden="true"> add </span>
+                新增 Concept
+            </button>
+        </div>
     </div>
 </section>
