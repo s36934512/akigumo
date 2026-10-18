@@ -2,6 +2,7 @@ import _ from "lodash";
 import { v5 as uuidv5, v7 as uuidv7 } from "uuid";
 
 import { ONTOLOGY_NAMESPACE } from "#app/modules/ontology/constants.js";
+import { normalizeValue } from "#app/utils/object.js";
 
 import type { OntologyAssociation } from "../api/schema.js";
 import type {
@@ -39,7 +40,7 @@ function buildConceptPool(normalizedInput: NormalizedInput) {
         // 移除臨時的 _tempId 後計算雜湊
         const conceptDataWithoutId = _.omit(concept, ["_tempId"]);
         const hash = uuidv5(
-            JSON.stringify(sortObjectKeys(conceptDataWithoutId)),
+            JSON.stringify(normalizeValue(conceptDataWithoutId)),
             ONTOLOGY_NAMESPACE,
         );
 
@@ -116,25 +117,4 @@ export function prepareConceptAssociation(input: OntologyAssociation["array"]) {
     const { conceptPool, officialIdByTempId } = buildConceptPool(normalized);
 
     return assembleOutput(normalized, conceptPool, officialIdByTempId);
-}
-
-// ==========================================
-// 工具函式 (Helper Functions)
-// ==========================================
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function sortObjectKeys(obj: unknown): unknown {
-    if (typeof obj === "string") return obj.trim().toLowerCase();
-    if (Array.isArray(obj)) return obj.map(sortObjectKeys);
-    if (isPlainObject(obj)) {
-        return Object.keys(obj)
-            .sort()
-            .reduce((result: Record<string, unknown>, key: string) => {
-                result[key] = sortObjectKeys(obj[key]);
-                return result;
-            }, {});
-    }
-    return obj;
 }
