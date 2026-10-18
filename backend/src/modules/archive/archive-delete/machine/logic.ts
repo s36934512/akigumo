@@ -10,12 +10,12 @@ import { assertEvent } from "xstate";
 
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
 
-import { ArchiveDeleteEvents } from "../core/processor/delete.js";
+import { ArchiveDeleteEvent } from "../core/processor/delete.js";
 import type { MachineEvents } from "./schema.js";
 
 export const machineActions = {
     handleSaveSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, ArchiveDeleteEvents.SUCCEEDED);
+        assertEvent(event, ArchiveDeleteEvent.SUCCEEDED);
 
         return {
             idList: event.data.idList,

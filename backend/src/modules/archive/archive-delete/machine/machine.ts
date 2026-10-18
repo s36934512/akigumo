@@ -1,7 +1,6 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
-import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
 import { machineActions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
@@ -12,9 +11,6 @@ export const machine = setup({
     types: {
         context: {} as MachineContext,
         events: {} as MachineEvents,
-    },
-    guards: {
-        shouldFailUnhandledEvent,
     },
     actions: {
         handleSaveSuccess: assign(machineActions.handleSaveSuccess),

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
 import { ArchiveDeleteSchema } from "../../api/schema.js";
@@ -18,7 +18,7 @@ export const archiveDeleteProcessor = defineProcessor(
     },
 );
 
-export const ArchiveDeleteEvents = createEventCodes(ARCHIVE_DELETE, [
+export const ArchiveDeleteEvent = defineEventContract(ARCHIVE_DELETE, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
