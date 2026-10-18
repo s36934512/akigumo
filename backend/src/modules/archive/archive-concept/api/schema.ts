@@ -11,17 +11,7 @@ export const ArchiveConceptSchema = createFlexibleSchema(
             example: "01a05759-5fea-766a-87ee-ca68fb72a6ca",
         }),
         conceptIdList: z.uuid().array(),
-        newConceptList: ConceptRegistrySchema.array.openapi({
-            description: "動態新增概念，用於增加尚未存在的屬性",
-            example: [
-                {
-                    name: "eightzhuan",
-                    metadata: {
-                        x: "https://x.com/eightzhuan",
-                    },
-                },
-            ],
-        }),
+        newConceptList: ConceptRegistrySchema.array,
     }),
 );
 

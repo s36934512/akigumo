@@ -66,7 +66,6 @@ export const machine = setup({
         INDEXING: {
             on: {
                 ARCHIVE_CONCEPT_SUCCEEDED: {
-                    target: "SYNCING_CONCEPT",
                     actions: ["handleSaveSuccess"],
                 },
             },
