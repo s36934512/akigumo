@@ -1,11 +1,14 @@
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
 import { ArchiveConceptSchema } from "../../api/schema.js";
 import { prepareArchiveConcept } from "../preparation.js";
-import { ArchiveConceptEntrySchema, PoolSchema } from "../schema.js";
+import {
+    ConceptAssociationSchema,
+    ConceptRegistryWithIdSchema,
+} from "../schema.js";
 import * as service from "../service.js";
 
 export const ARCHIVE_CONCEPT = "ARCHIVE_CONCEPT";
@@ -14,20 +17,22 @@ export const archiveConceptProcessor = defineProcessor(
     ARCHIVE_CONCEPT,
     ArchiveConceptSchema.array,
     async (input) => {
-        const { pool, entryList } = prepareArchiveConcept(input.payload);
+        const { conceptPool, associationList } = prepareArchiveConcept(
+            input.payload,
+        );
 
-        await service.createConceptList(pool);
+        await service.createConceptBatch(conceptPool);
 
-        return { pool, entryList };
+        return { conceptPool, associationList };
     },
 );
 
-export const ArchiveConceptEvents = createEventCodes(ARCHIVE_CONCEPT, [
+export const ArchiveConceptEvent = defineEventContract(ARCHIVE_CONCEPT, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            pool: PoolSchema.array(),
-            entryList: ArchiveConceptEntrySchema.array,
+            conceptPool: ConceptRegistryWithIdSchema.array(),
+            associationList: ConceptAssociationSchema.array,
         }),
     },
 ]);

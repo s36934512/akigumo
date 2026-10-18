@@ -2,13 +2,17 @@ import { assertEvent } from "xstate";
 
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
 
-import { ArchiveConceptEvents } from "../core/processor/archive-concept.js";
+import { ArchiveConceptEvent } from "../core/processor/archive-concept.js";
 import type { MachineEvents } from "./schema.js";
 
 export const machineActions = {
     handleSaveSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, ArchiveConceptEvents.SUCCEEDED);
-        return { pool: event.data.pool, entryList: event.data.entryList };
+        assertEvent(event, ArchiveConceptEvent.SUCCEEDED);
+
+        return {
+            conceptPool: event.data.conceptPool,
+            associationList: event.data.associationList,
+        };
     },
 
     handleFailure({ event }: { event: MachineEvents }) {

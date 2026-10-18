@@ -1,7 +1,6 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
-import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
 import { machineActions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
@@ -14,21 +13,36 @@ export const machine = setup({
         events: {} as MachineEvents,
     },
     guards: {
-        shouldFailUnhandledEvent,
+        hasGraphSyncData: ({ context }) => {
+            if (
+                context.conceptPool === null ||
+                context.associationList === null
+            ) {
+                return false;
+            }
+
+            return true;
+        },
     },
     actions: {
         handleSaveSuccess: assign(machineActions.handleSaveSuccess),
+
         handleFailure: assign(machineActions.handleFailure),
+
         clearNextIntent: assign({ nextIntent: undefined }),
-        prepareSyncIntent: assign(({ context }) => {
-            if (!context.pool && !context.entryList) {
+
+        prepareGraphSyncIntent: assign(({ context }) => {
+            if (
+                context.conceptPool === null ||
+                context.associationList === null
+            ) {
                 return { nextIntent: undefined };
             }
 
             return {
-                nextIntent: createSyncIntentOutbox("archive-concept", {
-                    pool: context.pool,
-                    entryList: context.entryList,
+                nextIntent: createSyncIntentOutbox("concept-association", {
+                    conceptPool: context.conceptPool,
+                    associationList: context.associationList,
                 }),
             };
         }),
@@ -38,7 +52,6 @@ export const machine = setup({
     initial: "INDEXING",
     on: {
         "*": {
-            guard: "shouldFailUnhandledEvent",
             target: ".FAILED",
             actions: "handleFailure",
         },
@@ -46,31 +59,42 @@ export const machine = setup({
     context: {
         error: null,
         nextIntent: null,
+        conceptPool: null,
+        associationList: null,
     },
     states: {
         INDEXING: {
             on: {
                 ARCHIVE_CONCEPT_SUCCEEDED: {
                     target: "SYNCING_CONCEPT",
-                    actions: ["handleSaveSuccess", "prepareSyncIntent"],
+                    actions: ["handleSaveSuccess"],
                 },
             },
+
+            always: {
+                guard: "hasGraphSyncData",
+                target: "SYNCING_GRAPH",
+                actions: "prepareGraphSyncIntent",
+            },
         },
-        SYNCING_CONCEPT: {
+
+        SYNCING_GRAPH: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
                 },
-                PYTHON_SUCCESS: {
+
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
-                    actions: "clearNextIntent",
                 },
             },
         },
+
         SUCCESS: {
             type: "final",
             entry: "clearNextIntent",
         },
+
         FAILED: {
             type: "final",
             entry: "clearNextIntent",
