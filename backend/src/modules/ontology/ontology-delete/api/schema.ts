@@ -1,11 +1,10 @@
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 
 import { WorkflowResponseSchema } from "#app/api/response.js";
 import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
 export const OntologyDeleteSchema = createFlexibleSchema(
     z.object({
-        notifyId: z.uuid(),
         idList: z.uuid().array(),
     }),
 );

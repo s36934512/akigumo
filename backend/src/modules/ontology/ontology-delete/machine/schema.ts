@@ -1,24 +1,23 @@
 import { z } from "zod";
 
 import {
-    GraphIntentCreatedEvents,
-    GraphOperationResultEvents,
+    GraphIntentCreatedEvent,
+    GraphOperationResultEvent,
 } from "#app/contracts/index.js";
 import { MachineContextSchema } from "#app/workflow/index.js";
 
-import { OntologyDeleteEvents } from "../core/index.js";
+import { OntologyDeleteEvent } from "../core/index.js";
 
 const ContextSchema = MachineContextSchema.extend({
-    notifyId: z.uuid().nullable(),
-    idList: z.uuid().array(),
+    conceptIdList: z.uuid().array().nullable(),
 });
 
 export type MachineContext = z.infer<typeof ContextSchema>;
 
 export const EVENT_SCHEMA_LIST = [
-    ...OntologyDeleteEvents.schemaList,
-    ...GraphIntentCreatedEvents.schemaList,
-    ...GraphOperationResultEvents.schemaList,
+    ...OntologyDeleteEvent.schemaList,
+    ...GraphIntentCreatedEvent.schemaList,
+    ...GraphOperationResultEvent.schemaList,
 ] as const;
 
 export const EventsSchema = z.discriminatedUnion("type", EVENT_SCHEMA_LIST);

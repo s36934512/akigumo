@@ -1,6 +1,8 @@
 import { z } from "zod";
-import { createEventCodes } from "#app/contracts/index.js";
+
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
+
 import { OntologyDeleteSchema } from "../../api/schema.js";
 import * as service from "../service.js";
 
@@ -10,18 +12,19 @@ export const ontologyDeleteProcessor = defineProcessor(
     ONTOLOGY_DELETE,
     OntologyDeleteSchema.single,
     async (input) => {
-        const idList = await service.updateConceptList(input.payload.idList);
+        const conceptIdList = await service.updateConceptList(
+            input.payload.idList,
+        );
 
-        return { notifyId: input.payload.notifyId, idList };
+        return { conceptIdList };
     },
 );
 
-export const OntologyDeleteEvents = createEventCodes(ONTOLOGY_DELETE, [
+export const OntologyDeleteEvent = defineEventContract(ONTOLOGY_DELETE, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            notifyId: z.uuid(),
-            idList: z.uuid().array(),
+            conceptIdList: z.uuid().array(),
         }),
     },
 ]);

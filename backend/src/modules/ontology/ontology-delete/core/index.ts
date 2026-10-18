@@ -1,5 +1,5 @@
 export {
     ONTOLOGY_DELETE,
-    OntologyDeleteEvents,
+    OntologyDeleteEvent,
     ontologyDeleteProcessor,
 } from "./processor/delete.js";
