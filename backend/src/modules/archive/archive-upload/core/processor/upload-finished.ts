@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
@@ -33,7 +33,7 @@ export const archiveUploadFinishedProcessor = defineProcessor(
     },
 );
 
-export const ArchiveUploadFinishedEvents = createEventCodes(
+export const ArchiveUploadFinishedEvent = defineEventContract(
     ARCHIVE_UPLOAD_FINISHED,
     [
         {

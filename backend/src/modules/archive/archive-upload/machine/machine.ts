@@ -1,7 +1,6 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
-import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
 import { ARCHIVE_DISPATCH } from "../../archive-integration/index.js";
 import { actions } from "./logic.js";
@@ -42,8 +41,6 @@ export const machine = setup({
                 context.graphSyncCompleted && pendingDispatchIdList.length > 0
             );
         },
-
-        shouldFailUnhandledEvent,
     },
     actions: {
         handleIntentSuccess: assign(actions.handleIntentSuccess),
@@ -105,7 +102,6 @@ export const machine = setup({
     initial: "VALIDATING_INTENT",
     on: {
         "*": {
-            guard: "shouldFailUnhandledEvent",
             target: ".FAILED",
             actions: "handleFailure",
         },

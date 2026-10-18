@@ -1,16 +1,17 @@
 import { z } from "zod";
 
 import {
-    createEventCodes,
-    GraphIntentCreatedEvents,
-    GraphOperationResultEvents,
+    defineEventContract,
+    GraphIntentCreatedEvent,
+    GraphOperationResultEvent,
 } from "#app/contracts/index.js";
 import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 import { MachineContextSchema } from "#app/workflow/index.js";
-import { ArchiveDispatchEvents } from "../../archive-integration/index.js";
-import { ArchiveUploadFinishedEvents } from "../core/processor/upload-finished.js";
 
-export const ArchiveIntentEvents = createEventCodes(WORKFLOW_BOOTSTRAP, [
+import { ArchiveDispatchEvent } from "../../archive-integration/index.js";
+import { ArchiveUploadFinishedEvent } from "../core/processor/upload-finished.js";
+
+export const ArchiveIntentEvent = defineEventContract(WORKFLOW_BOOTSTRAP, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
@@ -34,11 +35,11 @@ const ContextSchema = MachineContextSchema.extend({
 export type MachineContext = z.infer<typeof ContextSchema>;
 
 export const EVENT_SCHEMA_LIST = [
-    ...ArchiveIntentEvents.schemaList,
-    ...ArchiveUploadFinishedEvents.schemaList,
-    ...GraphIntentCreatedEvents.schemaList,
-    ...GraphOperationResultEvents.schemaList,
-    ...ArchiveDispatchEvents.schemaList,
+    ...ArchiveIntentEvent.schemaList,
+    ...ArchiveUploadFinishedEvent.schemaList,
+    ...GraphIntentCreatedEvent.schemaList,
+    ...GraphOperationResultEvent.schemaList,
+    ...ArchiveDispatchEvent.schemaList,
 ] as const;
 
 export const EventsSchema = z.discriminatedUnion("type", EVENT_SCHEMA_LIST);

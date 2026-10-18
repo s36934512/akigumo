@@ -2,17 +2,17 @@ import { assertEvent } from "xstate";
 
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
 
-import { ArchiveDispatchEvents } from "../../archive-integration/index.js";
-import { ArchiveUploadFinishedEvents } from "../core/processor/upload-finished.js";
+import { ArchiveDispatchEvent } from "../../archive-integration/index.js";
+import { ArchiveUploadFinishedEvent } from "../core/processor/upload-finished.js";
 import {
-    ArchiveIntentEvents,
+    ArchiveIntentEvent,
     type MachineContext,
     type MachineEvents,
 } from "./schema.js";
 
 export const actions = {
     handleIntentSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, ArchiveIntentEvents.SUCCEEDED);
+        assertEvent(event, ArchiveIntentEvent.SUCCEEDED);
 
         return {
             fileList: Array.from(new Set(event.data.fileIdList)),
@@ -26,7 +26,7 @@ export const actions = {
         context: MachineContext;
         event: MachineEvents;
     }) {
-        assertEvent(event, ArchiveUploadFinishedEvents.SUCCEEDED);
+        assertEvent(event, ArchiveUploadFinishedEvent.SUCCEEDED);
 
         const fileId = event.data.fileId;
 
@@ -55,7 +55,7 @@ export const actions = {
         context: MachineContext;
         event: MachineEvents;
     }) {
-        assertEvent(event, ArchiveDispatchEvents.SUCCEEDED);
+        assertEvent(event, ArchiveDispatchEvent.SUCCEEDED);
 
         const dispatchedIdSet = new Set(
             context.processingProgress.dispatchedIdList,
