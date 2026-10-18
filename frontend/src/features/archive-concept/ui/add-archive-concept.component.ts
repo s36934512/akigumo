@@ -2,6 +2,7 @@ import { Component, computed, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "@openng/optimus-ui/button";
 import { CheckboxModule } from "@openng/optimus-ui/checkbox";
+import { DynamicDialogRef } from "@openng/optimus-ui/dynamicdialog";
 import { InputTextModule } from "@openng/optimus-ui/inputtext";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
@@ -35,6 +36,7 @@ import { ArchiveConceptStore } from "../model/archive-concept.store";
     styleUrl: "./add-archive-concept.component.scss",
 })
 export class AddArchiveConceptComponent {
+    private readonly dialogRef = inject(DynamicDialogRef);
     private readonly conceptQuery = inject(ConceptQuery);
 
     readonly archive = input.required<Archive>();
@@ -105,5 +107,9 @@ export class AddArchiveConceptComponent {
                 this.saved.emit();
             },
         });
+    }
+
+    protected onCancel(): void {
+        this.dialogRef.close();
     }
 }

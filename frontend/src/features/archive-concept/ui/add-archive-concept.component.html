@@ -55,15 +55,25 @@
     <footer class="archive-concept-dialog__footer">
         <span> 已選取 {{ selectionStore.selectedCount() }} 個 </span>
 
-        <p-button
-            [label]="isPending() ? '新增中…' : '新增關聯'"
-            [disabled]="
-                !selectionStore.hasSelection() ||
-                isPending() ||
-                conceptListQuery.isPending() ||
-                conceptListQuery.isError()
-            "
-            (onClick)="submit()"
-        />
+        <div class="archive-concept-dialog__actions">
+            <p-button
+                label="取消"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="isPending()"
+                (onClick)="onCancel()"
+            />
+
+            <p-button
+                [label]="isPending() ? '新增中…' : '新增關聯'"
+                [disabled]="
+                    !selectionStore.hasSelection() ||
+                    isPending() ||
+                    conceptListQuery.isPending() ||
+                    conceptListQuery.isError()
+                "
+                (onClick)="submit()"
+            />
+        </div>
     </footer>
 </section>
