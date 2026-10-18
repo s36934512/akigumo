@@ -136,7 +136,11 @@ export class DefaultService {
       this.http,
       );
     }
-   postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(
+  /**
+ * 建立尚未存在的 Concept
+ * @summary 批次註冊 Concept
+ */
+ postApiV1OntologyRegistry<TData = PostApiV1OntologyRegistry202>(
     postApiV1OntologyRegistryBody?: PostApiV1OntologyRegistryBody,
  ) {
       return angularHttp<TData>(

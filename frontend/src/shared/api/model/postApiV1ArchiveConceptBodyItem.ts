@@ -4,14 +4,11 @@
  * My API
  * OpenAPI spec version: 1.0.0
  */
-import type { PostApiV1ArchiveConceptBodyItemMetadataListItem } from './postApiV1ArchiveConceptBodyItemMetadataListItem';
+import type { PostApiV1ArchiveConceptBodyItemNewConceptListItem } from './postApiV1ArchiveConceptBodyItemNewConceptListItem';
 
 export type PostApiV1ArchiveConceptBodyItem = {
-  /**
-     * 目標archive
-     * @minItems 1
-     */
-  targetIdList: string[];
-  /** 動態新增概念，用於增加尚未存在的屬性 */
-  metadataList?: PostApiV1ArchiveConceptBodyItemMetadataListItem[];
+  /** 目標archive */
+  targetId: string;
+  conceptIdList: string[];
+  newConceptList: PostApiV1ArchiveConceptBodyItemNewConceptListItem[];
 };

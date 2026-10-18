@@ -6,6 +6,5 @@
  */
 
 export type PostApiV1OntologyDeleteBody = {
-  notifyId: string;
   idList: string[];
 };

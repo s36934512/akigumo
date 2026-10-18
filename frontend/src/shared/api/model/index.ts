@@ -13,6 +13,8 @@ export * from './postApiV1ArchiveConceptBodyItem';
 export * from './postApiV1ArchiveConceptBodyItemMetadataListItem';
 export * from './postApiV1ArchiveConceptBodyItemMetadataListItemKey';
 export * from './postApiV1ArchiveConceptBodyItemMetadataListItemValueItem';
+export * from './postApiV1ArchiveConceptBodyItemNewConceptListItem';
+export * from './postApiV1ArchiveConceptBodyItemNewConceptListItemMetadata';
 export * from './postApiV1ArchiveDelete202';
 export * from './postApiV1ArchiveDeleteBodyItem';
 export * from './postApiV1ArchiveIntent200';

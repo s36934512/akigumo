@@ -7,6 +7,5 @@
 import type { PostApiV1OntologyEditorBodyRegistryListItem } from './postApiV1OntologyEditorBodyRegistryListItem';
 
 export type PostApiV1OntologyEditorBody = {
-  notifyId: string;
   registryList: PostApiV1OntologyEditorBodyRegistryListItem[];
 };
