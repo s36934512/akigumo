@@ -9,7 +9,7 @@ import { WORKFLOW_TYPE } from "./workflow.js";
 
 export {
     ARCHIVE_DISPATCH,
-    ArchiveDispatchEvents,
+    ArchiveDispatchEvent,
 } from "./core/processor/dispatch.js";
 
 export const capability = {

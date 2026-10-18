@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
 
@@ -27,7 +27,7 @@ export const archiveDispatchProcessor = defineProcessor(
     },
 );
 
-export const ArchiveDispatchEvents = createEventCodes(ARCHIVE_DISPATCH, [
+export const ArchiveDispatchEvent = defineEventContract(ARCHIVE_DISPATCH, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
@@ -36,7 +36,7 @@ export const ArchiveDispatchEvents = createEventCodes(ARCHIVE_DISPATCH, [
     },
 ]);
 
-export const ArchiveIntegrationBootstrapEvents = createEventCodes(
+export const ArchiveIntegrationBootstrapEvent = defineEventContract(
     WORKFLOW_BOOTSTRAP,
     [
         {

@@ -1,22 +1,22 @@
 export {
-    ArchiveDispatchEvents,
+    ArchiveDispatchEvent,
     archiveDispatchProcessor,
 } from "./dispatch.js";
 
 export {
     ARCHIVE_STORAGE,
-    ArchiveStorageEvents,
+    ArchiveStorageEvent,
     archiveStorageProcessor,
 } from "./storage.js";
 
 export {
     ARCHIVE_TRANSCODE,
-    ArchiveTranscodeEvents,
+    ArchiveTranscodeEvent,
     archiveTranscodeProcessor,
 } from "./transcode.js";
 
 export {
     ARCHIVE_UNCOMPRESS,
-    ArchiveUncompressEvents,
+    ArchiveUncompressEvent,
     archiveUncompressProcessor,
 } from "./uncompress.js";

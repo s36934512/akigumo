@@ -1,7 +1,6 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
-import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
 import {
     ARCHIVE_STORAGE,
@@ -26,8 +25,6 @@ export const machine = setup({
             if (!context.strategy.shouldTranscode) return false;
             return context.processingProgress.totalIds.length === 0;
         },
-
-        shouldFailUnhandledEvent,
 
         isAllFilesDone: ({ context }) => {
             const { totalIds, successIds, failedIds } =

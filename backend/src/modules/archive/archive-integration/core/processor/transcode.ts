@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
 import { transcode } from "../transcode.js";
@@ -19,7 +19,7 @@ export const archiveTranscodeProcessor = defineProcessor(
     },
 );
 
-export const ArchiveTranscodeEvents = createEventCodes(ARCHIVE_TRANSCODE, [
+export const ArchiveTranscodeEvent = defineEventContract(ARCHIVE_TRANSCODE, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({

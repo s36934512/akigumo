@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
@@ -36,7 +36,7 @@ export const archiveStorageProcessor = defineProcessor(
     },
 );
 
-export const ArchiveStorageEvents = createEventCodes(ARCHIVE_STORAGE, [
+export const ArchiveStorageEvent = defineEventContract(ARCHIVE_STORAGE, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({}),

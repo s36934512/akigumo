@@ -1,15 +1,15 @@
 import { assertEvent } from "xstate";
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
-import { ArchiveIntegrationBootstrapEvents } from "../core/processor/dispatch.js";
+import { ArchiveIntegrationBootstrapEvent } from "../core/processor/dispatch.js";
 import {
-    ArchiveTranscodeEvents,
-    ArchiveUncompressEvents,
+    ArchiveTranscodeEvent,
+    ArchiveUncompressEvent,
 } from "../core/processor/index.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
 
 export const actions = {
     handleIntegrationBootstrapSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, ArchiveIntegrationBootstrapEvents.SUCCEEDED);
+        assertEvent(event, ArchiveIntegrationBootstrapEvent.SUCCEEDED);
 
         return {
             fileId: event.data.fileId,
@@ -19,7 +19,7 @@ export const actions = {
     },
 
     handleTranscodeSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, ArchiveTranscodeEvents.SUCCEEDED);
+        assertEvent(event, ArchiveTranscodeEvent.SUCCEEDED);
 
         return {
             derivedFileId: event.data.fileId,
@@ -33,7 +33,7 @@ export const actions = {
         context: MachineContext;
         event: MachineEvents;
     }) {
-        assertEvent(event, ArchiveUncompressEvents.SUCCEEDED);
+        assertEvent(event, ArchiveUncompressEvent.SUCCEEDED);
 
         return {
             // processingProgress: {

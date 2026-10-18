@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from "uuid";
 import { z } from "zod";
 
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import type { Prisma } from "#app/generated/prisma/client.js";
 import { ArchiveStatus, ArchiveType } from "#app/generated/prisma/enums.js";
 import {
@@ -84,11 +84,10 @@ export const archiveUncompressProcessor = defineProcessor(
     },
 );
 
-export const ArchiveUncompressEvents = createEventCodes(ARCHIVE_UNCOMPRESS, [
+export const ArchiveUncompressEvent = defineEventContract(ARCHIVE_UNCOMPRESS, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            notifyId: z.uuid(),
             idList: z.uuid().array(),
         }),
     },
