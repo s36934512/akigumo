@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createEventCodes } from "#app/contracts/index.js";
+import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 import { OntologyEditorSchema } from "../../api/schema.js";
 import * as service from "../service.js";
@@ -10,18 +10,17 @@ export const ontologyEditorProcessor = defineProcessor(
     ONTOLOGY_EDITOR,
     OntologyEditorSchema.single,
     async (input) => {
-        const idList = await service.updateConceptList(input.payload);
+        const conceptIdList = await service.updateConceptList(input.payload);
 
-        return { notifyId: input.payload.notifyId, idList };
+        return { conceptIdList };
     },
 );
 
-export const OntologyEditorEvents = createEventCodes(ONTOLOGY_EDITOR, [
+export const OntologyEditorEvent = defineEventContract(ONTOLOGY_EDITOR, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            notifyId: z.uuid(),
-            idList: z.uuid().array(),
+            conceptIdList: z.uuid().array(),
         }),
     },
 ]);

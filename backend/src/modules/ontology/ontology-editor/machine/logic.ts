@@ -2,15 +2,15 @@ import { assertEvent } from "xstate";
 
 import { isWorkflowFailureEvent } from "#app/workflow/index.js";
 
-import { OntologyEditorEvents } from "../core/index.js";
+import { OntologyEditorEvent } from "../core/index.js";
 import type { MachineEvents } from "./schema.js";
 
 export const machineActions = {
     handleEditSuccess({ event }: { event: MachineEvents }) {
-        assertEvent(event, OntologyEditorEvents.SUCCEEDED);
+        assertEvent(event, OntologyEditorEvent.SUCCEEDED);
+
         return {
-            notifyId: event.data.notifyId,
-            idList: event.data.idList,
+            conceptIdList: event.data.conceptIdList,
         };
     },
 

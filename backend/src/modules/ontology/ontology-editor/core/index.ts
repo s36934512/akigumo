@@ -1,5 +1,5 @@
 export {
     ONTOLOGY_EDITOR,
-    OntologyEditorEvents,
+    OntologyEditorEvent,
     ontologyEditorProcessor,
 } from "./processor/editor.js";

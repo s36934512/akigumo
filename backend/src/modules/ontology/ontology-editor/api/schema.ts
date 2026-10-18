@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 
 import { WorkflowResponseSchema } from "#app/api/response.js";
 import { ConceptRegistrySchema } from "#app/contracts/index.js";
@@ -13,7 +13,6 @@ const ConceptEditSchema = createFlexibleSchema(
 
 export const OntologyEditorSchema = createFlexibleSchema(
     z.object({
-        notifyId: z.uuid(),
         registryList: ConceptEditSchema.array,
     }),
 );

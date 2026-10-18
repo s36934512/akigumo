@@ -1,7 +1,6 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
-import { shouldFailUnhandledEvent } from "#app/workflow/index.js";
 
 import { machineActions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
@@ -14,7 +13,13 @@ export const machine = setup({
         events: {} as MachineEvents,
     },
     guards: {
-        shouldFailUnhandledEvent,
+        hasGraphSyncData: ({ context }) => {
+            if (context.conceptIdList === null) {
+                return false;
+            }
+
+            return true;
+        },
     },
     actions: {
         handleEditSuccess: assign(machineActions.handleEditSuccess),
@@ -22,14 +27,17 @@ export const machine = setup({
         handleFailure: assign(machineActions.handleFailure),
 
         prepareGraphSyncIntent: assign(({ context }) => {
-            if (context.idList.length === 0) {
+            if (
+                context.conceptIdList === null ||
+                context.conceptIdList.length === 0
+            ) {
                 return { nextIntent: undefined };
             }
 
             return {
                 nextIntent: createSyncIntentOutbox(
                     "concept-registry",
-                    context.idList,
+                    context.conceptIdList,
                 ),
             };
         }),
@@ -46,39 +54,35 @@ export const machine = setup({
         },
     },
     context: {
-        notifyId: null,
-        idList: [],
         error: null,
         nextIntent: null,
+        conceptIdList: null,
     },
     states: {
         SAVING_CONCEPT: {
             on: {
                 ONTOLOGY_EDITOR_SUCCEEDED: [
                     {
-                        guard: ({ event }) => event.data.idList.length > 0,
-                        target: "SYNCING_CONCEPT",
-                        actions: [
-                            "handleEditSuccess",
-                            "prepareGraphSyncIntent",
-                        ],
-                    },
-                    {
-                        target: "SUCCESS",
-                        actions: "handleEditSuccess",
+                        actions: ["handleEditSuccess"],
                     },
                 ],
             },
+
+            always: {
+                guard: "hasGraphSyncData",
+                target: "SYNCING_GRAPH",
+                actions: "prepareGraphSyncIntent",
+            },
         },
 
-        SYNCING_CONCEPT: {
+        SYNCING_GRAPH: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
                 },
-                PYTHON_SUCCEEDED: {
+
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
                     target: "SUCCESS",
-                    actions: "clearNextIntent",
                 },
             },
         },
