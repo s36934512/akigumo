@@ -7,7 +7,7 @@ import {
     ArchiveChangedPayloadSchema,
     ArchiveDeletedPayloadSchema,
 } from "../api/sse";
-import { archiveQueryKey } from "./archive.query";
+import { archiveListQueryKey } from "./archive.query";
 
 @Service()
 export class ArchiveSync {
@@ -29,7 +29,7 @@ export class ArchiveSync {
                 }
 
                 void this.queryClient.invalidateQueries({
-                    queryKey: archiveQueryKey,
+                    queryKey: archiveListQueryKey,
                 });
             },
         );
@@ -45,7 +45,17 @@ export class ArchiveSync {
                 }
 
                 void this.queryClient.invalidateQueries({
-                    queryKey: archiveQueryKey,
+                    queryKey: archiveListQueryKey,
+                });
+            },
+        );
+
+        const unregisterGraphChanged = this.sseBrokerService.registerHandler(
+            streamUrl,
+            "GRAPH_CHANGED",
+            () => {
+                void this.queryClient.invalidateQueries({
+                    queryKey: archiveListQueryKey,
                 });
             },
         );
@@ -55,6 +65,7 @@ export class ArchiveSync {
         this.destroyRef.onDestroy(() => {
             unregisterChanged();
             unregisterDeleted();
+            unregisterGraphChanged();
         });
     }
 }

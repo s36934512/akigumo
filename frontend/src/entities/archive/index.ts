@@ -3,6 +3,8 @@ export {
     archiveListQueryKey,
 } from "./model/archive.query";
 
+export { ArchiveSync } from "./model/archive.sync";
+
 export {
     type Archive,
     ArchiveSchema,
