@@ -6,7 +6,7 @@ import { DynamicDialogRef } from "@openng/optimus-ui/dynamicdialog";
 import { InputTextModule } from "@openng/optimus-ui/inputtext";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
-import type { Archive } from "#app/entities/archive";
+import { ArchiveQuery } from "#app/entities/archive";
 import { ConceptChipComponent, ConceptQuery } from "#app/entities/concept";
 import type { PostApiV1ArchiveConceptBodyItem } from "#app/shared/api/model";
 import { searchConcept } from "#app/shared/lib/concept-search";
@@ -37,15 +37,28 @@ import { ArchiveConceptStore } from "../model/archive-concept.store";
 })
 export class AddArchiveConceptComponent {
     private readonly dialogRef = inject(DynamicDialogRef);
+    private readonly archiveQuery = inject(ArchiveQuery);
     private readonly conceptQuery = inject(ConceptQuery);
 
-    readonly archive = input.required<Archive>();
+    readonly archiveId = input.required<string>();
 
     readonly saved = output<void>();
 
     readonly store = inject(ArchiveConceptStore);
     readonly selectionStore = inject(SelectionStore);
     readonly archiveConceptMutation = inject(ArchiveConceptMutation);
+
+    readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
+
+    readonly currentArchive = computed(() => {
+        const archiveId = this.archiveId();
+
+        return (
+            this.archiveListQuery
+                .data()
+                ?.find((archive) => archive.id === archiveId) ?? null
+        );
+    });
 
     readonly conceptListQuery = injectQuery(() => this.conceptQuery.list());
 
@@ -54,7 +67,7 @@ export class AddArchiveConceptComponent {
     );
 
     readonly existingConceptIdSet = computed(() => {
-        const conceptList = this.archive().conceptList ?? [];
+        const conceptList = this.currentArchive()?.conceptList ?? [];
 
         return new Set(
             conceptList.flatMap((item) =>
@@ -88,13 +101,19 @@ export class AddArchiveConceptComponent {
     }
 
     submit(): void {
-        if (this.isPending() || !this.selectionStore.hasSelection()) {
+        const archive = this.currentArchive();
+
+        if (
+            this.isPending() ||
+            !archive ||
+            !this.selectionStore.hasSelection()
+        ) {
             return;
         }
 
         const input: PostApiV1ArchiveConceptBodyItem[] = [
             {
-                targetId: this.archive().id,
+                targetId: archive.id,
                 conceptIdList: this.selectionStore.selectedIdList(),
                 newConceptList: [],
             },

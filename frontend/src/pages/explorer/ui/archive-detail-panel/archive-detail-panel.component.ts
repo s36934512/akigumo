@@ -29,7 +29,7 @@ export class ArchiveDetailPanelComponent {
             width: "40rem",
             modal: true,
             inputValues: {
-                archive: this.archive(),
+                archiveId: this.archive().id,
             },
         });
     }
