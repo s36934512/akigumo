@@ -16,6 +16,8 @@ import {
 import type {
   PostApiV1ArchiveConcept202,
   PostApiV1ArchiveConceptBodyItem,
+  PostApiV1ArchiveConceptRemove202,
+  PostApiV1ArchiveConceptRemoveBodyItem,
   PostApiV1ArchiveDelete202,
   PostApiV1ArchiveDeleteBodyItem,
   PostApiV1ArchiveIntent200,
@@ -63,6 +65,17 @@ export class DefaultService {
       {url: `/api/v1/archive/concept`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: postApiV1ArchiveConceptBodyItem
+    },
+      this.http,
+      );
+    }
+   postApiV1ArchiveConceptRemove<TData = PostApiV1ArchiveConceptRemove202>(
+    postApiV1ArchiveConceptRemoveBodyItem?: PostApiV1ArchiveConceptRemoveBodyItem[],
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/concept-remove`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1ArchiveConceptRemoveBodyItem
     },
       this.http,
       );
@@ -183,6 +196,7 @@ export class DefaultService {
 
 export type GetApiV1StreamClientResult = NonNullable<string>
 export type PostApiV1ArchiveConceptClientResult = NonNullable<PostApiV1ArchiveConcept202>
+export type PostApiV1ArchiveConceptRemoveClientResult = NonNullable<PostApiV1ArchiveConceptRemove202>
 export type PostApiV1ArchiveDeleteClientResult = NonNullable<PostApiV1ArchiveDelete202>
 export type PostApiV1ArchiveStructureClientResult = NonNullable<PostApiV1ArchiveStructure200Item[]>
 export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveIntent200>

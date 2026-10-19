@@ -27,7 +27,7 @@ class ConceptDeleteExecutor(GenericNodeBase):
         UNWIND $requests AS request
 
         UNWIND request.payload AS data
-        MATCH (c:Concept {{id: data.conceptId}})
+        MATCH (c:Concept {id: data.conceptId})
         SET c:Delete
 
         RETURN DISTINCT request.intentOutboxId AS intentOutboxId
@@ -59,6 +59,27 @@ class ConceptAssociationExecutor(GenericNodeBase):
         
         MATCH (c:Concept {{id: conceptId}})
         MERGE (n)-[:HAS_CONCEPT]->(c)
+
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
+        """
+
+
+class ConceptAssociationRemoveExecutor(GenericNodeBase):
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("targetId", "conceptIdList")
+
+    @property
+    def template(self) -> str:
+        return """
+        UNWIND $requests AS request
+
+        UNWIND request.payload AS data
+        MATCH (a:Archive {id: data.targetId})
+
+        UNWIND data.conceptIdList as conceptId
+        MATCH (c:Concept {id: conceptId})
+        
+        MATCH (a)-[r:HAS_CONCEPT]->(c)
+        DELETE r
 
         RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """

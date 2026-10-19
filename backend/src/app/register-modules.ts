@@ -4,6 +4,7 @@ import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { ProcessorDefinition } from "#app/kernel/execution/processor.js";
 import { registerProcessor } from "#app/kernel/index.js";
 import { capability as archiveConceptCapability } from "#app/modules/archive/archive-concept/index.js";
+import { capability as archiveConceptRemoveCapability } from "#app/modules/archive/archive-concept-remove/index.js";
 import { capability as archiveDeleteCapability } from "#app/modules/archive/archive-delete/index.js";
 import { capability as archiveIntegrationCapability } from "#app/modules/archive/archive-integration/index.js";
 import { capability as archiveStructureCapability } from "#app/modules/archive/archive-structure/index.js";
@@ -28,6 +29,7 @@ type ModuleCapability = {
 
 const capabilityList: ModuleCapability[] = [
     archiveConceptCapability,
+    archiveConceptRemoveCapability,
     archiveDeleteCapability,
     archiveIntegrationCapability,
     archiveStructureCapability,

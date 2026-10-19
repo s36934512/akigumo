@@ -8,6 +8,7 @@ import { archiveDeleteTask } from "./task/archive-delete.js";
 import { archiveTranscodeTask } from "./task/archive-transcode.js";
 import { archiveUncompressTask } from "./task/archive-uncompress.js";
 import { conceptAssociationTask } from "./task/concept-association.js";
+import { conceptAssociationRemoveTask } from "./task/concept-association-remove.js";
 import { conceptDeleteTask } from "./task/concept-delete.js";
 import { conceptRegistryTask } from "./task/concept-registry.js";
 import { fileRegistryTask } from "./task/file-registry.js";
@@ -19,6 +20,7 @@ const taskList = [
     archiveTranscodeTask,
     archiveUncompressTask,
     conceptAssociationTask,
+    conceptAssociationRemoveTask,
     conceptDeleteTask,
     conceptRegistryTask,
     fileRegistryTask,
