@@ -17,7 +17,7 @@ export const ArchiveStructureItemSchema = ArchiveModelSchema.pick({
     conceptList: z
         .object({
             conceptId: z.uuid(),
-            type: z.string(),
+            type: z.string().nullable(),
         })
         .array()
         .openapi({ description: "項目的屬性 種類:標籤UUID" }),

@@ -7,5 +7,6 @@
 
 export type PostApiV1ArchiveStructure200ItemConceptListItem = {
   conceptId: string;
-  type: string;
+  /** @nullable */
+  type: string | null;
 };

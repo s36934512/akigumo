@@ -4,23 +4,37 @@ export const getChildrenCypher = `
 
     OPTIONAL MATCH (i)-[:DISPLAY_AS]->(f:File)
 
-    OPTIONAL MATCH (i)-[:WITH]->(s)-[:WITH]->(c:Concept)
+    OPTIONAL MATCH (i)-[:WITH]->(s)-[:WITH]->(cp:Concept)
     WHERE $showDeleted = true
-        OR (NOT s:Delete AND NOT c:Delete)
+        OR (NOT s:Delete AND NOT cp:Delete)
 
     WITH i, f,
-        collect(
+        collect(DISTINCT
+            CASE
+                WHEN cp IS NOT NULL
+                THEN {conceptId: cp.id, type: s.type}
+            END
+        ) AS withConceptList
+
+    OPTIONAL MATCH (i)-[:HAS_CONCEPT]->(c:Concept)
+    WHERE $showDeleted = true OR NOT c:Delete
+
+    WITH i, f, withConceptList,
+        collect(DISTINCT
             CASE
                 WHEN c IS NOT NULL
-                THEN {conceptId: c.id, type: s.type}
+                THEN {conceptId: c.id, type: null}
             END
-        ) AS conceptList
+        ) AS hasConceptList
 
     RETURN
         i.id AS archiveId,
         f.id AS currentFileId,
-        [item IN conceptList WHERE item IS NOT NULL] AS conceptList
-    `;
+        [
+            item IN withConceptList + hasConceptList
+            WHERE item IS NOT NULL
+        ] AS conceptList
+`;
 
 export const getRootArchiveListCypher = `
     MATCH (i:Archive)
@@ -29,20 +43,34 @@ export const getRootArchiveListCypher = `
 
     OPTIONAL MATCH (i)-[:DISPLAY_AS]->(f:File)
 
-    OPTIONAL MATCH (i)-[:WITH]->(s)-[:WITH]->(c:Concept)
+    OPTIONAL MATCH (i)-[:WITH]->(s)-[:WITH]->(cp:Concept)
     WHERE $showDeleted = true
-        OR (NOT s:Delete AND NOT c:Delete)
+        OR (NOT s:Delete AND NOT cp:Delete)
 
     WITH i, f,
-        collect(
+        collect(DISTINCT
+            CASE
+                WHEN cp IS NOT NULL
+                THEN {conceptId: cp.id, type: s.type}
+            END
+        ) AS withConceptList
+
+    OPTIONAL MATCH (i)-[:HAS_CONCEPT]->(c:Concept)
+    WHERE $showDeleted = true OR NOT c:Delete
+
+    WITH i, f, withConceptList,
+        collect(DISTINCT
             CASE
                 WHEN c IS NOT NULL
-                THEN {conceptId: c.id, type: s.type}
+                THEN {conceptId: c.id, type: null}
             END
-        ) AS conceptList
+        ) AS hasConceptList
 
     RETURN
         i.id AS archiveId,
         f.id AS currentFileId,
-        [item IN conceptList WHERE item IS NOT NULL] AS conceptList
-    `;
+        [
+            item IN withConceptList + hasConceptList
+            WHERE item IS NOT NULL
+        ] AS conceptList
+`;
