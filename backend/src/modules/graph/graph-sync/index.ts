@@ -7,6 +7,7 @@ import { archiveConceptTask } from "./task/archive-concept.js";
 import { archiveDeleteTask } from "./task/archive-delete.js";
 import { archiveTranscodeTask } from "./task/archive-transcode.js";
 import { archiveUncompressTask } from "./task/archive-uncompress.js";
+import { conceptAssociationTask } from "./task/concept-association.js";
 import { conceptDeleteTask } from "./task/concept-delete.js";
 import { conceptRegistryTask } from "./task/concept-registry.js";
 import { fileRegistryTask } from "./task/file-registry.js";
@@ -17,6 +18,7 @@ const taskList = [
     archiveDeleteTask,
     archiveTranscodeTask,
     archiveUncompressTask,
+    conceptAssociationTask,
     conceptDeleteTask,
     conceptRegistryTask,
     fileRegistryTask,
@@ -33,6 +35,7 @@ export function createGraphSyncProcessor(
         if (!execute) {
             throw new Error(`Task ${taskName} not found`);
         }
+
         return execute(payload);
     });
 }

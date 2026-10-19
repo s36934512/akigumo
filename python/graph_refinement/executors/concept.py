@@ -1,8 +1,10 @@
+from typing import ClassVar
+
 from graph_refinement.executors.base import GenericNodeBase
 
 
 class ConceptRegistryExecutor(GenericNodeBase):
-    REQUIRED_IDENTITY = ["conceptId"]
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("conceptId",)
 
     @property
     def template(self) -> str:
@@ -17,11 +19,11 @@ class ConceptRegistryExecutor(GenericNodeBase):
 
 
 class ConceptDeleteExecutor(GenericNodeBase):
-    REQUIRED_IDENTITY = ["conceptId"]
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("conceptId",)
 
     @property
     def template(self) -> str:
-        return f"""
+        return """
         UNWIND $requests AS request
 
         UNWIND request.payload AS data
@@ -32,53 +34,31 @@ class ConceptDeleteExecutor(GenericNodeBase):
         """
 
 
-class ConceptAttacherExecutor(GenericNodeBase):
-    REQUIRED_IDENTITY = []
+class ConceptAssociationExecutor(GenericNodeBase):
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("conceptPool", "taskList")
 
     @property
     def template(self) -> str:
         return f"""
-            UNWIND $batch AS group
+        UNWIND $requests AS request
+        UNWIND request.payload AS group
 
-            CALL (group) {{
-                UNWIND coalesce(group.itemList, []) AS data
-                
-                {self._merge_item}
+        FOREACH (data IN coalesce(group.conceptPool, []) |
+            {self._merge_concept}
+        )
 
-                FOREACH (targetId IN coalesce(data.directIds, []) |
-                    MERGE (ic:Concept {{id: targetId}})
-                    MERGE (i)-[:WITH]->(ic)
-                )
+        WITH request, group
 
-                FOREACH (statement IN coalesce(data.connectList, []) |
-                    CREATE (s:Statement {{type: statement.key}})
-                    SET s.createdTime = datetime()
-                    
-                    FOREACH (targetConceptId IN coalesce(statement.value, []) |
-                        MERGE (sc:Concept {{id: targetConceptId}})
-                        MERGE (i)-[:WITH]->(s)-[:WITH]->(sc)
-                    )
-                )
-                }}
+        UNWIND coalesce(group.taskList, []) AS association
 
-            CALL (group) {{
-                UNWIND coalesce(group.conceptList, []) AS data
+        MATCH (n)
+        WHERE (n:Archive OR n:Concept)
+            AND n.id = association.targetId
 
-                {self._merge_concept}
+        UNWIND coalesce(association.conceptIdList, []) AS conceptId
+        
+        MATCH (c:Concept {{id: conceptId}})
+        MERGE (n)-[:HAS_CONCEPT]->(c)
 
-                FOREACH (targetId IN coalesce(data.directIds, []) |
-                    MERGE (ec:Concept {{id: targetId}})
-                    MERGE (e)-[:WITH]->(ec)
-                )
-
-                FOREACH (statement IN coalesce(data.connectList, []) |
-                    CREATE (s:Statement {{type: statement.key}})
-                    SET s.createdTime = datetime()
-                    
-                    FOREACH (targetConceptId IN coalesce(statement.value, []) |
-                        MERGE (sc:Concept {{id: targetConceptId}})
-                        MERGE (e)-[:WITH]->(s)-[:WITH]->(sc)
-                    )
-                )
-                }}
-            """
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
+        """
