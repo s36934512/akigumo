@@ -25,10 +25,16 @@ export const ConceptDeletedEventSchema = SseEventBaseSchema.extend({
     }),
 });
 
+export const GraphChangedEventSchema = SseEventBaseSchema.extend({
+    type: z.literal("GRAPH_CHANGED"),
+    payload: z.object({}),
+});
+
 export const SseEventSchema = z.discriminatedUnion("type", [
     ArchiveChangedEventSchema,
     ArchiveDeletedEventSchema,
     ConceptDeletedEventSchema,
+    GraphChangedEventSchema,
 ]);
 
 export type SseEvent = z.infer<typeof SseEventSchema>;
