@@ -4,10 +4,12 @@ import { injectQuery } from "@tanstack/angular-query-experimental";
 import type { Archive } from "#app/entities/archive";
 import { ConceptChipComponent, ConceptQuery } from "#app/entities/concept";
 
+import { ArchiveConceptRemoveComponent } from "./archive-concept-remove";
+
 @Component({
     selector: "feature-archive-info",
     standalone: true,
-    imports: [ConceptChipComponent],
+    imports: [ConceptChipComponent, ArchiveConceptRemoveComponent],
     templateUrl: "./archive-info.component.html",
     styleUrl: "./archive-info.component.scss",
 })

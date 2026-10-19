@@ -1,1 +1,1 @@
-export { ArchiveInfoComponent } from "./archive-info.component";
+export { ArchiveInfoComponent } from "./ui/archive-info.component";

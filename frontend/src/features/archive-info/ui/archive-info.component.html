@@ -26,13 +26,23 @@
                 <ul class="m-0 flex list-none flex-col gap-2 p-0">
                     @for (entry of conceptEntryList(); track entry.concept.id) {
                         <li
-                            class="archive-info__concept-item flex min-w-0 flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5"
+                            class="archive-info__concept-item flex min-w-0 items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
                         >
-                            <span class="archive-info__concept-type shrink-0 text-xs font-medium">
-                                {{ entry.type }}
-                            </span>
+                            <div class="flex min-w-0 flex-wrap items-center gap-3">
+                                <span
+                                    class="archive-info__concept-type shrink-0 text-xs font-medium"
+                                >
+                                    {{ entry.type }}
+                                </span>
 
-                            <entity-concept-chip [concept]="entry.concept" />
+                                <entity-concept-chip [concept]="entry.concept" />
+                            </div>
+
+                            <feature-archive-info-archive-concept-remove
+                                class="shrink-0"
+                                [archiveId]="archive().id"
+                                [conceptId]="entry.concept.id"
+                            />
                         </li>
                     }
                 </ul>

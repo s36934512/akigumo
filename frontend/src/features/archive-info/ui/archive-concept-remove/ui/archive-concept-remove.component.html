@@ -1,0 +1,11 @@
+<p-button
+    type="button"
+    icon="pi pi-times"
+    severity="danger"
+    [text]="true"
+    [rounded]="true"
+    [loading]="isPending()"
+    [disabled]="isPending()"
+    aria-label="移除 Concept 關聯"
+    (onClick)="onRemove()"
+/>
