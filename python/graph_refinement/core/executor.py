@@ -5,7 +5,7 @@ import structlog
 
 
 class BaseExecutor(ABC):
-    REQUIRED_IDENTITY: ClassVar[list[str]] = []
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ()
 
     @property
     @abstractmethod
@@ -43,10 +43,7 @@ class BaseExecutor(ABC):
 
             invalid_payload = any(
                 not isinstance(data, dict)
-                or any(
-                    data.get(key) is None
-                    for key in self.REQUIRED_IDENTITY
-                )
+                or any(data.get(key) is None for key in self.REQUIRED_IDENTITY)
                 for data in payload
             )
 

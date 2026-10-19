@@ -1,8 +1,10 @@
+from typing import ClassVar
+
 from graph_refinement.executors.base import GenericNodeBase
 
 
 class FileRegistryExecutor(GenericNodeBase):
-    REQUIRED_IDENTITY = ["fileId", "archiveId"]
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("fileId", "archiveId")
 
     @property
     def template(self) -> str:
@@ -41,7 +43,7 @@ class FileRegistryExecutor(GenericNodeBase):
 
 
 class CreateDerivedFileExecutor(GenericNodeBase):
-    REQUIRED_IDENTITY = ["originalFileId", "fileId"]
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("originalFileId", "fileId")
 
     @property
     def template(self) -> str:
