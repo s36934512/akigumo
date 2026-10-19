@@ -1,10 +1,9 @@
-import { Component, signal } from "@angular/core";
+import { Component, computed, inject, signal } from "@angular/core";
 import { DrawerModule } from "@openng/optimus-ui/drawer";
-
-import type { Archive } from "#app/entities/archive";
+import { injectQuery } from "@tanstack/angular-query-experimental";
+import { type Archive, ArchiveQuery } from "#app/entities/archive";
 import { SelectionStore } from "#app/shared/model/selection-store";
 import { ArchiveBrowserComponent } from "#app/widgets/archive-browser";
-
 import { ArchiveDetailPanelComponent } from "./archive-detail-panel/archive-detail-panel.component";
 
 type DetailPanelMode = "inline" | "overlay";
@@ -22,15 +21,32 @@ type DetailPanelMode = "inline" | "overlay";
     providers: [SelectionStore],
 })
 export class ExplorerPage {
-    readonly openedArchive = signal<Archive | null>(null);
+    private readonly archiveQuery = inject(ArchiveQuery);
+
+    readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
+
+    readonly openedArchiveId = signal<string | null>(null);
+
+    readonly openedArchive = computed(() => {
+        const archiveId = this.openedArchiveId();
+
+        if (!archiveId) {
+            return null;
+        }
+
+        const archiveList = this.archiveListQuery.data() ?? [];
+
+        return archiveList.find((archive) => archive.id === archiveId) ?? null;
+    });
+
     readonly detailPanelMode = signal<DetailPanelMode>("inline");
 
-    protected onArchiveOpen(archive: Archive): void {
-        this.openedArchive.set(archive);
+    protected onArchiveOpen(archiveId: string): void {
+        this.openedArchiveId.set(archiveId);
     }
 
     protected onArchiveClose(): void {
-        this.openedArchive.set(null);
+        this.openedArchiveId.set(null);
     }
 
     protected setDetailPanelMode(mode: DetailPanelMode): void {

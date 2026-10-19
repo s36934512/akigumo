@@ -18,7 +18,7 @@ export class ArchiveBrowserComponent {
 
     readonly selectionMode = input(false);
 
-    readonly archiveOpen = output<Archive>();
+    readonly archiveOpen = output<string>();
 
     readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
 
@@ -34,7 +34,7 @@ export class ArchiveBrowserComponent {
             return;
         }
 
-        this.archiveOpen.emit(archive);
+        this.archiveOpen.emit(archive.id);
     }
 
     protected isSelected(archiveId: string): boolean {
