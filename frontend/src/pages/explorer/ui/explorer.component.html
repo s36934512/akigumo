@@ -1,15 +1,19 @@
-<main class="explorer">
-    <widget-archive-browser class="explorer__browser" (archiveOpen)="onArchiveOpen($event)" />
+<main class="flex h-full min-h-0 w-full min-w-0 overflow-hidden">
+    <widget-archive-browser
+        class="block min-h-0 min-w-0 flex-1 overflow-auto"
+        (archiveOpen)="onArchiveOpen($event)"
+    />
 
     @if (openedArchive(); as archive) {
         @if (detailPanelMode() === "inline") {
-            <div class="explorer__detail">
-                <div class="explorer__detail-toolbar">
+            <div class="explorer__detail flex min-h-0 w-96 shrink-0 flex-col overflow-hidden">
+                <div class="shrink-0">
                     <button type="button" (click)="setDetailPanelMode('overlay')">覆蓋模式</button>
                 </div>
 
-                <div class="explorer__detail-content">
+                <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                     <page-explorer-archive-detail-panel
+                        class="block min-h-0 min-w-0 flex-1"
                         [archive]="archive"
                         (closed)="onArchiveClose()"
                     />
@@ -23,15 +27,20 @@
                 [style]="{ width: '24rem', maxWidth: '100vw' }"
                 (onHide)="onArchiveClose()"
             >
-                <div class="explorer__overlay-toolbar">
-                    <button type="button" (click)="setDetailPanelMode('inline')">固定面板</button>
-                </div>
+                <div class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+                    <div class="shrink-0">
+                        <button type="button" (click)="setDetailPanelMode('inline')">
+                            固定面板
+                        </button>
+                    </div>
 
-                <div class="explorer__overlay-content">
-                    <page-explorer-archive-detail-panel
-                        [archive]="archive"
-                        (closed)="onArchiveClose()"
-                    />
+                    <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                        <page-explorer-archive-detail-panel
+                            class="block min-h-0 min-w-0 flex-1"
+                            [archive]="archive"
+                            (closed)="onArchiveClose()"
+                        />
+                    </div>
                 </div>
             </p-drawer>
         }

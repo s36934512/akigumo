@@ -1,34 +1,48 @@
-<div class="archive-info">
-    <section class="archive-info__section">
+<div class="flex h-full min-h-0 min-w-0 flex-col gap-6 px-4 py-4">
+    <section class="flex shrink-0 flex-col gap-3">
         <h3 class="archive-info__section-title">基本資訊</h3>
 
-        <dl class="archive-info__metadata">
-            <div class="archive-info__metadata-item">
-                <dt>類型</dt>
-                <dd>{{ archive().type }}</dd>
+        <dl class="m-0 flex flex-col gap-3">
+            <div
+                class="archive-info__metadata-item flex items-baseline justify-between gap-4 rounded-lg border p-3"
+            >
+                <dt class="shrink-0 text-sm">類型</dt>
+                <dd class="m-0 min-w-0 text-right text-sm [overflow-wrap:anywhere]">
+                    {{ archive().type }}
+                </dd>
             </div>
         </dl>
     </section>
 
-    <section class="archive-info__section">
-        <div class="archive-info__section-header">
+    <section class="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+        <div class="flex shrink-0 items-center justify-between gap-2">
             <h3 class="archive-info__section-title">Concept</h3>
         </div>
 
-        @if (conceptEntryList().length > 0) {
-            <ul class="archive-info__concept-list">
-                @for (entry of conceptEntryList(); track entry.concept.id) {
-                    <li class="archive-info__concept-item">
-                        <span class="archive-info__concept-type">
-                            {{ entry.type }}
-                        </span>
+        <div
+            class="archive-info__concept-scroll min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
+        >
+            @if (conceptEntryList().length > 0) {
+                <ul class="m-0 flex list-none flex-col gap-2 p-0">
+                    @for (entry of conceptEntryList(); track entry.concept.id) {
+                        <li
+                            class="archive-info__concept-item flex min-w-0 flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5"
+                        >
+                            <span class="archive-info__concept-type shrink-0 text-xs font-medium">
+                                {{ entry.type }}
+                            </span>
 
-                        <entity-concept-chip [concept]="entry.concept" />
-                    </li>
-                }
-            </ul>
-        } @else {
-            <p class="archive-info__empty">尚未關聯 Concept</p>
-        }
+                            <entity-concept-chip [concept]="entry.concept" />
+                        </li>
+                    }
+                </ul>
+            } @else {
+                <p
+                    class="archive-info__empty m-0 rounded-lg border border-dashed px-3 py-4 text-center text-sm"
+                >
+                    尚未關聯 Concept
+                </p>
+            }
+        </div>
     </section>
 </div>

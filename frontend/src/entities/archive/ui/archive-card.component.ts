@@ -13,7 +13,7 @@ export class ArchiveCardComponent {
     readonly archive = input.required<Archive>();
     readonly selected = input(false);
 
-    readonly cardClick = output<Archive>();
+    readonly cardClick = output<string>();
 
     readonly imageErrorFileId = signal<string | null>(null);
 
@@ -27,25 +27,12 @@ export class ArchiveCardComponent {
         return `/api/v1/raw/${fileId}`;
     });
 
-    readonly gradientClass = computed(() => {
-        switch (this.archive().type) {
-            case "WORK":
-                return "archive-card__gradient--work";
-            case "SERIES":
-                return "archive-card__gradient--series";
-            case "COLLECTION":
-                return "archive-card__gradient--collection";
-            case "FILE_CONTAINER":
-                return "archive-card__gradient--file";
-        }
-    });
-
     readonly iconPath = computed(() => {
         return getArchiveIconPath(this.archive().type);
     });
 
     onClick(): void {
-        this.cardClick.emit(this.archive());
+        this.cardClick.emit(this.archive().id);
     }
 
     onImageError(): void {

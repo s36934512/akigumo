@@ -1,9 +1,12 @@
-<article class="relative min-w-0 w-full p-3 pb-4 text-zinc-100" (click)="onClick()">
-    <div class="archive-card__frame" [class.archive-card__frame--selected]="selected()">
-        <div class="archive-card__surface">
+<article class="w-full min-w-0 px-3 pb-4 pt-3 text-zinc-100" (click)="onClick()">
+    <div
+        class="archive-card__frame relative aspect-[3/4] w-full overflow-hidden rounded-[0.3rem] border-4"
+        [class.archive-card__frame--selected]="selected()"
+    >
+        <div class="archive-card__surface h-full w-full overflow-hidden">
             @if (coverUrl(); as url) {
                 <img
-                    class="archive-card__cover"
+                    class="archive-card__cover absolute inset-0 z-[1] h-full w-full object-contain"
                     [src]="url"
                     [alt]="archive().name"
                     loading="lazy"
@@ -11,32 +14,32 @@
                     (error)="onImageError()"
                 />
             } @else {
-                <div class="absolute inset-0 z-[2] grid place-items-center text-[#d8d4d1]">
+                <div
+                    class="archive-card__placeholder absolute inset-0 z-[2] grid place-items-center"
+                    aria-hidden="true"
+                >
                     <svg
+                        class="archive-card__placeholder-icon size-[5.25rem]"
                         viewBox="0 0 24 24"
                         fill="currentColor"
-                        aria-hidden="true"
-                        class="size-[5.25rem] opacity-60"
                     >
                         <path [attr.d]="iconPath()" />
                     </svg>
                 </div>
             }
 
-            <div [class]="'archive-card__gradient ' + gradientClass()" aria-hidden="true"></div>
-
             @if (selected()) {
                 <div
-                    class="absolute right-2 top-2 z-[6] grid size-7 place-items-center rounded-full border border-white/50 bg-[#3bb2bf] text-[#050505]"
+                    class="archive-card__selected-indicator absolute right-2 top-2 z-[6] grid size-7 place-items-center rounded-full border"
                     aria-label="已選取"
                 >
                     <svg
+                        class="size-4"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         stroke-width="3"
                         aria-hidden="true"
-                        class="size-4"
                     >
                         <path d="m5 12 4 4L19 6" />
                     </svg>

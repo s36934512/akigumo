@@ -1,12 +1,12 @@
-<section class="archive-detail-panel__content">
-    <header class="archive-detail-panel__header">
-        <h2 class="archive-detail-panel__title">
+<section class="flex h-full min-h-0 w-full min-w-0 flex-col bg-[#f7f9fc]">
+    <header class="flex shrink-0 items-center justify-between gap-4 border-b border-[#e2e8f0] p-4">
+        <h2 class="m-0 min-w-0 truncate text-base font-semibold">
             {{ archive().name }}
         </h2>
 
         <button
             type="button"
-            class="archive-detail-panel__close"
+            class="archive-detail-panel__close inline-flex size-8 shrink-0 items-center justify-center rounded-md"
             aria-label="關閉詳細資訊"
             title="關閉"
             (click)="onClose()"
@@ -15,16 +15,16 @@
         </button>
     </header>
 
-    <div class="archive-detail-panel__body">
-        <feature-archive-info [archive]="archive()" />
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <feature-archive-info class="block min-h-0 min-w-0 flex-1" [archive]="archive()" />
 
-        <div class="archive-detail-panel__actions">
+        <div class="flex shrink-0 justify-start border-t px-4 py-4">
             <button
                 type="button"
-                class="archive-detail-panel__add-concept"
+                class="archive-detail-panel__add-concept inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2"
                 (click)="onAddConcept()"
             >
-                <span class="material-symbols-outlined" aria-hidden="true"> add </span>
+                <span class="material-symbols-outlined" aria-hidden="true">add</span>
                 新增 Concept
             </button>
         </div>

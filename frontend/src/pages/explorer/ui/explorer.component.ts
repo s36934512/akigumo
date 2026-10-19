@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from "@angular/core";
 import { DrawerModule } from "@openng/optimus-ui/drawer";
 import { injectQuery } from "@tanstack/angular-query-experimental";
-import { type Archive, ArchiveQuery } from "#app/entities/archive";
+import { ArchiveQuery } from "#app/entities/archive";
 import { SelectionStore } from "#app/shared/model/selection-store";
 import { ArchiveBrowserComponent } from "#app/widgets/archive-browser";
 import { ArchiveDetailPanelComponent } from "./archive-detail-panel/archive-detail-panel.component";

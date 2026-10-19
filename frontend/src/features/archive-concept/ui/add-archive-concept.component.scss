@@ -1,61 +1,10 @@
-
 :host {
     display: block;
     min-width: 0;
 }
 
-.archive-concept-dialog {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-width: 0;
-}
-
-.archive-concept-dialog > p {
-    margin: 0;
-    color: var(--text-color-secondary);
-    font-size: 0.875rem;
-    line-height: 1.5;
-}
-
-.archive-concept-dialog__search {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-}
-
-.archive-concept-dialog__search > span {
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.archive-concept-dialog__search input[pInputText] {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.archive-concept-dialog__content {
-    min-width: 0;
-}
-
-.archive-concept-dialog__list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    max-height: 24rem;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 0.25rem;
-}
-
 .archive-concept-dialog__item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border: 1px solid var(--surface-border);
-    border-radius: var(--border-radius);
-    cursor: pointer;
+    border-color: var(--surface-border);
     transition:
         background-color 150ms ease,
         border-color 150ms ease;
@@ -75,26 +24,8 @@
     outline-offset: 2px;
 }
 
-.archive-concept-dialog__item-content {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-}
-
-.archive-concept-dialog__item-name {
-    overflow-wrap: anywhere;
-    font-weight: 500;
-    line-height: 1.4;
-}
-
 .archive-concept-dialog__item-description {
-    overflow-wrap: anywhere;
     color: var(--text-color-secondary);
-    font-size: 0.875rem;
-    line-height: 1.5;
-    white-space: pre-wrap;
 }
 
 .archive-concept-dialog__message {
@@ -106,41 +37,8 @@
     text-align: center;
 }
 
-.archive-concept-dialog__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--surface-border);
-}
-
-.archive-concept-dialog__footer > span {
+.archive-concept-dialog__count {
     color: var(--text-color-secondary);
-    font-size: 0.875rem;
-    white-space: nowrap;
-}
-
-.archive-concept-dialog__actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
-}
-
-@media (max-width: 30rem) {
-    .archive-concept-dialog__footer {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .archive-concept-dialog__footer > span {
-        white-space: normal;
-    }
-
-    .archive-concept-dialog__actions {
-        justify-content: flex-end;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,29 +1,9 @@
-
 :host {
     display: block;
-    min-width: 0;
-    width: 100%;
-}
-
-.archive-browser {
     width: 100%;
     min-width: 0;
 }
 
 .archive-browser__grid {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 16px;
-}
-
-.archive-browser__empty {
-    display: grid;
-    min-height: 160px;
-    place-items: center;
-    color: #a1a1aa;
-    text-align: center;
-}
-
-.archive-browser__empty p {
-    margin: 0;
+    grid-template-columns: repeat(var(--archive-grid-column-count), minmax(0, 1fr));
 }

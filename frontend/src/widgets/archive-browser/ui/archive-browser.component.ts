@@ -1,9 +1,13 @@
 import { Component, computed, inject, input, output } from "@angular/core";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
-import { type Archive, ArchiveQuery } from "#app/entities/archive";
+import { ArchiveQuery } from "#app/entities/archive";
 import { ArchiveCardComponent } from "#app/entities/archive/ui/archive-card.component";
 import { SelectionStore } from "#app/shared/model/selection-store";
+
+const DEFAULT_COLUMN_COUNT = 6;
+const MIN_COLUMN_COUNT = 1;
+const MAX_COLUMN_COUNT = 12;
 
 @Component({
     selector: "widget-archive-browser",
@@ -18,6 +22,14 @@ export class ArchiveBrowserComponent {
 
     readonly selectionMode = input(false);
 
+    readonly columnCount = input(DEFAULT_COLUMN_COUNT, {
+        transform: (value: number) =>
+            Math.min(
+                MAX_COLUMN_COUNT,
+                Math.max(MIN_COLUMN_COUNT, Math.floor(value)),
+            ),
+    });
+
     readonly archiveOpen = output<string>();
 
     readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
@@ -28,13 +40,13 @@ export class ArchiveBrowserComponent {
 
     readonly isEmpty = computed(() => this.archiveList().length === 0);
 
-    protected onArchiveClick(archive: Archive): void {
+    protected onArchiveClick(archiveId: string): void {
         if (this.selectionMode()) {
-            this.selectionStore.toggleSelect(archive.id);
+            this.selectionStore.toggleSelect(archiveId);
             return;
         }
 
-        this.archiveOpen.emit(archive.id);
+        this.archiveOpen.emit(archiveId);
     }
 
     protected isSelected(archiveId: string): boolean {
