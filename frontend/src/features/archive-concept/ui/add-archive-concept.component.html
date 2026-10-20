@@ -1,70 +1,120 @@
 <section class="flex min-w-0 flex-col gap-4">
-    <p class="m-0 text-sm leading-6 text-[var(--text-color-secondary)]">
-        選取要關聯至此 Archive 的 Concept。
-    </p>
-
-    <label class="flex flex-col gap-1.5">
-        <span class="text-sm font-medium">搜尋 Concept</span>
-        <input
-            pInputText
-            class="w-full box-border"
-            type="search"
-            [ngModel]="store.searchKeyword()"
-            placeholder="輸入名稱或描述"
+    <div class="flex gap-2">
+        <p-button
+            label="選取既有 Concept"
+            [severity]="mode() === 'existing' ? 'primary' : 'secondary'"
+            [outlined]="mode() !== 'existing'"
             [disabled]="isPending()"
-            (ngModelChange)="setSearchKeyword($event)"
+            (onClick)="setMode('existing')"
         />
-    </label>
 
-    @if (conceptListQuery.isPending()) {
-        <p class="archive-concept-dialog__message">正在載入 Concept…</p>
-    } @else if (conceptListQuery.isError()) {
-        <p class="archive-concept-dialog__message">載入 Concept 失敗，請稍後再試。</p>
-    } @else {
-        <div class="flex max-h-96 min-w-0 flex-col gap-1.5 overflow-y-auto overscroll-contain p-1">
-            @for (concept of filteredConceptList(); track concept.id) {
-                <label
-                    class="archive-concept-dialog__item flex cursor-pointer items-start gap-3 rounded-md border p-3"
-                    [class.archive-concept-dialog__item--selected]="
-                        selectionStore.isSelected(concept.id)
-                    "
-                >
-                    <p-checkbox
-                        [inputId]="'concept-' + concept.id"
-                        [binary]="true"
-                        [ngModel]="selectionStore.isSelected(concept.id)"
-                        [disabled]="isPending()"
-                        (ngModelChange)="toggleConceptSelection(concept.id)"
-                    />
+        <p-button
+            label="建立新 Concept"
+            [severity]="mode() === 'create' ? 'primary' : 'secondary'"
+            [outlined]="mode() !== 'create'"
+            [disabled]="isPending()"
+            (onClick)="setMode('create')"
+        />
+    </div>
 
-                    <span class="flex min-w-0 flex-1 flex-col gap-1">
-                        <span class="break-words font-medium leading-5">
-                            {{ concept.name }}
-                        </span>
+    @if (mode() === "existing") {
+        <p class="m-0 text-sm leading-6 text-[var(--text-color-secondary)]">
+            選取要關聯至此 Archive 的 Concept。
+        </p>
 
-                        @if (concept.description) {
-                            <span
-                                class="archive-concept-dialog__item-description whitespace-pre-wrap break-words text-sm leading-6"
-                            >
-                                {{ concept.description }}
+        <label class="flex flex-col gap-1.5">
+            <span class="text-sm font-medium">搜尋 Concept</span>
+            <input
+                pInputText
+                class="w-full box-border"
+                type="search"
+                [ngModel]="store.searchKeyword()"
+                placeholder="輸入名稱或描述"
+                [disabled]="isPending()"
+                (ngModelChange)="setSearchKeyword($event)"
+            />
+        </label>
+
+        @if (conceptListQuery.isPending()) {
+            <p class="archive-concept-dialog__message">正在載入 Concept…</p>
+        } @else if (conceptListQuery.isError()) {
+            <p class="archive-concept-dialog__message">載入 Concept 失敗，請稍後再試。</p>
+        } @else {
+            <div
+                class="flex max-h-96 min-w-0 flex-col gap-1.5 overflow-y-auto overscroll-contain p-1"
+            >
+                @for (concept of filteredConceptList(); track concept.id) {
+                    <label
+                        class="archive-concept-dialog__item flex cursor-pointer items-start gap-3 rounded-md border p-3"
+                        [class.archive-concept-dialog__item--selected]="
+                            selectionStore.isSelected(concept.id)
+                        "
+                    >
+                        <p-checkbox
+                            [inputId]="'concept-' + concept.id"
+                            [binary]="true"
+                            [ngModel]="selectionStore.isSelected(concept.id)"
+                            [disabled]="isPending()"
+                            (ngModelChange)="toggleConceptSelection(concept.id)"
+                        />
+
+                        <span class="flex min-w-0 flex-1 flex-col gap-1">
+                            <span class="break-words font-medium leading-5">
+                                {{ concept.name }}
                             </span>
-                        }
-                    </span>
-                </label>
-            } @empty {
-                <p class="archive-concept-dialog__message">沒有符合條件的 Concept。</p>
-            }
-        </div>
+
+                            @if (concept.description) {
+                                <span
+                                    class="archive-concept-dialog__item-description whitespace-pre-wrap break-words text-sm leading-6"
+                                >
+                                    {{ concept.description }}
+                                </span>
+                            }
+                        </span>
+                    </label>
+                } @empty {
+                    <p class="archive-concept-dialog__message">沒有符合條件的 Concept。</p>
+                }
+            </div>
+        }
+    } @else {
+        <label class="flex flex-col gap-1.5">
+            <span class="text-sm font-medium">名稱 *</span>
+            <input
+                pInputText
+                class="w-full box-border"
+                [ngModel]="newConceptName()"
+                (ngModelChange)="newConceptName.set($event)"
+                [disabled]="isPending()"
+                placeholder="輸入 Concept 名稱"
+            />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+            <span class="text-sm font-medium">描述</span>
+            <textarea
+                class="w-full box-border"
+                [ngModel]="newConceptDescription()"
+                (ngModelChange)="newConceptDescription.set($event)"
+                [disabled]="isPending()"
+                placeholder="輸入 Concept 描述（選填）"
+                rows="3"
+            ></textarea>
+        </label>
     }
 
     <footer
-        class="flex items-center justify-between gap-4 border-t pt-3 max-[30rem]:flex-col max-[30rem]:items-stretch"
+        class="grid grid-cols-[1fr_auto] items-center gap-4 border-t pt-3 max-[30rem]:grid-cols-1"
     >
-        <span class="archive-concept-dialog__count text-sm">
-            已選取 {{ selectionStore.selectedCount() }} 個
-        </span>
+        <div class="min-w-0">
+            @if (mode() === "existing") {
+                <span class="archive-concept-dialog__count text-sm">
+                    已選取 {{ selectionStore.selectedCount() }} 個
+                </span>
+            }
+        </div>
 
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex items-center justify-end gap-2 max-[30rem]:justify-end">
             <p-button
                 label="取消"
                 severity="secondary"
@@ -74,13 +124,8 @@
             />
 
             <p-button
-                [label]="isPending() ? '新增中…' : '新增關聯'"
-                [disabled]="
-                    !selectionStore.hasSelection() ||
-                    isPending() ||
-                    conceptListQuery.isPending() ||
-                    conceptListQuery.isError()
-                "
+                [label]="isPending() ? '新增中…' : mode() === 'create' ? '建立並關聯' : '新增關聯'"
+                [disabled]="!canSubmit()"
                 (onClick)="submit()"
             />
         </div>
