@@ -1,8 +1,19 @@
-import { Component, computed, inject, input, output } from "@angular/core";
+import {
+    Component,
+    computed,
+    inject,
+    input,
+    output,
+    signal,
+} from "@angular/core";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
 import { ArchiveQuery } from "#app/entities/archive";
 import { ArchiveCardComponent } from "#app/entities/archive/ui/archive-card.component";
+import {
+    UploadDropDirective,
+    uploadProviders,
+} from "#app/features/upload-file";
 import { SelectionStore } from "#app/shared/model/selection-store";
 
 const DEFAULT_COLUMN_COUNT = 6;
@@ -12,9 +23,10 @@ const MAX_COLUMN_COUNT = 12;
 @Component({
     selector: "widget-archive-browser",
     standalone: true,
-    imports: [ArchiveCardComponent],
+    imports: [ArchiveCardComponent, UploadDropDirective],
     templateUrl: "./archive-browser.component.html",
     styleUrl: "./archive-browser.component.scss",
+    providers: [uploadProviders],
 })
 export class ArchiveBrowserComponent {
     private readonly archiveQuery = inject(ArchiveQuery);
@@ -31,6 +43,8 @@ export class ArchiveBrowserComponent {
     });
 
     readonly archiveOpen = output<string>();
+
+    protected readonly isDraggingFiles = signal(false);
 
     readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
 

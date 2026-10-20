@@ -1,4 +1,8 @@
-<section class="w-full min-w-0">
+<section
+    class="relative w-full min-w-0"
+    featuresUploadDrop
+    (draggingChange)="isDraggingFiles.set($event)"
+>
     @if (isEmpty()) {
         <div class="grid min-h-40 place-items-center text-center text-zinc-400">
             <p class="m-0">目前沒有 Archive</p>
@@ -15,6 +19,22 @@
                     (cardClick)="onArchiveClick($event)"
                 />
             }
+        </div>
+    }
+
+    @if (isDraggingFiles()) {
+        <div class="archive-browser__drop-overlay absolute inset-0 z-10 grid place-items-center">
+            <div
+                class="archive-browser__drop-content flex flex-col items-center gap-3 p-8 text-center"
+            >
+                <div class="archive-browser__drop-icon grid place-items-center">
+                    <i class="icon-upload"></i>
+                </div>
+
+                <p class="archive-browser__drop-title">放開滑鼠以上傳檔案</p>
+
+                <p class="archive-browser__drop-description">每個檔案都會建立為新的 Archive</p>
+            </div>
         </div>
     }
 </section>
