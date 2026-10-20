@@ -1,0 +1,21 @@
+<p-button
+    [icon]="isExpanded() ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"
+    [text]="true"
+    [rounded]="true"
+    [severity]="'secondary'"
+    [attr.aria-label]="isExpanded() ? '收合選單' : '展開選單'"
+    [pTooltip]="isExpanded() ? '收合選單' : '展開選單'"
+    (onClick)="toggleExpanded()"
+/>
+
+<p-button
+    [icon]="mode() === 'pinned' || mode() === 'rail' ? 'pi pi-thumbtack' : 'pi pi-thumbtack'"
+    [text]="true"
+    [rounded]="true"
+    [severity]="'secondary'"
+    [attr.aria-label]="
+        mode() === 'pinned' || mode() === 'rail' ? '切換為覆蓋模式' : '切換為固定模式'
+    "
+    [pTooltip]="mode() === 'pinned' || mode() === 'rail' ? '切換為覆蓋模式' : '切換為固定模式'"
+    (onClick)="togglePinned()"
+/>

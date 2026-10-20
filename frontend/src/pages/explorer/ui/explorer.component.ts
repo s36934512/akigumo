@@ -1,9 +1,11 @@
 import { Component, computed, inject, signal } from "@angular/core";
 import { DrawerModule } from "@openng/optimus-ui/drawer";
 import { injectQuery } from "@tanstack/angular-query-experimental";
+
 import { ArchiveQuery } from "#app/entities/archive";
 import { SelectionStore } from "#app/shared/model/selection-store";
 import { ArchiveBrowserComponent } from "#app/widgets/archive-browser";
+
 import { ArchiveDetailPanelComponent } from "./archive-detail-panel/archive-detail-panel.component";
 
 type DetailPanelMode = "inline" | "overlay";
@@ -20,7 +22,7 @@ type DetailPanelMode = "inline" | "overlay";
     styleUrl: "./explorer.component.scss",
     providers: [SelectionStore],
 })
-export class ExplorerPage {
+export class ExplorerPageComponent {
     private readonly archiveQuery = inject(ArchiveQuery);
 
     readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
