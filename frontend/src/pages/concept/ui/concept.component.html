@@ -67,9 +67,13 @@
                     {{ concept.name }}
                 </h2>
 
-                <button type="button" aria-label="關閉詳細面板" (click)="clearSelection()">
-                    關閉
-                </button>
+                <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" (click)="onEditConcept()">編輯</button>
+
+                    <button type="button" aria-label="關閉詳細面板" (click)="clearSelection()">
+                        關閉
+                    </button>
+                </div>
             </header>
 
             <div class="min-h-0 flex-1 overflow-y-auto p-4">

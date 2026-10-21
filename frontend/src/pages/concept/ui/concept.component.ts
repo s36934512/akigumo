@@ -1,8 +1,10 @@
 import { JsonPipe } from "@angular/common";
 import { Component, computed, inject, signal } from "@angular/core";
+import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
 import { ConceptQuery } from "#app/entities/concept";
+import { EditConceptComponent } from "#app/features/edit-concept";
 import { searchConcept } from "#app/shared/lib/concept-search";
 import { SelectionStore } from "#app/shared/model/selection-store";
 
@@ -11,9 +13,10 @@ import { SelectionStore } from "#app/shared/model/selection-store";
     standalone: true,
     imports: [JsonPipe],
     templateUrl: "./concept.component.html",
-    providers: [SelectionStore],
+    providers: [SelectionStore, DialogService],
 })
 export class ConceptPageComponent {
+    private readonly dialogService = inject(DialogService);
     private readonly conceptQuery = inject(ConceptQuery);
     protected readonly selectionStore = inject(SelectionStore);
 
@@ -53,5 +56,20 @@ export class ConceptPageComponent {
 
     protected clearSelection(): void {
         this.selectionStore.clearSelection();
+    }
+
+    protected onEditConcept(): void {
+        const concept = this.selectedConcept();
+
+        if (!concept) return;
+
+        this.dialogService.open(EditConceptComponent, {
+            header: "編輯 Concept",
+            width: "40rem",
+            modal: true,
+            inputValues: {
+                concept: concept,
+            },
+        });
     }
 }
