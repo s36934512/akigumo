@@ -58,6 +58,19 @@ export class DefaultService {
       this.http,
       );
     }
+  /**
+ * Returns the IDs of non-deleted archives that reference the specified concept.
+ * @summary List archives referencing a concept
+ */
+ getApiV1ArchiveReferenceConceptId<TData = string[]>(
+    conceptId: string,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/reference/${conceptId}`, method: 'GET'
+    },
+      this.http,
+      );
+    }
    postApiV1ArchiveConcept<TData = PostApiV1ArchiveConcept202>(
     postApiV1ArchiveConceptBodyItem?: PostApiV1ArchiveConceptBodyItem[],
  ) {
@@ -195,6 +208,7 @@ export class DefaultService {
   };
 
 export type GetApiV1StreamClientResult = NonNullable<string>
+export type GetApiV1ArchiveReferenceConceptIdClientResult = NonNullable<string[]>
 export type PostApiV1ArchiveConceptClientResult = NonNullable<PostApiV1ArchiveConcept202>
 export type PostApiV1ArchiveConceptRemoveClientResult = NonNullable<PostApiV1ArchiveConceptRemove202>
 export type PostApiV1ArchiveDeleteClientResult = NonNullable<PostApiV1ArchiveDelete202>
