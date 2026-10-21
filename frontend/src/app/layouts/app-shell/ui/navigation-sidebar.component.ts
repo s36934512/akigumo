@@ -8,7 +8,7 @@ export type NavigationSidebarMode = "overlay" | "pinned" | "hidden" | "rail";
 
 interface NavigationItem {
     label: string;
-    route: string;
+    routerLink: string;
     icon: string;
 }
 
@@ -38,8 +38,8 @@ export class NavigationSidebarComponent {
     );
 
     readonly navigationItems: NavigationItem[] = [
-        { label: "全部漫畫", route: "/explorer", icon: "dashboard" },
-        { label: "標籤管理", route: "/ontology", icon: "tag" },
+        { label: "全部漫畫", routerLink: "/explorer", icon: "pi pi-th-large" },
+        { label: "標籤管理", routerLink: "/ontology", icon: "pi pi-tags" },
     ];
 
     toggleExpanded(): void {
