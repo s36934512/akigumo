@@ -7,7 +7,7 @@ import {
     ArchiveChangedPayloadSchema,
     ArchiveDeletedPayloadSchema,
 } from "../api/sse";
-import { archiveListQueryKey } from "./archive.query";
+import { archiveQueryKey } from "./archive.query";
 
 @Service()
 export class ArchiveSync {
@@ -29,7 +29,7 @@ export class ArchiveSync {
                 }
 
                 void this.queryClient.invalidateQueries({
-                    queryKey: archiveListQueryKey,
+                    queryKey: archiveQueryKey,
                 });
             },
         );
@@ -45,7 +45,7 @@ export class ArchiveSync {
                 }
 
                 void this.queryClient.invalidateQueries({
-                    queryKey: archiveListQueryKey,
+                    queryKey: archiveQueryKey,
                 });
             },
         );
@@ -55,7 +55,7 @@ export class ArchiveSync {
             "GRAPH_CHANGED",
             () => {
                 void this.queryClient.invalidateQueries({
-                    queryKey: archiveListQueryKey,
+                    queryKey: archiveQueryKey,
                 });
             },
         );

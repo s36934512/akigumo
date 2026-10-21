@@ -6,13 +6,14 @@ import { injectQuery } from "@tanstack/angular-query-experimental";
 import { ConceptQuery } from "#app/entities/concept";
 import { CreateConceptComponent } from "#app/features/create-concept";
 import { EditConceptComponent } from "#app/features/edit-concept";
+import { ViewConceptArchiveComponent } from "#app/features/view-concept-archive";
 import { searchConcept } from "#app/shared/lib/concept-search";
 import { SelectionStore } from "#app/shared/model/selection-store";
 
 @Component({
     selector: "page-concept",
     standalone: true,
-    imports: [JsonPipe],
+    imports: [JsonPipe, ViewConceptArchiveComponent],
     templateUrl: "./concept.component.html",
     providers: [SelectionStore, DialogService],
 })

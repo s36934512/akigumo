@@ -1,0 +1,33 @@
+<section class="flex min-h-0 flex-col gap-3">
+    <header class="flex items-center justify-between">
+        <h3 class="m-0 text-sm font-semibold">引用此 Concept 的 Archive</h3>
+
+        @if (referenceQuery.isSuccess()) {
+            <span class="text-sm text-zinc-500"> {{ availableList().length }} 個 </span>
+        }
+    </header>
+
+    @if (archiveListQuery.isPending() || referenceQuery.isPending()) {
+        <p class="text-sm text-zinc-500">載入 Archive 中...</p>
+    } @else if (archiveListQuery.isError() || referenceQuery.isError()) {
+        <p class="text-sm text-red-600">無法載入 Archive。</p>
+    } @else if (availableList().length === 0) {
+        <p class="text-sm text-zinc-500">沒有 Archive 引用此 Concept。</p>
+    } @else {
+        <ul class="m-0 list-none space-y-1 p-0">
+            @for (archive of availableList(); track archive.id) {
+                <li>
+                    <div class="rounded-md border p-3">
+                        <span class="block font-medium">
+                            {{ archive.name }}
+                        </span>
+
+                        <span class="mt-1 block text-sm text-zinc-500">
+                            {{ archive.type }}
+                        </span>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</section>

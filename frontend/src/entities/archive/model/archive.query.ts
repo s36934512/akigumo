@@ -8,6 +8,9 @@ export const archiveQueryKey = ["archive"] as const;
 
 export const archiveListQueryKey = [...archiveQueryKey, "list"] as const;
 
+export const archiveReferenceQueryKey = (conceptId: string) =>
+    [...archiveQueryKey, "reference", conceptId] as const;
+
 @Service()
 export class ArchiveQuery {
     private readonly archiveApi = inject(ArchiveApi);
@@ -32,6 +35,13 @@ export class ArchiveQuery {
 
                 return archiveList;
             },
+        });
+    }
+
+    public referenceByConcept(conceptId: string) {
+        return queryOptions({
+            queryKey: archiveReferenceQueryKey(conceptId),
+            queryFn: () => this.archiveApi.getReferenceByConcept(conceptId),
         });
     }
 }

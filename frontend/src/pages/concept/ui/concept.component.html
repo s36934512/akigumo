@@ -105,12 +105,14 @@
                     <p class="mt-1 text-sm text-zinc-500">更新時間：{{ concept.updatedAt }}</p>
                 </section>
 
-                <section>
+                <section class="mb-6">
                     <h3 class="mb-2 text-sm font-semibold">Metadata</h3>
                     <pre
                         class="overflow-x-auto whitespace-pre-wrap break-words rounded-md bg-zinc-50 p-3 text-xs"
                         >{{ concept.metadata | json }}</pre>
                 </section>
+
+                <feature-view-concept-archive [conceptId]="concept.id" />
             </div>
         </aside>
     } @else {
