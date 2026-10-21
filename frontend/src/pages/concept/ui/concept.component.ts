@@ -4,6 +4,7 @@ import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
 import { ConceptQuery } from "#app/entities/concept";
+import { CreateConceptComponent } from "#app/features/create-concept";
 import { EditConceptComponent } from "#app/features/edit-concept";
 import { searchConcept } from "#app/shared/lib/concept-search";
 import { SelectionStore } from "#app/shared/model/selection-store";
@@ -70,6 +71,14 @@ export class ConceptPageComponent {
             inputValues: {
                 concept: concept,
             },
+        });
+    }
+
+    protected onCreateConcept(): void {
+        this.dialogService.open(CreateConceptComponent, {
+            header: "新增 Concept",
+            width: "40rem",
+            modal: true,
         });
     }
 }
