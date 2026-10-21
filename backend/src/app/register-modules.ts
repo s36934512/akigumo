@@ -13,6 +13,7 @@ import { capability as archiveUploadCapability } from "#app/modules/archive/arch
 import { capability as graphResultCapability } from "#app/modules/graph/graph-result/index.js";
 import { capability as ontologyDeleteCapability } from "#app/modules/ontology/ontology-delete/index.js";
 import { capability as ontologyEditorCapability } from "#app/modules/ontology/ontology-editor/index.js";
+import { capability as ontologyPairCapability } from "#app/modules/ontology/ontology-pair/index.js";
 import { capability as ontologyRegistryCapability } from "#app/modules/ontology/ontology-registry/index.js";
 import { capability as ontologyResolverCapability } from "#app/modules/ontology/ontology-resolver/index.js";
 import { capability as systemArchiveServeCapability } from "#app/modules/system/archive/index.js";
@@ -39,6 +40,7 @@ const capabilityList: ModuleCapability[] = [
     graphResultCapability,
     ontologyDeleteCapability,
     ontologyEditorCapability,
+    ontologyPairCapability,
     ontologyRegistryCapability,
     ontologyResolverCapability,
     systemArchiveServeCapability,

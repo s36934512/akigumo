@@ -28,6 +28,8 @@ import type {
   PostApiV1OntologyDeleteBody,
   PostApiV1OntologyEditor202,
   PostApiV1OntologyEditorBody,
+  PostApiV1OntologyPair202,
+  PostApiV1OntologyPairBodyItem,
   PostApiV1OntologyRegistry202,
   PostApiV1OntologyRegistryBody,
   PostApiV1OntologyResolver200,
@@ -162,6 +164,17 @@ export class DefaultService {
       this.http,
       );
     }
+   postApiV1OntologyPair<TData = PostApiV1OntologyPair202>(
+    postApiV1OntologyPairBodyItem?: PostApiV1OntologyPairBodyItem[],
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/ontology/pair`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1OntologyPairBodyItem
+    },
+      this.http,
+      );
+    }
   /**
  * 建立尚未存在的 Concept
  * @summary 批次註冊 Concept
@@ -216,6 +229,7 @@ export type PostApiV1ArchiveStructureClientResult = NonNullable<PostApiV1Archive
 export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveIntent200>
 export type PostApiV1OntologyDeleteClientResult = NonNullable<PostApiV1OntologyDelete202>
 export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyEditor202>
+export type PostApiV1OntologyPairClientResult = NonNullable<PostApiV1OntologyPair202>
 export type PostApiV1OntologyRegistryClientResult = NonNullable<PostApiV1OntologyRegistry202>
 export type PostApiV1OntologyResolverClientResult = NonNullable<PostApiV1OntologyResolver200>
 export type GetApiV1RawFileIdClientResult = NonNullable<Blob>

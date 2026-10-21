@@ -11,7 +11,7 @@ const ConceptPairItemSchema = z.object({
 export const ConceptPairAssociationSchema = createFlexibleSchema(
     z.object({
         targetId: z.uuid(),
-        conceptIdList: ConceptPairItemSchema.array(),
+        conceptPairList: ConceptPairItemSchema.array(),
     }),
 );
 

@@ -83,3 +83,49 @@ class ConceptAssociationRemoveExecutor(GenericNodeBase):
 
         RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """
+
+
+class ConceptPairExecutor(GenericNodeBase):
+    REQUIRED_IDENTITY: ClassVar[tuple[str, ...]] = ("conceptPool", "taskList")
+
+    @property
+    def template(self) -> str:
+        return f"""
+        UNWIND $requests AS request
+        UNWIND request.payload AS group
+
+        FOREACH (data IN coalesce(group.conceptPool, []) |
+            {self._merge_concept}
+        )
+
+        WITH request, group
+        UNWIND coalesce(group.taskList, []) AS pairAssociationList
+
+        CALL (pairAssociationList) {{
+            MATCH (n:Archive {{id: pairAssociationList.targetId}})
+            RETURN n
+
+            UNION ALL
+
+            MATCH (n:Concept {{id: pairAssociationList.targetId}})
+            RETURN n
+        }}
+
+        UNWIND coalesce(pairAssociationList.conceptPairList, []) AS conceptPairList
+
+        MATCH (c:Concept {{id: conceptPairList.statement}})
+
+        CREATE (s:Statement {{type: c.name}})
+        SET s.createdTime = datetime()
+
+        CREATE (n)-[:WITH]->(s)-[:ABOUT_KEY]->(c)
+
+        WITH request, s, conceptPairList
+
+        UNWIND coalesce(conceptPairList.value, []) AS valueId
+
+        MATCH (v:Concept {{id: valueId}})
+        MERGE (s)-[:WITH]->(v)
+
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
+        """

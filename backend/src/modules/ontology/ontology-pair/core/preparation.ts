@@ -152,7 +152,7 @@ function assembleOutput(
 
         return {
             targetId: item.targetId,
-            conceptIdList: pairList,
+            conceptPairList: pairList,
         };
     });
 
