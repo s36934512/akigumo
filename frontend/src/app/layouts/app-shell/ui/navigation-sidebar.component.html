@@ -1,21 +1,51 @@
-<p-button
-    [icon]="isExpanded() ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"
-    [text]="true"
-    [rounded]="true"
-    [severity]="'secondary'"
-    [attr.aria-label]="isExpanded() ? '收合選單' : '展開選單'"
-    [pTooltip]="isExpanded() ? '收合選單' : '展開選單'"
-    (onClick)="toggleExpanded()"
-/>
+<aside class="flex h-full min-h-0 w-full flex-col bg-white">
+    <header class="flex h-14 shrink-0 items-center gap-2 border-b px-3">
+        @if (mode() !== "rail") {
+            <span class="min-w-0 flex-1 truncate font-semibold"> Akigumo </span>
+        } @else {
+            <span class="flex-1"></span>
+        }
 
-<p-button
-    [icon]="mode() === 'pinned' || mode() === 'rail' ? 'pi pi-thumbtack' : 'pi pi-thumbtack'"
-    [text]="true"
-    [rounded]="true"
-    [severity]="'secondary'"
-    [attr.aria-label]="
-        mode() === 'pinned' || mode() === 'rail' ? '切換為覆蓋模式' : '切換為固定模式'
-    "
-    [pTooltip]="mode() === 'pinned' || mode() === 'rail' ? '切換為覆蓋模式' : '切換為固定模式'"
-    (onClick)="togglePinned()"
-/>
+        <p-button
+            [icon]="isExpanded() ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            [attr.aria-label]="isExpanded() ? '收合選單' : '展開選單'"
+            [pTooltip]="isExpanded() ? '收合選單' : '展開選單'"
+            tooltipPosition="bottom"
+            (onClick)="toggleExpanded()"
+        />
+
+        <p-button
+            icon="pi pi-thumbtack"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            [attr.aria-label]="isPinned() ? '切換為覆蓋模式' : '切換為固定模式'"
+            [pTooltip]="isPinned() ? '切換為覆蓋模式' : '切換為固定模式'"
+            tooltipPosition="bottom"
+            (onClick)="togglePinned()"
+        />
+    </header>
+
+    <p-menu [model]="navigationItems" aria-label="主要導航">
+        <ng-template #item let-item>
+            <a
+                class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2"
+                [class.justify-center]="mode() === 'rail'"
+                [routerLink]="item.routerLink"
+                routerLinkActive="bg-zinc-100 font-medium text-zinc-900"
+                [routerLinkActiveOptions]="{ exact: true }"
+                [pTooltip]="mode() === 'rail' ? item.label : ''"
+                tooltipPosition="right"
+            >
+                <i [class]="item.icon"></i>
+
+                @if (mode() !== "rail") {
+                    <span>{{ item.label }}</span>
+                }
+            </a>
+        </ng-template>
+    </p-menu>
+</aside>
