@@ -7,11 +7,14 @@ import {
 import { MachineContextSchema } from "#app/workflow/index.js";
 
 import { ArchiveConceptPairEvent } from "../core/processor/archive-concept-pair.js";
-import { ArchiveConceptEntrySchema, PoolSchema } from "../core/schema.js";
+import {
+    ConceptPairAssociationSchema,
+    ConceptRegistryWithIdSchema,
+} from "../core/schema.js";
 
 const ContextSchema = MachineContextSchema.extend({
-    pool: PoolSchema.array().optional(),
-    entryList: ArchiveConceptEntrySchema.array.optional(),
+    conceptPool: ConceptRegistryWithIdSchema.array().nullable(),
+    pairAssociationList: ConceptPairAssociationSchema.array.nullable(),
 });
 
 export type MachineContext = z.infer<typeof ContextSchema>;

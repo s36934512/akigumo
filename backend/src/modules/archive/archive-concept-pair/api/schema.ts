@@ -4,15 +4,21 @@ import { WorkflowResponseSchema } from "#app/api/response.js";
 import { ConceptRegistrySchema } from "#app/contracts/index.js";
 import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
-const RelationTypeSchema = createFlexibleSchema(
-    z
-        .object({ id: z.uuid() })
-        .or(z.object({ name: z.string(), id: z.uuid().optional() })),
+const ExistingStatementSchema = z.object({
+    id: z.uuid(),
+});
+
+const NewStatementSchema = z.object({
+    name: z.string(),
+});
+
+const StatementInputSchema = createFlexibleSchema(
+    ExistingStatementSchema.or(NewStatementSchema),
 );
 
-const MetadataSchema = createFlexibleSchema(
+const ArchiveConceptPairItemSchema = createFlexibleSchema(
     z.object({
-        key: RelationTypeSchema.single,
+        statement: StatementInputSchema.single,
         value: z
             .object({ id: z.uuid() })
             .or(ConceptRegistrySchema.single)
@@ -20,17 +26,13 @@ const MetadataSchema = createFlexibleSchema(
     }),
 );
 
-export const ArchiveConceptSchema = createFlexibleSchema(
+export const ArchiveConceptPairSchema = createFlexibleSchema(
     z.object({
-        targetIdList: z
-            .uuid()
-            .array()
-            .min(1, "目標不能為空")
-            .openapi({
-                description: "目標archive",
-                example: ["01a05759-5fea-766a-87ee-ca68fb72a6ca"],
-            }),
-        metadataList: MetadataSchema.array.optional().openapi({
+        targetId: z.uuid().openapi({
+            description: "目標 Concept",
+            example: "01a05759-5fea-766a-87ee-ca68fb72a6ca",
+        }),
+        pairList: ArchiveConceptPairItemSchema.array.openapi({
             description: "動態新增概念，用於增加尚未存在的屬性",
             example: [
                 {
@@ -57,8 +59,8 @@ export const ArchiveConceptSchema = createFlexibleSchema(
     }),
 );
 
-export type ArchiveConcept = InferFlexible<typeof ArchiveConceptSchema>;
+export type ArchiveConceptPair = InferFlexible<typeof ArchiveConceptPairSchema>;
 
-export const RequestSchema = ArchiveConceptSchema.array;
+export const RequestSchema = ArchiveConceptPairSchema.array;
 
 export const ResponseSchema = WorkflowResponseSchema;

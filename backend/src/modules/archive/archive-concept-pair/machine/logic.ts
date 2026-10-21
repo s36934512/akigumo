@@ -6,12 +6,12 @@ import { ArchiveConceptPairEvent } from "../core/processor/archive-concept-pair.
 import type { MachineEvents } from "./schema.js";
 
 export const machineActions = {
-    handleSaveSuccess({ event }: { event: MachineEvents }) {
+    handlePairSuccess({ event }: { event: MachineEvents }) {
         assertEvent(event, ArchiveConceptPairEvent.SUCCEEDED);
 
         return {
-            pool: event.data.pool,
-            entryList: event.data.entryList,
+            conceptPool: event.data.conceptPool,
+            pairAssociationList: event.data.pairAssociationList,
         };
     },
 

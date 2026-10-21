@@ -2,51 +2,48 @@ import _ from "lodash";
 import { v5 as uuidv5, v7 as uuidv7 } from "uuid";
 
 import { ONTOLOGY_NAMESPACE } from "#app/modules/ontology/constants.js";
+import { normalizeValue } from "#app/utils/object.js";
 
-import type { ArchiveConcept } from "../api/schema.js";
+import type { ArchiveConceptPair } from "../api/schema.js";
 import type {
     ConceptRegistryWithId,
-    JustIdObject,
-    KeyWithTempId,
-    ValueWithTempId,
-} from "./type.js";
+    ConceptRegistryWithTempId,
+    IdObject,
+} from "./schema.js";
 
 // ==========================================
 // 1. 補全與標準化階段 (Normalizer)
 // ==========================================
-function normalizeInput(input: ArchiveConcept["array"]) {
+function normalizeInput(input: ArchiveConceptPair["array"]) {
     return input.map((item) => ({
-        targetIdList: item.targetIdList,
-        metadataList:
-            item.metadataList?.map((meta) => {
-                // 標準化 key：如果有 name 且沒有 id，發給它一個隨機的 _tempId 準備去重
+        targetId: item.targetId,
+        pairList: item.pairList.map(({ statement, value }) => {
+            let normalizedStatement: ConceptRegistryWithTempId | IdObject;
 
-                const k = meta.key;
-                let normalizedKey: JustIdObject | KeyWithTempId;
+            if ("name" in statement) {
+                normalizedStatement = { ...statement, _tempId: uuidv7() };
+            } else if (statement.id) {
+                normalizedStatement = { id: statement.id };
+            } else {
+                throw new Error("無效的 Key 結構");
+            }
 
-                if ("name" in k && !k.id) {
-                    normalizedKey = { _tempId: uuidv7(), name: k.name };
-                } else if (k.id) {
-                    normalizedKey = { id: k.id };
-                } else {
-                    throw new Error("無效的 Key 結構");
-                }
+            const normalizedValue = value.map(
+                (v): ConceptRegistryWithTempId | IdObject => {
+                    if ("name" in v) {
+                        return { ...v, _tempId: uuidv7() };
+                    }
 
-                // 標準化 value：保留純 id 物件結構
-                const normalizedValue = meta.value.map(
-                    (v): JustIdObject | ValueWithTempId => {
-                        if ("name" in v) {
-                            return { _tempId: uuidv7(), ...v };
-                        }
-                        if ("id" in v && v.id) {
-                            return { id: v.id };
-                        }
-                        throw new Error("無效的 Value 結構");
-                    },
-                );
+                    if ("id" in v && v.id) {
+                        return { id: v.id };
+                    }
 
-                return { key: normalizedKey, value: normalizedValue };
-            }) ?? [],
+                    throw new Error("無效的 Value 結構");
+                },
+            );
+
+            return { statement: normalizedStatement, value: normalizedValue };
+        }),
     }));
 }
 
@@ -56,56 +53,58 @@ function normalizeInput(input: ArchiveConcept["array"]) {
 type NormalizedInput = ReturnType<typeof normalizeInput>;
 
 function buildConceptPool(normalizedInput: NormalizedInput) {
-    const pool: ConceptRegistryWithId[] = [];
-    const hashMap = new Map<string, string>(); // hash -> 正式 uuidv7
-    const idReplaceMap = new Map<string, string>(); // _tempId -> 正式 uuidv7
+    const conceptPool: ConceptRegistryWithId[] = [];
+    const officialIdByHash = new Map<string, string>(); // hash -> 正式 uuidv7
+    const officialIdByTempId = new Map<string, string>(); // _tempId -> 正式 uuidv7
 
     // 輔助函式：將單一物件進行去重與推入 pool
-    const processConcept = (v: KeyWithTempId | ValueWithTempId) => {
+    const registerConcept = (concept: ConceptRegistryWithTempId) => {
         // 移除臨時的 _tempId 後計算雜湊
-        const conceptDataWithoutId = _.omit(v, ["_tempId"]);
+        const conceptDataWithoutId = _.omit(concept, ["_tempId"]);
         const hash = uuidv5(
-            JSON.stringify(sortObjectKeys(conceptDataWithoutId)),
+            JSON.stringify(normalizeValue(conceptDataWithoutId)),
             ONTOLOGY_NAMESPACE,
         );
 
-        const existingOfficialId = hashMap.get(hash);
+        const existingOfficialId = officialIdByHash.get(hash);
         if (existingOfficialId) {
-            const matched = pool.find((p) => p.id === existingOfficialId);
+            const matched = conceptPool.find(
+                (p) => p.id === existingOfficialId,
+            );
+
             if (
                 matched &&
                 !_.isEqual(_.omit(matched, ["id"]), conceptDataWithoutId)
             ) {
                 throw new Error("內容相同，但結構不同");
             }
-            idReplaceMap.set(v._tempId, existingOfficialId);
+
+            officialIdByTempId.set(concept._tempId, existingOfficialId);
         } else {
             const officialId = uuidv7();
 
-            // 統一轉為 ConceptRegistry 物件存入 pool (key 沒有的欄位 Prisma 會是 null/undefined)
-            pool.push({
+            conceptPool.push({
                 id: officialId,
                 ...conceptDataWithoutId,
             } as ConceptRegistryWithId);
 
-            hashMap.set(hash, officialId);
-            idReplaceMap.set(v._tempId, officialId);
+            officialIdByHash.set(hash, officialId);
+            officialIdByTempId.set(concept._tempId, officialId);
         }
     };
 
-    // 遍歷時，利用 TypeScript 的 'id' in 檢查，跳過只有 id 的純物件
     for (const item of normalizedInput) {
-        for (const meta of item.metadataList) {
-            if (!("id" in meta.key)) {
-                processConcept(meta.key);
+        for (const pair of item.pairList) {
+            if (!("id" in pair.statement)) {
+                registerConcept(pair.statement);
             }
-            for (const v of meta.value) {
-                if (!("id" in v)) processConcept(v); // 同上
+            for (const v of pair.value) {
+                if (!("id" in v)) registerConcept(v);
             }
         }
     }
 
-    return { pool, idReplaceMap };
+    return { conceptPool, officialIdByTempId };
 }
 
 // ==========================================
@@ -113,76 +112,63 @@ function buildConceptPool(normalizedInput: NormalizedInput) {
 // ==========================================
 function assembleOutput(
     normalizedInput: NormalizedInput,
-    pool: ConceptRegistryWithId[],
-    idReplaceMap: Map<string, string>,
+    conceptPool: ConceptRegistryWithId[],
+    officialIdByTempId: Map<string, string>,
 ) {
-    const entryList = normalizedInput.map((item) => {
-        const metadataList = item.metadataList.map((meta) => {
-            // 還原 key 的正式 id 陣列
-            let keyId: string;
-            if ("id" in meta.key) {
-                keyId = meta.key.id;
+    const pairAssociationList = normalizedInput.map((item) => {
+        const pairList = item.pairList.map(({ statement, value }) => {
+            let statementId: string;
+
+            if ("id" in statement) {
+                statementId = statement.id;
             } else {
-                const officialId = idReplaceMap.get(meta.key._tempId);
-                if (!officialId) throw new Error("遺失對應的正式 ID (Key)");
-                keyId = officialId;
+                const officialId = officialIdByTempId.get(statement._tempId);
+
+                if (!officialId)
+                    throw new Error(
+                        "Missing official ID for statement temporary Concept ID",
+                    );
+
+                statementId = officialId;
             }
 
-            // 還原 value 的正式 id 陣列
-            const valueIds = meta.value.map((v) => {
+            const valueId = value.map((v) => {
                 if ("id" in v) return v.id;
 
-                const officialId = idReplaceMap.get(v._tempId);
-                if (!officialId) throw new Error("遺失對應的正式 ID (Value)");
+                const officialId = officialIdByTempId.get(v._tempId);
+                if (!officialId)
+                    throw new Error(
+                        "Missing official ID for value temporary Concept ID",
+                    );
+
                 return officialId;
             });
 
             return {
-                key: keyId,
-                value: valueIds,
+                statement: statementId,
+                value: valueId,
             };
         });
 
         return {
-            targetIdList: item.targetIdList,
-            metadataList,
+            targetId: item.targetId,
+            conceptPairList: pairList,
         };
     });
 
-    return { pool, entryList };
+    return { conceptPool, pairAssociationList };
 }
 
 // ==========================================
 // 主流程進入點 (Pipeline Entry)
 // ==========================================
-export function prepareArchiveConcept(input: ArchiveConcept["array"]) {
+export function prepareArchiveConceptPair(input: ArchiveConceptPair["array"]) {
     // 第一步：乾淨的資料標準化（補齊 key id 與將 value 結構一致化）
     const normalized = normalizeInput(input);
 
     // 第二步：收集、去重並產出正式的知識庫 Pool 與 ID 映射表
-    const { pool, idReplaceMap } = buildConceptPool(normalized);
+    const { conceptPool, officialIdByTempId } = buildConceptPool(normalized);
 
     // 第三步：依據映射表快速拍平輸出
-    return assembleOutput(normalized, pool, idReplaceMap);
-}
-
-// ==========================================
-// 工具函式 (Helper Functions)
-// ==========================================
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function sortObjectKeys(obj: unknown): unknown {
-    if (typeof obj === "string") return obj.trim().toLowerCase();
-    if (Array.isArray(obj)) return obj.map(sortObjectKeys);
-    if (isPlainObject(obj)) {
-        return Object.keys(obj)
-            .sort()
-            .reduce((result: Record<string, unknown>, key: string) => {
-                result[key] = sortObjectKeys(obj[key]);
-                return result;
-            }, {});
-    }
-    return obj;
+    return assembleOutput(normalized, conceptPool, officialIdByTempId);
 }

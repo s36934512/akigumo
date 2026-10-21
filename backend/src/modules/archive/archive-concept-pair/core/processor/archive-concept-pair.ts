@@ -3,22 +3,27 @@ import { z } from "zod";
 import { defineEventContract } from "#app/contracts/index.js";
 import { defineProcessor } from "#app/kernel/index.js";
 
-import { ArchiveConceptSchema } from "../../api/schema.js";
-import { prepareArchiveConcept } from "../preparation.js";
-import { ArchiveConceptEntrySchema, PoolSchema } from "../schema.js";
+import { ArchiveConceptPairSchema } from "../../api/schema.js";
+import { prepareArchiveConceptPair } from "../preparation.js";
+import {
+    ConceptPairAssociationSchema,
+    ConceptRegistryWithIdSchema,
+} from "../schema.js";
 import * as service from "../service.js";
 
 export const ARCHIVE_CONCEPT_PAIR = "ARCHIVE_CONCEPT_PAIR";
 
 export const archiveConceptPairProcessor = defineProcessor(
     ARCHIVE_CONCEPT_PAIR,
-    ArchiveConceptSchema.array,
+    ArchiveConceptPairSchema.array,
     async (input) => {
-        const { pool, entryList } = prepareArchiveConcept(input.payload);
+        const { conceptPool, pairAssociationList } = prepareArchiveConceptPair(
+            input.payload,
+        );
 
-        await service.createConceptList(pool);
+        await service.createConceptBatch(conceptPool);
 
-        return { pool, entryList };
+        return { conceptPool, pairAssociationList };
     },
 );
 
@@ -28,8 +33,8 @@ export const ArchiveConceptPairEvent = defineEventContract(
         {
             code: "SUCCEEDED",
             dataSchema: z.object({
-                pool: PoolSchema.array(),
-                entryList: ArchiveConceptEntrySchema.array,
+                conceptPool: ConceptRegistryWithIdSchema.array(),
+                pairAssociationList: ConceptPairAssociationSchema.array,
             }),
         },
     ],

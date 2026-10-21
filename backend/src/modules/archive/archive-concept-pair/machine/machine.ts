@@ -12,28 +12,43 @@ export const machine = setup({
         context: {} as MachineContext,
         events: {} as MachineEvents,
     },
+    guards: {
+        hasGraphSyncData: ({ context }) => {
+            if (
+                context.conceptPool === null ||
+                context.pairAssociationList === null
+            ) {
+                return false;
+            }
+
+            return true;
+        },
+    },
     actions: {
-        handleSaveSuccess: assign(machineActions.handleSaveSuccess),
+        handlePairSuccess: assign(machineActions.handlePairSuccess),
 
-        handleFailure: assign(machineActions.handleFailure),
-
-        clearNextIntent: assign({ nextIntent: undefined }),
-
-        prepareSyncIntent: assign(({ context }) => {
-            if (!context.pool && !context.entryList) {
+        prepareGraphSyncIntent: assign(({ context }) => {
+            if (
+                context.conceptPool === null ||
+                context.pairAssociationList === null
+            ) {
                 return { nextIntent: undefined };
             }
 
             return {
-                nextIntent: createSyncIntentOutbox("archive-concept-pair", {
-                    pool: context.pool,
-                    entryList: context.entryList,
+                nextIntent: createSyncIntentOutbox("concept-pair", {
+                    conceptPool: context.conceptPool,
+                    pairAssociationList: context.pairAssociationList,
                 }),
             };
         }),
+
+        handleFailure: assign(machineActions.handleFailure),
+
+        clearNextIntent: assign({ nextIntent: undefined }),
     },
 }).createMachine({
-    id: "archive-concept-pair",
+    id: "ontologyPair",
     initial: "INDEXING",
     on: {
         "*": {
@@ -44,18 +59,27 @@ export const machine = setup({
     context: {
         error: null,
         nextIntent: null,
+        conceptPool: null,
+        pairAssociationList: null,
     },
     states: {
         INDEXING: {
             on: {
-                ARCHIVE_CONCEPT_PAIR_SUCCEEDED: {
-                    target: "SYNCING_CONCEPT",
-                    actions: ["handleSaveSuccess", "prepareSyncIntent"],
-                },
+                ARCHIVE_CONCEPT_PAIR_SUCCEEDED: [
+                    {
+                        actions: ["handlePairSuccess"],
+                    },
+                ],
+            },
+
+            always: {
+                guard: "hasGraphSyncData",
+                target: "SYNCING_GRAPH",
+                actions: "prepareGraphSyncIntent",
             },
         },
 
-        SYNCING_CONCEPT: {
+        SYNCING_GRAPH: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
@@ -68,13 +92,13 @@ export const machine = setup({
         },
 
         SUCCESS: {
-            type: "final",
             entry: "clearNextIntent",
+            type: "final",
         },
 
         FAILED: {
-            type: "final",
             entry: "clearNextIntent",
+            type: "final",
         },
     },
 });
