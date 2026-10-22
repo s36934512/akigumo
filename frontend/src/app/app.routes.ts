@@ -1,5 +1,6 @@
 import type { Routes } from "@angular/router";
 
+import { ArchiveDetailPageComponent } from "#app/pages/archive-detail";
 import { ConceptPageComponent } from "#app/pages/concept";
 import { ExplorerPageComponent } from "#app/pages/explorer";
 
@@ -17,6 +18,10 @@ export const routes: Routes = [
             {
                 path: "ontology",
                 component: ConceptPageComponent,
+            },
+            {
+                path: "archive/:archiveId",
+                component: ArchiveDetailPageComponent,
             },
             {
                 path: "",

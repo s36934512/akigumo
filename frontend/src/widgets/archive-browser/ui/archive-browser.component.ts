@@ -43,6 +43,7 @@ export class ArchiveBrowserComponent {
     });
 
     readonly archiveOpen = output<string>();
+    readonly archiveDoubleClick = output<string>();
 
     protected readonly isDraggingFiles = signal(false);
 
@@ -61,6 +62,10 @@ export class ArchiveBrowserComponent {
         }
 
         this.archiveOpen.emit(archiveId);
+    }
+
+    protected onArchiveDoubleClick(archiveId: string): void {
+        this.archiveDoubleClick.emit(archiveId);
     }
 
     protected isSelected(archiveId: string): boolean {

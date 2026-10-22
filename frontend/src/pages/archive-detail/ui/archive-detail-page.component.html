@@ -1,0 +1,69 @@
+<main class="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden">
+    @if (archiveDetailQuery.isPending()) {
+        <section
+            class="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6"
+            aria-live="polite"
+        >
+            <span class="archive-detail-page__spinner" aria-hidden="true"></span>
+
+            <p class="m-0 text-sm">正在載入 Archive...</p>
+        </section>
+    } @else if (archiveDetailQuery.isError()) {
+        <section
+            class="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6 text-center"
+            aria-live="polite"
+        >
+            <span class="material-symbols-outlined text-4xl" aria-hidden="true">
+                error_outline
+            </span>
+
+            <div class="flex flex-col gap-1">
+                <h1 class="m-0 text-lg font-semibold">無法載入 Archive</h1>
+
+                <p class="m-0 text-sm">Archive 可能不存在，或目前無法連線至伺服器。</p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-2">
+                <button
+                    type="button"
+                    class="archive-detail-page__button rounded-lg border px-4 py-2 text-sm"
+                    (click)="onBack()"
+                >
+                    返回 Explorer
+                </button>
+
+                <button
+                    type="button"
+                    class="archive-detail-page__button archive-detail-page__button--primary rounded-lg border px-4 py-2 text-sm"
+                    (click)="onRetry()"
+                >
+                    重新載入
+                </button>
+            </div>
+        </section>
+    } @else if (archive(); as archive) {
+        <widget-archive-detail
+            class="block min-h-0 min-w-0 flex-1 overflow-hidden"
+            [archive]="archive"
+            (back)="onBack()"
+        />
+    } @else {
+        <section
+            class="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6 text-center"
+        >
+            <span class="material-symbols-outlined text-4xl" aria-hidden="true"> search_off </span>
+
+            <h1 class="m-0 text-lg font-semibold">找不到 Archive</h1>
+
+            <p class="m-0 text-sm">此 Archive 可能不存在，或已被刪除。</p>
+
+            <button
+                type="button"
+                class="archive-detail-page__button rounded-lg border px-4 py-2 text-sm"
+                (click)="onBack()"
+            >
+                返回 Explorer
+            </button>
+        </section>
+    }
+</main>

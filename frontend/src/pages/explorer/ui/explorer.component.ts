@@ -1,11 +1,10 @@
 import { Component, computed, inject, signal } from "@angular/core";
+import { Router } from "@angular/router";
 import { DrawerModule } from "@openng/optimus-ui/drawer";
 import { injectQuery } from "@tanstack/angular-query-experimental";
-
 import { ArchiveQuery } from "#app/entities/archive";
 import { SelectionStore } from "#app/shared/model/selection-store";
 import { ArchiveBrowserComponent } from "#app/widgets/archive-browser";
-
 import { ArchiveDetailPanelComponent } from "./archive-detail-panel/archive-detail-panel.component";
 
 type DetailPanelMode = "inline" | "overlay";
@@ -24,6 +23,7 @@ type DetailPanelMode = "inline" | "overlay";
 })
 export class ExplorerPageComponent {
     private readonly archiveQuery = inject(ArchiveQuery);
+    private readonly router = inject(Router);
 
     readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
 
@@ -49,6 +49,10 @@ export class ExplorerPageComponent {
 
     protected onArchiveClose(): void {
         this.openedArchiveId.set(null);
+    }
+
+    protected onArchiveDoubleClick(archiveId: string): void {
+        void this.router.navigate(["/archive", archiveId]);
     }
 
     protected setDetailPanelMode(mode: DetailPanelMode): void {

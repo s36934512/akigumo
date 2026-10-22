@@ -11,6 +11,9 @@ export const archiveListQueryKey = [...archiveQueryKey, "list"] as const;
 export const archiveReferenceQueryKey = (conceptId: string) =>
     [...archiveQueryKey, "reference", conceptId] as const;
 
+export const archiveDetailQueryKey = (archiveId: string) =>
+    [...archiveQueryKey, "detail", archiveId] as const;
+
 @Service()
 export class ArchiveQuery {
     private readonly archiveApi = inject(ArchiveApi);
@@ -42,6 +45,17 @@ export class ArchiveQuery {
         return queryOptions({
             queryKey: archiveReferenceQueryKey(conceptId),
             queryFn: () => this.archiveApi.getReferenceByConcept(conceptId),
+        });
+    }
+
+    public detail(archiveId: string) {
+        return queryOptions({
+            queryKey: archiveDetailQueryKey(archiveId),
+            queryFn: async (): Promise<Archive> => {
+                const response = await this.archiveApi.getById(archiveId);
+
+                return ArchiveSchema.parse(response);
+            },
         });
     }
 }

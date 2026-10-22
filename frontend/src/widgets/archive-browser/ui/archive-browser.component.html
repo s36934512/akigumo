@@ -17,6 +17,7 @@
                     [archive]="archive"
                     [selected]="isSelected(archive.id)"
                     (cardClick)="onArchiveClick($event)"
+                    (dblclick)="onArchiveDoubleClick(archive.id)"
                 />
             }
         </div>

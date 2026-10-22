@@ -13,4 +13,8 @@ export class ArchiveApi {
     public getReferenceByConcept(conceptId: string) {
         return this.defaultService.getApiV1ArchiveReferenceConceptId(conceptId);
     }
+
+    public getById(archiveId: string) {
+        return this.defaultService.getApiV1ArchiveArchiveId(archiveId);
+    }
 }

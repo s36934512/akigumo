@@ -2,6 +2,7 @@
     <widget-archive-browser
         class="block min-h-0 min-w-0 flex-1 overflow-auto"
         (archiveOpen)="onArchiveOpen($event)"
+        (archiveDoubleClick)="onArchiveDoubleClick($event)"
     />
 
     @if (openedArchive(); as archive) {
