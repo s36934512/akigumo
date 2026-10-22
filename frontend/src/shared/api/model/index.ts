@@ -5,6 +5,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './getApiV1ArchiveArchiveId200';
+export * from './getApiV1ArchiveArchiveId200ConceptListItem';
+export * from './getApiV1ArchiveArchiveId200Type';
 export * from './getApiV1RawFileId404';
 export * from './getApiV1UploadWorkflowId200';
 export * from './getApiV1UploadWorkflowId404';

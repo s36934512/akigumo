@@ -29,7 +29,7 @@ const ArchiveConceptPairItemSchema = createFlexibleSchema(
 export const ArchiveConceptPairSchema = createFlexibleSchema(
     z.object({
         targetId: z.uuid().openapi({
-            description: "目標 Concept",
+            description: "目標 Archive",
             example: "01a05759-5fea-766a-87ee-ca68fb72a6ca",
         }),
         pairList: ArchiveConceptPairItemSchema.array.openapi({

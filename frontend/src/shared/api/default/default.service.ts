@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 
 import type {
+  GetApiV1ArchiveArchiveId200,
   PostApiV1ArchiveConcept202,
   PostApiV1ArchiveConceptBodyItem,
   PostApiV1ArchiveConceptPair202,
@@ -71,6 +72,18 @@ export class DefaultService {
  ) {
       return angularHttp<TData>(
       {url: `/api/v1/archive/reference/${conceptId}`, method: 'GET'
+    },
+      this.http,
+      );
+    }
+  /**
+ * @summary 瀏覽 檔案 結構
+ */
+ getApiV1ArchiveArchiveId<TData = GetApiV1ArchiveArchiveId200>(
+    archiveId: string,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/${archiveId}`, method: 'GET'
     },
       this.http,
       );
@@ -235,6 +248,7 @@ export class DefaultService {
 
 export type GetApiV1StreamClientResult = NonNullable<string>
 export type GetApiV1ArchiveReferenceConceptIdClientResult = NonNullable<string[]>
+export type GetApiV1ArchiveArchiveIdClientResult = NonNullable<GetApiV1ArchiveArchiveId200>
 export type PostApiV1ArchiveConceptClientResult = NonNullable<PostApiV1ArchiveConcept202>
 export type PostApiV1ArchiveConceptPairClientResult = NonNullable<PostApiV1ArchiveConceptPair202>
 export type PostApiV1ArchiveConceptRemoveClientResult = NonNullable<PostApiV1ArchiveConceptRemove202>

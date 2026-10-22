@@ -7,7 +7,7 @@
 import type { PostApiV1ArchiveConceptPairBodyItemPairListItem } from './postApiV1ArchiveConceptPairBodyItemPairListItem';
 
 export type PostApiV1ArchiveConceptPairBodyItem = {
-  /** 目標 Concept */
+  /** 目標 Archive */
   targetId: string;
   /** 動態新增概念，用於增加尚未存在的屬性 */
   pairList: PostApiV1ArchiveConceptPairBodyItemPairListItem[];
