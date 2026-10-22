@@ -3,6 +3,7 @@ import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 
 import type { Archive } from "#app/entities/archive";
 import { AddArchiveConceptComponent } from "#app/features/archive-concept";
+import { AddArchiveConceptPairComponent } from "#app/features/archive-concept-pair";
 import { ArchiveInfoComponent } from "#app/features/archive-info";
 
 @Component({
@@ -26,6 +27,17 @@ export class ArchiveDetailPanelComponent {
     protected onAddConcept(): void {
         this.dialogService.open(AddArchiveConceptComponent, {
             header: "新增 Concept",
+            width: "40rem",
+            modal: true,
+            inputValues: {
+                archiveId: this.archive().id,
+            },
+        });
+    }
+
+    protected onAddConceptPair(): void {
+        this.dialogService.open(AddArchiveConceptPairComponent, {
+            header: "新增 Concept Pair",
             width: "40rem",
             modal: true,
             inputValues: {

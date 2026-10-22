@@ -18,7 +18,7 @@
     <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <feature-archive-info class="block min-h-0 min-w-0 flex-1" [archive]="archive()" />
 
-        <div class="flex shrink-0 justify-start border-t px-4 py-4">
+        <div class="flex shrink-0 justify-start gap-2 border-t px-4 py-4">
             <button
                 type="button"
                 class="archive-detail-panel__add-concept inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2"
@@ -26,6 +26,15 @@
             >
                 <span class="material-symbols-outlined" aria-hidden="true">add</span>
                 新增 Concept
+            </button>
+
+            <button
+                type="button"
+                class="archive-detail-panel__add-concept inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2"
+                (click)="onAddConceptPair()"
+            >
+                <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                新增 Concept Pair
             </button>
         </div>
     </div>

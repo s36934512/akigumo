@@ -1,0 +1,260 @@
+<section class="flex min-w-0 flex-col gap-4">
+    @if (conceptListQuery.isPending()) {
+        <p class="archive-concept-pair__message">正在載入 Concept…</p>
+    } @else if (conceptListQuery.isError()) {
+        <p class="archive-concept-pair__message">載入 Concept 失敗，請稍後再試。</p>
+    } @else {
+        <!-- Statement -->
+        <section class="flex min-w-0 flex-col gap-3 rounded-lg border p-3">
+            <h3 class="m-0 text-base font-semibold">Statement</h3>
+
+            <div class="flex flex-wrap gap-2">
+                <p-button
+                    label="選取既有 Concept"
+                    [severity]="statementMode() === 'existing' ? 'primary' : 'secondary'"
+                    [outlined]="statementMode() !== 'existing'"
+                    [disabled]="isPending()"
+                    (onClick)="setStatementMode('existing')"
+                />
+
+                <p-button
+                    label="輸入新名稱"
+                    [severity]="statementMode() === 'create' ? 'primary' : 'secondary'"
+                    [outlined]="statementMode() !== 'create'"
+                    [disabled]="isPending()"
+                    (onClick)="setStatementMode('create')"
+                />
+            </div>
+
+            @if (statementMode() === "existing") {
+                <label class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium">搜尋 Statement</span>
+                    <input
+                        pInputText
+                        class="w-full box-border"
+                        type="search"
+                        [ngModel]="store.statementSearchKeyword()"
+                        (ngModelChange)="setStatementSearchKeyword($event)"
+                        [disabled]="isPending()"
+                        placeholder="輸入名稱或描述"
+                    />
+                </label>
+
+                <label class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium">選擇 Statement</span>
+                    <select
+                        class="w-full box-border rounded-md border p-2"
+                        [ngModel]="statementConceptId()"
+                        (ngModelChange)="statementConceptId.set($event)"
+                        [disabled]="isPending()"
+                    >
+                        <option value="">請選擇 Statement</option>
+                        @for (concept of filteredStatementList(); track concept.id) {
+                            <option [value]="concept.id">
+                                {{ concept.name }}
+                            </option>
+                        }
+                    </select>
+                </label>
+
+                @if (filteredStatementList().length === 0) {
+                    <p class="archive-concept-pair__message">沒有符合條件的 Statement。</p>
+                }
+            } @else {
+                <label class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium">Statement 名稱 *</span>
+                    <input
+                        pInputText
+                        class="w-full box-border"
+                        [ngModel]="newStatementName()"
+                        (ngModelChange)="newStatementName.set($event)"
+                        [disabled]="isPending()"
+                        placeholder="例如：作者、類型、出版日期"
+                    />
+                </label>
+            }
+        </section>
+
+        <!-- Value -->
+        <section class="flex min-w-0 flex-col gap-3 rounded-lg border p-3">
+            <h3 class="m-0 text-base font-semibold">Value</h3>
+
+            <p class="m-0 text-sm leading-6 text-[var(--text-color-secondary)]">
+                可選取多個既有 Concept，也可以新增尚未存在的 Value。
+            </p>
+
+            <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">搜尋 Value</span>
+                <input
+                    pInputText
+                    class="w-full box-border"
+                    type="search"
+                    [ngModel]="store.valueSearchKeyword()"
+                    (ngModelChange)="setValueSearchKeyword($event)"
+                    [disabled]="isPending()"
+                    placeholder="輸入名稱或描述"
+                />
+            </label>
+
+            <div
+                class="flex max-h-64 min-w-0 flex-col gap-1.5 overflow-y-auto overscroll-contain p-1"
+            >
+                @for (concept of filteredValueList(); track concept.id) {
+                    <label
+                        class="flex cursor-pointer items-start gap-3 rounded-md border p-3"
+                        [class.archive-concept-pair__item--selected]="
+                            valueSelectionStore.isSelected(concept.id)
+                        "
+                    >
+                        <p-checkbox
+                            [inputId]="'value-' + concept.id"
+                            [binary]="true"
+                            [ngModel]="valueSelectionStore.isSelected(concept.id)"
+                            [disabled]="isPending()"
+                            (ngModelChange)="toggleValueSelection(concept.id, $event)"
+                        />
+
+                        <span class="flex min-w-0 flex-1 flex-col gap-1">
+                            <span class="break-words font-medium leading-5">
+                                {{ concept.name }}
+                            </span>
+
+                            @if (concept.description) {
+                                <span
+                                    class="whitespace-pre-wrap break-words text-sm leading-6 text-[var(--text-color-secondary)]"
+                                >
+                                    {{ concept.description }}
+                                </span>
+                            }
+                        </span>
+                    </label>
+                } @empty {
+                    <p class="archive-concept-pair__message">沒有符合條件的 Value。</p>
+                }
+            </div>
+
+            <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">新增 Value 名稱</span>
+                <div class="flex min-w-0 items-center gap-2">
+                    <input
+                        pInputText
+                        class="w-full min-w-0 box-border"
+                        [ngModel]="newValueName()"
+                        (ngModelChange)="newValueName.set($event)"
+                        [disabled]="isPending()"
+                        placeholder="輸入新的 Value"
+                        (keydown.enter)="$event.preventDefault(); addNewValue()"
+                    />
+
+                    <p-button
+                        label="加入"
+                        severity="secondary"
+                        [outlined]="true"
+                        [disabled]="isPending() || !newValueName().trim()"
+                        (onClick)="addNewValue()"
+                    />
+                </div>
+            </label>
+
+            @if (newValueNameList().length > 0) {
+                <div class="flex flex-wrap gap-2">
+                    @for (name of newValueNameList(); track name) {
+                        <span
+                            class="inline-flex max-w-full items-center gap-2 rounded-md border px-2 py-1 text-sm"
+                        >
+                            <span class="break-words">{{ name }}</span>
+                            <button
+                                type="button"
+                                class="shrink-0 cursor-pointer"
+                                [disabled]="isPending()"
+                                [attr.aria-label]="'移除 ' + name"
+                                (click)="removeNewValue(name)"
+                            >
+                                ×
+                            </button>
+                        </span>
+                    }
+                </div>
+            }
+
+            <div class="flex justify-end border-t pt-3">
+                <p-button label="加入 Pair" [disabled]="!canAddPair()" (onClick)="addPair()" />
+            </div>
+        </section>
+
+        <!-- Pending pairs -->
+        <section class="flex min-w-0 flex-col gap-3">
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="m-0 text-base font-semibold">待提交的 Pair</h3>
+                <span class="shrink-0 text-sm text-[var(--text-color-secondary)]">
+                    {{ pairList().length }} 組
+                </span>
+            </div>
+
+            @for (pair of pairList(); track $index) {
+                <article class="flex min-w-0 flex-col gap-3 rounded-lg border p-3">
+                    <div class="flex min-w-0 items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <p class="m-0 text-xs text-[var(--text-color-secondary)]">Statement</p>
+                            <p class="m-0 break-words font-medium">
+                                {{ pair.statementLabel }}
+                            </p>
+                        </div>
+
+                        <p-button
+                            label="移除"
+                            severity="danger"
+                            [text]="true"
+                            [disabled]="isPending()"
+                            (onClick)="removePair($index)"
+                        />
+                    </div>
+
+                    <div class="flex min-w-0 flex-col gap-1.5">
+                        <span class="text-xs text-[var(--text-color-secondary)]">
+                            Values（{{ pair.valueLabelList.length }}）
+                        </span>
+
+                        <div class="flex flex-wrap gap-2">
+                            @for (valueLabel of pair.valueLabelList; track $index) {
+                                <span
+                                    class="max-w-full break-words rounded-md bg-[var(--surface-hover)] px-2 py-1 text-sm"
+                                >
+                                    {{ valueLabel }}
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </article>
+            } @empty {
+                <p class="archive-concept-pair__message">
+                    尚未加入 Pair。設定 Statement 與 Value 後，按下「加入 Pair」。
+                </p>
+            }
+        </section>
+    }
+
+    <footer
+        class="grid grid-cols-[1fr_auto] items-center gap-4 border-t pt-3 max-[30rem]:grid-cols-1"
+    >
+        <span class="text-sm text-[var(--text-color-secondary)]">
+            已設定 {{ pairList().length }} 組 Pair
+        </span>
+
+        <div class="flex items-center justify-end gap-2">
+            <p-button
+                label="取消"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="isPending()"
+                (onClick)="onCancel()"
+            />
+
+            <p-button
+                [label]="isPending() ? '新增中…' : '建立關聯'"
+                [disabled]="!canSubmit()"
+                (onClick)="submit()"
+            />
+        </div>
+    </footer>
+</section>
