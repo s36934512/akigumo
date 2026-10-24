@@ -3,6 +3,19 @@
     featuresUploadDrop
     (draggingChange)="isDraggingFiles.set($event)"
 >
+    <widget-archive-browser-toolbar
+        class="mb-4 block"
+        [searchQuery]="searchQuery()"
+        [columnCount]="columnCount()"
+        [canDecreaseColumnCount]="canDecreaseColumnCount()"
+        [canIncreaseColumnCount]="canIncreaseColumnCount()"
+        [sortDirection]="sortDirection()"
+        (searchQueryChange)="searchQuery.set($event)"
+        (decreaseColumnCount)="decreaseColumnCount()"
+        (increaseColumnCount)="increaseColumnCount()"
+        (sortDirectionChange)="sortDirection.set($event)"
+    />
+
     @if (isEmpty()) {
         <div class="grid min-h-40 place-items-center text-center text-zinc-400">
             <p class="m-0">目前沒有 Archive</p>
