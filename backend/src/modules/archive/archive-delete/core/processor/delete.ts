@@ -12,9 +12,11 @@ export const archiveDeleteProcessor = defineProcessor(
     ARCHIVE_DELETE,
     ArchiveDeleteSchema.single,
     async (input) => {
-        const idList = await service.updateArchiveList(input.payload.idList);
+        const archiveIdList = await service.updateArchiveList(
+            input.payload.archiveIdList,
+        );
 
-        return idList;
+        return { archiveIdList };
     },
 );
 
@@ -22,7 +24,7 @@ export const ArchiveDeleteEvent = defineEventContract(ARCHIVE_DELETE, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            idList: z.uuid().array(),
+            archiveIdList: z.uuid().array(),
         }),
     },
 ]);

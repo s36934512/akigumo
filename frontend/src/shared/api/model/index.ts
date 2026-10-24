@@ -26,6 +26,7 @@ export * from './postApiV1ArchiveConceptPairBodyItemPairListItemValueItem';
 export * from './postApiV1ArchiveConceptRemove202';
 export * from './postApiV1ArchiveConceptRemoveBodyItem';
 export * from './postApiV1ArchiveDelete202';
+export * from './postApiV1ArchiveDeleteBody';
 export * from './postApiV1ArchiveDeleteBodyItem';
 export * from './postApiV1ArchiveIntent200';
 export * from './postApiV1ArchiveIntentBody';

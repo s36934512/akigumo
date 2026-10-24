@@ -5,12 +5,12 @@ import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
 export const ArchiveDeleteSchema = createFlexibleSchema(
     z.object({
-        idList: z.uuid().array(),
+        archiveIdList: z.array(z.uuid()).min(1),
     }),
 );
 
 export type ArchiveDelete = InferFlexible<typeof ArchiveDeleteSchema>;
 
-export const RequestSchema = ArchiveDeleteSchema.array;
+export const RequestSchema = ArchiveDeleteSchema.single;
 
 export const ResponseSchema = WorkflowResponseSchema;

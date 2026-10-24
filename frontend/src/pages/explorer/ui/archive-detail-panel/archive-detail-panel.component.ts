@@ -1,16 +1,18 @@
 import { Component, inject, input, output } from "@angular/core";
+import { MessageService } from "@openng/optimus-ui/api";
 import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 
 import type { Archive } from "#app/entities/archive";
 import { AddArchiveConceptComponent } from "#app/features/archive-concept";
 import { AddArchiveConceptPairComponent } from "#app/features/archive-concept-pair";
+import { ArchiveDeleteDialogComponent } from "#app/features/archive-delete";
 import { ArchiveInfoComponent } from "#app/features/archive-info";
 
 @Component({
     selector: "page-explorer-archive-detail-panel",
     standalone: true,
     imports: [ArchiveInfoComponent],
-    providers: [DialogService],
+    providers: [DialogService, MessageService],
     templateUrl: "./archive-detail-panel.component.html",
     styleUrl: "./archive-detail-panel.component.scss",
 })
@@ -42,6 +44,17 @@ export class ArchiveDetailPanelComponent {
             modal: true,
             inputValues: {
                 archiveId: this.archive().id,
+            },
+        });
+    }
+
+    protected onDelete(): void {
+        this.dialogService.open(ArchiveDeleteDialogComponent, {
+            header: "刪除 Archive",
+            width: "32rem",
+            modal: true,
+            inputValues: {
+                archiveIdList: [this.archive().id],
             },
         });
     }

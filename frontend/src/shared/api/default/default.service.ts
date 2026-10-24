@@ -22,7 +22,7 @@ import type {
   PostApiV1ArchiveConceptRemove202,
   PostApiV1ArchiveConceptRemoveBodyItem,
   PostApiV1ArchiveDelete202,
-  PostApiV1ArchiveDeleteBodyItem,
+  PostApiV1ArchiveDeleteBody,
   PostApiV1ArchiveIntent200,
   PostApiV1ArchiveIntentBody,
   PostApiV1ArchiveStructure200Item,
@@ -122,12 +122,12 @@ export class DefaultService {
       );
     }
    postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(
-    postApiV1ArchiveDeleteBodyItem?: PostApiV1ArchiveDeleteBodyItem[],
+    postApiV1ArchiveDeleteBody?: PostApiV1ArchiveDeleteBody,
  ) {
       return angularHttp<TData>(
       {url: `/api/v1/archive/delete`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: postApiV1ArchiveDeleteBodyItem
+      data: postApiV1ArchiveDeleteBody
     },
       this.http,
       );

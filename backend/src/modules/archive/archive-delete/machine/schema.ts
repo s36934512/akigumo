@@ -9,7 +9,7 @@ import { MachineContextSchema } from "#app/workflow/index.js";
 import { ArchiveDeleteEvent } from "../core/processor/delete.js";
 
 const ContextSchema = MachineContextSchema.extend({
-    idList: z.uuid().array(),
+    archiveIdList: z.uuid().array().nullable(),
 });
 
 export type MachineContext = z.infer<typeof ContextSchema>;

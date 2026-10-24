@@ -18,14 +18,19 @@ export const machine = setup({
         handleFailure: assign(machineActions.handleFailure),
 
         prepareSyncIntent: assign(({ context }) => {
-            if (context.idList.length === 0) {
-                return { nextIntent: undefined };
+            if (
+                context.archiveIdList === null ||
+                context.archiveIdList.length === 0
+            ) {
+                return {
+                    nextIntent: undefined,
+                };
             }
 
             return {
                 nextIntent: createSyncIntentOutbox(
                     "archive-delete",
-                    context.idList,
+                    context.archiveIdList,
                 ),
             };
         }),
@@ -42,7 +47,7 @@ export const machine = setup({
         },
     },
     context: {
-        idList: [],
+        archiveIdList: null,
         error: null,
         nextIntent: null,
     },
@@ -51,7 +56,8 @@ export const machine = setup({
             on: {
                 ARCHIVE_DELETE_SUCCEEDED: [
                     {
-                        guard: ({ event }) => event.data.idList.length > 0,
+                        guard: ({ event }) =>
+                            event.data.archiveIdList.length > 0,
                         target: "SYNCING_CONCEPT",
                         actions: ["handleSaveSuccess", "prepareSyncIntent"],
                     },

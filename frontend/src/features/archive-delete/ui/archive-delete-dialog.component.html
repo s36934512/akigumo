@@ -1,0 +1,23 @@
+<section class="flex flex-col gap-4">
+    <p class="m-0">確定要刪除選取的 {{ archiveIdList().length }} 筆資料嗎？ 刪除後可能無法復原。</p>
+
+    <footer class="flex justify-end gap-2">
+        <button
+            type="button"
+            class="p-button p-button-secondary p-button-text"
+            [disabled]="isPending()"
+            (click)="onCancel()"
+        >
+            取消
+        </button>
+
+        <button
+            type="button"
+            class="p-button p-button-danger"
+            [disabled]="!canSubmit()"
+            (click)="onConfirm()"
+        >
+            {{ isPending() ? "刪除中..." : "確認刪除" }}
+        </button>
+    </footer>
+</section>
