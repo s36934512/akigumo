@@ -15,6 +15,7 @@ import {
     uploadProviders,
 } from "#app/features/upload-file";
 import { SelectionStore } from "#app/shared/model/selection-store";
+import { OverlayCoordinatorService } from "#app/shared/ui/overlay-panel";
 
 const DEFAULT_COLUMN_COUNT = 6;
 const MIN_COLUMN_COUNT = 1;
@@ -26,7 +27,7 @@ const MAX_COLUMN_COUNT = 12;
     imports: [ArchiveCardComponent, UploadDropDirective],
     templateUrl: "./archive-browser.component.html",
     styleUrl: "./archive-browser.component.scss",
-    providers: [uploadProviders],
+    providers: [uploadProviders, OverlayCoordinatorService],
 })
 export class ArchiveBrowserComponent {
     private readonly archiveQuery = inject(ArchiveQuery);

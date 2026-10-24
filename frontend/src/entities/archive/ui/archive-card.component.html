@@ -1,4 +1,37 @@
-<article class="w-full min-w-0 px-3 pb-4 pt-3 text-zinc-100" (click)="onClick()">
+<ng-template #previewContent>
+    <div
+        class="flex max-w-[calc(100vw-2rem)] flex-col overflow-hidden bg-white"
+        (click)="onClick()"
+        (dblclick)="onDoubleClick()"
+    >
+        <div class="border-b border-gray-200 px-3 py-2">
+            <p class="m-0 truncate text-sm font-semibold text-gray-900">
+                {{ archive().name }}
+            </p>
+        </div>
+
+        @if (previewUrl(); as url) {
+            <img
+                class="block max-w-full object-contain"
+                [src]="url"
+                [alt]="archive().name"
+                [style.width.px]="previewSize()?.width ?? null"
+                [style.height.px]="previewSize()?.height ?? null"
+                (load)="onPreviewImageLoad($event)"
+                (error)="onPreviewImageError()"
+            />
+        } @else {
+            <div class="p-4 text-sm text-gray-500">無法預覽此檔案</div>
+        }
+    </div>
+</ng-template>
+
+<article
+    class="w-full min-w-0 px-3 pb-4 pt-3 text-zinc-100"
+    (click)="onClick()"
+    sharedOverlayPanelDirective
+    [sharedOverlayPanel]="previewContent"
+>
     <div
         class="archive-card__frame relative aspect-[3/4] w-full overflow-hidden rounded-[0.3rem] border-4"
         [class.archive-card__frame--selected]="selected()"
