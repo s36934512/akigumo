@@ -1,63 +1,92 @@
 <main class="flex h-full min-h-0 w-full min-w-0 overflow-hidden">
     <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header class="flex shrink-0 items-center justify-between gap-3 border-b p-4">
+        <header class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b p-4">
             <h1 class="m-0 text-lg font-semibold">Concepts</h1>
 
-            <button type="button" (click)="onCreateConcept()">新增 Concept</button>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1">
+                    <button
+                        type="button"
+                        [attr.aria-pressed]="viewMode() === 'list'"
+                        (click)="viewMode.set('list')"
+                    >
+                        清單
+                    </button>
+
+                    <button
+                        type="button"
+                        [attr.aria-pressed]="viewMode() === 'graph'"
+                        (click)="viewMode.set('graph')"
+                    >
+                        關係圖
+                    </button>
+                </div>
+
+                <button type="button" (click)="onCreateConcept()">新增 Concept</button>
+            </div>
         </header>
 
-        <div class="shrink-0 p-4">
-            <input
-                type="search"
-                class="w-full rounded-md border px-3 py-2"
-                placeholder="搜尋 Concept..."
-                [value]="searchTerm()"
-                (input)="onSearchChange($any($event.target).value)"
-            />
-        </div>
+        @if (viewMode() === "list") {
+            <div class="shrink-0 p-4">
+                <input
+                    type="search"
+                    class="w-full rounded-md border px-3 py-2"
+                    placeholder="搜尋 Concept..."
+                    [value]="searchTerm()"
+                    (input)="onSearchChange($any($event.target).value)"
+                />
+            </div>
 
-        <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-            @if (conceptListQuery.isPending()) {
-                <p class="text-sm text-zinc-500">載入 Concept 中...</p>
-            } @else if (conceptListQuery.isError()) {
-                <p class="text-sm text-red-600">無法載入 Concept。</p>
-            } @else if (filteredConceptList().length === 0) {
-                <p class="text-sm text-zinc-500">
-                    {{ searchTerm() ? "找不到符合的 Concept。" : "目前沒有 Concept。" }}
-                </p>
-            } @else {
-                <ul class="m-0 list-none space-y-1 p-0">
-                    @for (concept of filteredConceptList(); track concept.id) {
-                        <li>
-                            <button
-                                type="button"
-                                class="w-full rounded-md border p-3 text-left transition-colors"
-                                [class.border-blue-500]="
-                                    selectionStore.singleSelectedId() === concept.id
-                                "
-                                [class.bg-blue-50]="
-                                    selectionStore.singleSelectedId() === concept.id
-                                "
-                                [class.border-transparent]="
-                                    selectionStore.singleSelectedId() !== concept.id
-                                "
-                                (click)="onConceptSelect(concept.id)"
-                            >
-                                <span class="block font-medium">
-                                    {{ concept.name }}
-                                </span>
-
-                                @if (concept.description) {
-                                    <span class="mt-1 block text-sm text-zinc-500">
-                                        {{ concept.description }}
+            <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+                @if (conceptListQuery.isPending()) {
+                    <p class="text-sm text-zinc-500">載入 Concept 中...</p>
+                } @else if (conceptListQuery.isError()) {
+                    <p class="text-sm text-red-600">無法載入 Concept。</p>
+                } @else if (filteredConceptList().length === 0) {
+                    <p class="text-sm text-zinc-500">
+                        {{ searchTerm() ? "找不到符合的 Concept。" : "目前沒有 Concept。" }}
+                    </p>
+                } @else {
+                    <ul class="m-0 list-none space-y-1 p-0">
+                        @for (concept of filteredConceptList(); track concept.id) {
+                            <li>
+                                <button
+                                    type="button"
+                                    class="w-full rounded-md border p-3 text-left transition-colors"
+                                    [class.border-blue-500]="
+                                        selectionStore.singleSelectedId() === concept.id
+                                    "
+                                    [class.bg-blue-50]="
+                                        selectionStore.singleSelectedId() === concept.id
+                                    "
+                                    [class.border-transparent]="
+                                        selectionStore.singleSelectedId() !== concept.id
+                                    "
+                                    (click)="onConceptToggle(concept.id)"
+                                >
+                                    <span class="block font-medium">
+                                        {{ concept.name }}
                                     </span>
-                                }
-                            </button>
-                        </li>
-                    }
-                </ul>
-            }
-        </div>
+
+                                    @if (concept.description) {
+                                        <span class="mt-1 block text-sm text-zinc-500">
+                                            {{ concept.description }}
+                                        </span>
+                                    }
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        } @else {
+            <section class="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+                <widget-concept-explorer
+                    [elements]="graphElements()"
+                    (conceptToggle)="onConceptToggle($event)"
+                />
+            </section>
+        }
     </section>
 
     @if (selectedConcept(); as concept) {

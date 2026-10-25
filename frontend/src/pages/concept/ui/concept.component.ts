@@ -2,6 +2,7 @@ import { JsonPipe } from "@angular/common";
 import { Component, computed, inject, signal } from "@angular/core";
 import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 import { injectQuery } from "@tanstack/angular-query-experimental";
+import type { ElementsDefinition } from "cytoscape";
 
 import { ConceptQuery } from "#app/entities/concept";
 import { CreateConceptComponent } from "#app/features/create-concept";
@@ -9,11 +10,12 @@ import { EditConceptComponent } from "#app/features/edit-concept";
 import { ViewConceptArchiveComponent } from "#app/features/view-concept-archive";
 import { searchConcept } from "#app/shared/lib/concept-search";
 import { SelectionStore } from "#app/shared/model/selection-store";
+import { ConceptExplorerComponent } from "#app/widgets/concept-explorer";
 
 @Component({
     selector: "page-concept",
     standalone: true,
-    imports: [JsonPipe, ViewConceptArchiveComponent],
+    imports: [JsonPipe, ViewConceptArchiveComponent, ConceptExplorerComponent],
     templateUrl: "./concept.component.html",
     providers: [SelectionStore, DialogService],
 })
@@ -27,6 +29,8 @@ export class ConceptPageComponent {
     );
 
     protected readonly searchTerm = signal("");
+
+    protected readonly viewMode = signal<"list" | "graph">("list");
 
     protected readonly conceptList = computed(
         () => this.conceptListQuery.data()?.nodes ?? [],
@@ -48,6 +52,16 @@ export class ConceptPageComponent {
         );
     });
 
+    protected readonly graphElements = computed<ElementsDefinition>(() => ({
+        nodes: this.conceptList().map((concept) => ({
+            data: {
+                id: concept.id,
+                name: concept.name,
+            },
+        })),
+        edges: [],
+    }));
+
     protected onSearchChange(value: string): void {
         this.searchTerm.set(value);
     }
@@ -58,6 +72,15 @@ export class ConceptPageComponent {
 
     protected clearSelection(): void {
         this.selectionStore.clearSelection();
+    }
+
+    protected onConceptToggle(conceptId: string): void {
+        if (this.selectionStore.singleSelectedId() === conceptId) {
+            this.selectionStore.clearSelection();
+            return;
+        }
+
+        this.selectionStore.setSelected([conceptId]);
     }
 
     protected onEditConcept(): void {
