@@ -39,6 +39,7 @@ export const getChildrenCypher = `
 export const getRootArchiveListCypher = `
     MATCH (i:Archive)
     WHERE NOT (()-[:CONTAINS]->(i))
+        AND NOT (()-[:SOURCE_OF]->(i))
         AND ($showDeleted = true OR NOT i:Delete)
 
     OPTIONAL MATCH (i)-[:DISPLAY_AS]->(f:File)
