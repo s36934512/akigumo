@@ -1,4 +1,4 @@
-import { z } from "@hono/zod-openapi";
+import { z } from "zod";
 
 import {
     GraphIntentCreatedEvent,
@@ -7,26 +7,27 @@ import {
 import { MachineContextSchema } from "#app/workflow/index.js";
 
 import {
-    ArchiveIntegrationBootstrapEvent,
-    StrategySchema,
-} from "../core/processor/dispatch.js";
-import {
+    ArchiveNotifyBootstrapEvent,
+    ArchiveNotifyEvent,
     ArchiveStorageEvent,
     ArchiveTranscodeEvent,
     ArchiveUncompressEvent,
 } from "../core/processor/index.js";
+import { ArchiveIntegrationBootstrapEvent, StrategySchema } from "./events.js";
 
 const ProcessingProgressSchema = z.object({
-    totalIds: z.uuid().array(),
-    successIds: z.uuid().array(),
-    failedIds: z.uuid().array(),
+    extractedFileIdList: z.uuid().array(),
+    succeededFileIdList: z.uuid().array(),
+    failedFileIdList: z.uuid().array(),
 });
 
 export const ContextSchema = MachineContextSchema.extend({
-    fileId: z.uuid().nullable(),
-    derivedFileId: z.uuid().nullable(),
-    extensionCode: z.string().nullable(),
-    uncompressMaxDepth: z.int(),
+    currentFileId: z.uuid().nullable(),
+    transcodedFileId: z.uuid().nullable(),
+    parentWorkflowId: z.uuid().nullable(),
+
+    remainingUncompressDepth: z.int().nonnegative(),
+
     strategy: StrategySchema,
 
     processingProgress: ProcessingProgressSchema,
@@ -36,6 +37,8 @@ export type MachineContext = z.infer<typeof ContextSchema>;
 
 export const EVENT_SCHEMA_LIST = [
     ...ArchiveIntegrationBootstrapEvent.schemaList,
+    ...ArchiveNotifyBootstrapEvent.schemaList,
+    ...ArchiveNotifyEvent.schemaList,
     ...ArchiveStorageEvent.schemaList,
     ...ArchiveTranscodeEvent.schemaList,
     ...ArchiveUncompressEvent.schemaList,

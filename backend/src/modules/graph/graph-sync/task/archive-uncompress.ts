@@ -10,18 +10,18 @@ import { buildArchiveUncompressTask } from "../factory/archive-uncompress.js";
 
 const InputSchema = z.object({
     fileId: z.uuid(),
-    derivedFileIds: z.uuid().array(),
+    derivedFileIdList: z.uuid().array(),
 });
 
 export const archiveUncompressTask = defineGraphSyncTask({
     name: "archive-uncompress",
     schema: InputSchema,
     execute: async (input) => {
-        const { fileId, derivedFileIds } = input;
+        const { fileId, derivedFileIdList } = input;
 
-        const { item, file, derivedFiles } = await prisma.$transaction(
+        const { archive, file, derivedFileList } = await prisma.$transaction(
             async (tx) => {
-                const [file, derivedFiles] = await Promise.all([
+                const [file, derivedFileList] = await Promise.all([
                     tx.file.findUnique({
                         where: {
                             id: fileId,
@@ -30,39 +30,43 @@ export const archiveUncompressTask = defineGraphSyncTask({
                     tx.file.findMany({
                         where: {
                             id: {
-                                in: derivedFileIds,
+                                in: derivedFileIdList,
                             },
                         },
                     }),
                 ]);
 
-                if (!file || !derivedFiles.length) {
+                if (!file || !derivedFileList.length) {
                     throw new NonRetryableError("file not found");
                 }
 
-                const item = await tx.archive.create({
+                const archive = await tx.archive.create({
                     data: {
-                        name: file.originalName ?? "Uncompressed Archive",
+                        name: Paths.basename(
+                            file.originalName ?? "Uncompressed Archive",
+                            false,
+                        ),
                         type: ArchiveType.WORK,
                         status: ArchiveStatus.ACTIVE,
                     },
                 });
 
-                return { item, file, derivedFiles };
+                return { archive, file, derivedFileList };
             },
         );
 
         const task = buildArchiveUncompressTask({
             fileId: file.id,
-            itemId: item.id,
-            itemName: Paths.basename(item.name, false),
-            childrenFileIds: derivedFiles.map((f) => f.id),
+            fileName: file.originalName,
+            archiveId: archive.id,
+            archiveName: archive.name,
+            childrenArchiveList: derivedFileList,
             fileExtensionCode: file.extensionCode,
         });
 
         return {
             taskType: "ArchiveUncompressExecutor",
-            payload: task,
+            payload: [task],
         };
     },
 });

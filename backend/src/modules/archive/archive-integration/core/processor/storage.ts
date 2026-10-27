@@ -7,7 +7,7 @@ import { defineProcessor } from "#app/kernel/index.js";
 
 import * as service from "../storage.js";
 
-export const ARCHIVE_STORAGE = "ARCHIVE_STORAGE";
+export const ARCHIVE_FINALIZE_STORAGE = "ARCHIVE_FINALIZE_STORAGE";
 
 const StorageInputSchema = z.object({
     fileId: z.uuid(),
@@ -15,13 +15,14 @@ const StorageInputSchema = z.object({
 });
 
 export const archiveStorageProcessor = defineProcessor(
-    ARCHIVE_STORAGE,
+    ARCHIVE_FINALIZE_STORAGE,
     StorageInputSchema,
     async (input) => {
         const { fileId, fileList } = input.payload;
 
-        const processDir = Paths.concat("TMP_PROCESS", fileId);
-        const finalDir = Paths.concat("STORAGE_ORIGINALS", fileId);
+        const { processDir, finalDir } = await service.getFilePath(fileId);
+
+        if (!finalDir) return {};
 
         await fs.copy(processDir, finalDir, { overwrite: true });
         await fs.remove(processDir);
@@ -36,9 +37,12 @@ export const archiveStorageProcessor = defineProcessor(
     },
 );
 
-export const ArchiveStorageEvent = defineEventContract(ARCHIVE_STORAGE, [
-    {
-        code: "SUCCEEDED",
-        dataSchema: z.object({}),
-    },
-]);
+export const ArchiveStorageEvent = defineEventContract(
+    ARCHIVE_FINALIZE_STORAGE,
+    [
+        {
+            code: "SUCCEEDED",
+            dataSchema: z.object({}),
+        },
+    ],
+);

@@ -4,7 +4,15 @@ export {
 } from "./dispatch.js";
 
 export {
-    ARCHIVE_STORAGE,
+    ARCHIVE_NOTIFY,
+    ArchiveNotifyBootstrapEvent,
+    ArchiveNotifyEvent,
+    archiveChildCompletionReportedProcessor,
+    archiveNotifyProcessor,
+} from "./notify.js";
+
+export {
+    ARCHIVE_FINALIZE_STORAGE,
     ArchiveStorageEvent,
     archiveStorageProcessor,
 } from "./storage.js";

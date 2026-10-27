@@ -17,10 +17,10 @@ const CONCURRENCY_LIMIT = 20;
 
 export async function createExtractedFiles({
     fileList,
-    itemList,
+    archiveList,
 }: {
     fileList: FileCreateInput[];
-    itemList: ArchiveCreateInput[];
+    archiveList: ArchiveCreateInput[];
 }) {
     await prisma.$transaction([
         prisma.file.createMany({
@@ -28,7 +28,7 @@ export async function createExtractedFiles({
         }),
 
         prisma.archive.createMany({
-            data: itemList,
+            data: archiveList,
         }),
     ]);
 }
@@ -89,7 +89,9 @@ export async function extractArchive(fileId: string) {
         await fs.remove(archivePath);
     }
 
-    return await listFilesRecursively(outputDir);
+    const extractedFileList = await listFilesRecursively(outputDir);
+
+    return { processDir, extractedFileList };
 }
 
 const MassiveInputSchema = z

@@ -27,11 +27,19 @@ export const archiveUncompressProcessor = defineProcessor(
     ARCHIVE_UNCOMPRESS,
     UncompressInputSchema,
     async (input) => {
-        const extractedFiles = await extractArchive(input.payload.fileId);
+        const { processDir, extractedFileList } = await extractArchive(
+            input.payload.fileId,
+        );
 
-        const fileListWithPaths = extractedFiles.map((absolutePath) => {
+        const fileListWithPaths = extractedFileList.map((absolutePath) => {
             const id = uuidv7();
-            const physicalPath = Paths.concat("TMP_PROCESS", id, "original");
+
+            const physicalPath = Paths.concat(
+                processDir,
+                "extracted-storage",
+                id,
+                "original",
+            );
 
             const result = FileCreateInputObjectZodSchema.safeParse({
                 id,
@@ -55,7 +63,7 @@ export const archiveUncompressProcessor = defineProcessor(
         });
 
         const fileList = fileListWithPaths.map((f) => f.result);
-        const itemList = fileList.map((f) => {
+        const archiveList = fileList.map((f) => {
             const result = ArchiveCreateInputObjectZodSchema.safeParse({
                 id: f.id,
                 name: f.originalName,
@@ -76,10 +84,10 @@ export const archiveUncompressProcessor = defineProcessor(
                 targetPath: f.physicalPath,
             })),
         );
-        await createExtractedFiles({ fileList, itemList });
+        await createExtractedFiles({ fileList, archiveList });
 
         return {
-            fileIds: fileList.map((f) => f.id),
+            extractedFileIdList: archiveList.map((i) => i.id),
         };
     },
 );
@@ -88,7 +96,7 @@ export const ArchiveUncompressEvent = defineEventContract(ARCHIVE_UNCOMPRESS, [
     {
         code: "SUCCEEDED",
         dataSchema: z.object({
-            idList: z.uuid().array(),
+            extractedFileIdList: z.uuid().array(),
         }),
     },
 ]);

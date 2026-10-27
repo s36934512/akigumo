@@ -10,11 +10,10 @@ from pathlib import Path, PurePosixPath
 
 import rarfile
 
-
 MAX_MEMBERS = 10_000
-MAX_TOTAL_SIZE = 10 * 1024**3       # 10 GiB
-MAX_FILE_SIZE = 2 * 1024**3         # 2 GiB
-CHUNK_SIZE = 1024 * 1024            # 1 MiB
+MAX_TOTAL_SIZE = 10 * 1024**3  # 10 GiB
+MAX_FILE_SIZE = 2 * 1024**3  # 2 GiB
+CHUNK_SIZE = 1024 * 1024  # 1 MiB
 
 
 class ArchiveError(Exception):
@@ -102,8 +101,7 @@ def validate_rar_member(info: rarfile.RarInfo) -> tuple[str, bool, int]:
     # RarInfo.is_symlink() is available in modern rarfile releases.
     # file_redir additionally describes RAR5 links and redirects.
     if info.is_symlink() or getattr(info, "file_redir", None) is not None:
-        fail(
-            f"Links and redirected entries are not allowed: {info.filename!r}")
+        fail(f"Links and redirected entries are not allowed: {info.filename!r}")
 
     if info.is_dir():
         is_dir = True
@@ -269,9 +267,7 @@ def extract_archive(archive_path: Path, output_dir: Path) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Safely extract ZIP or RAR archives."
-    )
+    parser = argparse.ArgumentParser(description="Safely extract ZIP or RAR archives.")
     parser.add_argument("archive_path", type=Path)
     parser.add_argument("output_dir", type=Path)
     args = parser.parse_args()

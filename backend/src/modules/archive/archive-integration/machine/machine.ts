@@ -1,176 +1,249 @@
 import { assign, setup } from "xstate";
 
 import { createSyncIntentOutbox } from "#app/modules/graph/graph-sync/index.js";
+import { uniqueArray } from "#app/utils/array.js";
 
+import { ARCHIVE_DISPATCH } from "../core/processor/dispatch.js";
 import {
-    ARCHIVE_STORAGE,
+    ARCHIVE_FINALIZE_STORAGE,
+    ARCHIVE_NOTIFY,
     ARCHIVE_TRANSCODE,
     ARCHIVE_UNCOMPRESS,
 } from "../core/processor/index.js";
 import { actions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
 
+function isProcessingComplete(context: MachineContext): boolean {
+    const { extractedFileIdList, succeededFileIdList, failedFileIdList } =
+        context.processingProgress;
+
+    if (extractedFileIdList.length === 0) {
+        return false;
+    }
+
+    const completedFileIdSet = new Set([
+        ...succeededFileIdList,
+        ...failedFileIdList,
+    ]);
+
+    return (
+        extractedFileIdList.every((id) => completedFileIdSet.has(id)) &&
+        completedFileIdSet.size === extractedFileIdList.length
+    );
+}
+
 export const machine = setup({
     types: {
         context: {} as MachineContext,
         events: {} as MachineEvents,
     },
+
     guards: {
-        shouldStartUncompress: ({ context }) => {
-            if (!context.strategy.shouldUncompress) return false;
-            return context.processingProgress.totalIds.length === 0;
-        },
+        shouldStartUncompress: ({ context }) =>
+            context.strategy.shouldUncompress &&
+            context.remainingUncompressDepth > 0,
 
-        shouldStartTranscode: ({ context }) => {
-            if (!context.strategy.shouldTranscode) return false;
-            return context.processingProgress.totalIds.length === 0;
-        },
+        shouldStartTranscode: ({ context }) => context.strategy.shouldTranscode,
 
-        isAllFilesDone: ({ context }) => {
-            const { totalIds, successIds, failedIds } =
-                context.processingProgress;
+        isAllFilesDone: ({ context }) => isProcessingComplete(context),
 
-            return (
-                totalIds.length > 0 &&
-                successIds.length + failedIds.length === totalIds.length
-            );
-        },
+        hasDiscoveredFiles: ({ context }) =>
+            context.processingProgress.extractedFileIdList.length > 0,
+
+        hasDerivedFile: ({ context }) => context.transcodedFileId !== null,
+
+        notifyParentOnCompletion: ({ context }) => !!context.parentWorkflowId,
     },
+
     actions: {
         handleIntegrationBootstrapSuccess: assign(
-            actions.handleIntegrationBootstrapSuccess,
+            actions.handleBootstrapSucceeded,
         ),
 
-        handleTranscodeSuccess: assign(actions.handleTranscodeSuccess),
+        handleTranscodeSucceeded: assign(actions.handleTranscodeSucceeded),
 
-        handleUncompressSuccess: assign(actions.handleUncompressSuccess),
+        handleUncompressSucceeded: assign(actions.handleUncompressSucceeded),
 
-        prepareUncompressTask: assign(({ context }) => {
+        handleChildCompletionReported: assign(
+            actions.handleChildCompletionReported,
+        ),
+
+        handleFailure: assign(actions.handleFailure),
+
+        prepareChildUncompressDispatch: assign(({ context }) => {
+            if (!context.currentFileId) {
+                throw new Error(
+                    "ArchiveIntegration invariant violated: fileId is required",
+                );
+            }
+
             return {
                 nextIntent: {
                     operation: ARCHIVE_UNCOMPRESS,
                     payload: {
-                        fileId: context.fileId,
-                        extensionCode: context.extensionCode,
+                        fileId: context.currentFileId,
                     },
                 },
             };
         }),
 
         prepareRecursiveUncompressTask: assign(({ context }) => {
+            const fileIdList = uniqueArray(
+                context.processingProgress.extractedFileIdList,
+            );
+
+            if (fileIdList.length === 0) {
+                return {
+                    nextIntent: null,
+                };
+            }
+
             return {
                 nextIntent: {
-                    operation: ARCHIVE_UNCOMPRESS,
+                    operation: ARCHIVE_DISPATCH,
                     payload: {
-                        fileId: context.fileId,
-                        fileList: context.processingProgress.totalIds,
-                        uncompressMaxDepth: context.uncompressMaxDepth - 1,
+                        fileIdList,
+                        remainingUncompressDepth:
+                            context.remainingUncompressDepth - 1,
+                        notifyParentOnCompletion: true,
                     },
                 },
             };
         }),
 
         prepareTranscodeTask: assign(({ context }) => {
+            if (!context.currentFileId) {
+                throw new Error(
+                    "ArchiveIntegration invariant violated: fileId is required",
+                );
+            }
+
             return {
                 nextIntent: {
                     operation: ARCHIVE_TRANSCODE,
                     payload: {
-                        fileId: context.fileId,
+                        fileId: context.currentFileId,
                     },
                 },
             };
         }),
 
         prepareStorageTask: assign(({ context }) => {
-            const { fileId, derivedFileId, processingProgress } = context;
-
-            if (!fileId) {
+            if (!context.currentFileId) {
                 throw new Error(
-                    "ArchiveIntegration workflow invariant violated: fileId is required",
+                    "ArchiveIntegration invariant violated: fileId is required",
                 );
             }
 
-            const fileList = [
-                ...processingProgress.totalIds,
-                fileId,
-                ...(derivedFileId ? [derivedFileId] : []),
-            ];
+            const fileList = uniqueArray([
+                ...context.processingProgress.extractedFileIdList,
+                context.currentFileId,
+                ...(context.transcodedFileId ? [context.transcodedFileId] : []),
+            ]);
 
             return {
                 nextIntent: {
-                    operation: ARCHIVE_STORAGE,
+                    operation: ARCHIVE_FINALIZE_STORAGE,
                     payload: {
-                        fileId,
+                        fileId: context.currentFileId,
                         fileList,
                     },
                 },
             };
         }),
 
-        prepareSyncTask: assign(({ context }) => {
-            if (context.derivedFileId) {
-                return {
-                    nextIntent: createSyncIntentOutbox("archive-transcode", {
-                        fileId: context.fileId,
-                        derivedFileId: context.derivedFileId,
-                    }),
-                };
+        prepareUncompressSyncTask: assign(({ context }) => {
+            if (!context.currentFileId) {
+                throw new Error(
+                    "ArchiveIntegration invariant violated: fileId is required",
+                );
             }
 
             return {
                 nextIntent: createSyncIntentOutbox("archive-uncompress", {
-                    fileId: context.fileId,
-                    derivedFileIds: context.processingProgress.totalIds,
+                    fileId: context.currentFileId,
+                    derivedFileIdList: uniqueArray(
+                        context.processingProgress.extractedFileIdList,
+                    ),
                 }),
             };
         }),
 
-        prepareSyncIntentTask: assign(({ context }) => {
-            if (context.processingProgress.totalIds.length === 0) {
-                return { nextTask: undefined };
+        prepareTranscodeSyncTask: assign(({ context }) => {
+            if (!context.currentFileId || !context.transcodedFileId) {
+                throw new Error(
+                    "ArchiveIntegration invariant violated: " +
+                        "fileId and derivedFileId are required",
+                );
             }
 
             return {
-                nextIntent: createSyncIntentOutbox(
-                    "file-registry",
-                    context.processingProgress.totalIds.map((f) => ({
-                        fileId: f,
-                        itemId: f,
-                    })),
-                ),
+                nextIntent: createSyncIntentOutbox("archive-transcode", {
+                    fileId: context.currentFileId,
+                    derivedFileId: context.transcodedFileId,
+                }),
             };
         }),
 
-        handleFailure: assign(actions.handleFailure),
+        prepareNotify: assign(({ context }) => ({
+            nextIntent: {
+                operation: ARCHIVE_NOTIFY,
+                payload: {
+                    fileId: context.currentFileId,
+                    succeeded: true,
+                    parentWorkflowId: context.parentWorkflowId,
+                },
+            },
+        })),
 
-        clearNextIntent: assign({ nextIntent: null }),
+        prepareFailedNotify: assign(({ context }) => ({
+            nextIntent: {
+                operation: ARCHIVE_NOTIFY,
+                payload: {
+                    fileId: context.currentFileId,
+                    succeeded: false,
+                    parentWorkflowId: context.parentWorkflowId,
+                },
+            },
+        })),
+
+        clearNextIntent: assign({
+            nextIntent: null,
+        }),
     },
 }).createMachine({
     id: "processFileItem",
     initial: "BOOTSTRAPPING",
+
     on: {
         "*": {
-            target: ".FAILED",
+            target: ".FAILED_NOTIFY",
             actions: "handleFailure",
         },
     },
+
     context: {
-        fileId: null,
-        derivedFileId: null,
-        extensionCode: null,
-        uncompressMaxDepth: 0,
+        currentFileId: null,
+        transcodedFileId: null,
+        parentWorkflowId: null,
+
+        remainingUncompressDepth: 0,
+
         strategy: {
             shouldUncompress: false,
             shouldTranscode: false,
         },
+
         processingProgress: {
-            totalIds: [],
-            successIds: [],
-            failedIds: [],
+            extractedFileIdList: [],
+            succeededFileIdList: [],
+            failedFileIdList: [],
         },
+
         nextIntent: null,
         error: null,
     },
+
     states: {
         BOOTSTRAPPING: {
             on: {
@@ -183,11 +256,11 @@ export const machine = setup({
 
         DECIDING_PROCESS: {
             always: [
-                // {
-                //     guard: "shouldStartUncompress",
-                //     target: "UNCOMPRESSING",
-                //     actions: "prepareUncompressTask",
-                // },
+                {
+                    guard: "shouldStartUncompress",
+                    target: "UNCOMPRESSING",
+                    actions: "prepareChildUncompressDispatch",
+                },
                 {
                     guard: "shouldStartTranscode",
                     target: "TRANSCODING",
@@ -199,51 +272,48 @@ export const machine = setup({
             ],
         },
 
-        // UNCOMPRESSING: {
-        //     on: {
-        //         ARCHIVE_UNCOMPRESS_SUCCEEDED: {
-        //             target: "SYNCING_FILE",
-        //             actions: ["handleUncompressSuccess", "prepareSyncTask"],
-        //         },
-        //     },
-        // },
+        UNCOMPRESSING: {
+            on: {
+                ARCHIVE_UNCOMPRESS_SUCCEEDED: {
+                    target: "WAITING_PROCESSING",
+                    actions: [
+                        "handleUncompressSucceeded",
+                        "prepareUncompressSyncTask",
+                    ],
+                },
+            },
+        },
 
-        // SYNCING: {
-        //     on: {
-        //         GRAPH_INTENT_CREATED_SUCCEEDED: {
-        //             actions: "clearNextIntent",
-        //         },
+        WAITING_PROCESSING: {
+            on: {
+                GRAPH_INTENT_CREATED_SUCCEEDED: {
+                    actions: "clearNextIntent",
+                },
 
-        //         GRAPH_OPERATION_RESULT_SUCCEEDED: {
-        //             target: "WAITING_PROCESSING",
-        //             actions: "prepareRecursiveUncompressTask",
-        //         },
-        //     },
-        // },
+                GRAPH_OPERATION_RESULT_SUCCEEDED: {
+                    actions: "prepareRecursiveUncompressTask",
+                },
 
-        // WAITING_PROCESSING: {
-        //     on: {
-        //         GRAPH_OPERATION_RESULT_SUCCEEDED: {
-        //             actions: "clearNextIntent",
-        //         },
-        //         ARCHIVE_NOTIFY_SUCCESS: [
-        //             {
-        //                 actions: "completedNotify",
-        //             },
-        //         ],
-        //     },
+                ARCHIVE_DISPATCH_SUCCEEDED: {
+                    actions: "clearNextIntent",
+                },
 
-        //     always: {
-        //         guard: "isAllFilesDone",
-        //         target: "STORAGE",
-        //     },
-        // },
+                ARCHIVE_CHILD_COMPLETION_REPORTED_SUCCEEDED: {
+                    actions: "handleChildCompletionReported",
+                },
+            },
+
+            always: {
+                guard: "isAllFilesDone",
+                target: "STORAGE",
+            },
+        },
 
         TRANSCODING: {
             on: {
                 ARCHIVE_TRANSCODE_SUCCEEDED: {
                     target: "STORAGE",
-                    actions: "handleTranscodeSuccess",
+                    actions: "handleTranscodeSucceeded",
                 },
             },
         },
@@ -252,10 +322,16 @@ export const machine = setup({
             entry: "prepareStorageTask",
 
             on: {
-                ARCHIVE_STORAGE_SUCCEEDED: {
-                    target: "SYNCING_FILE",
-                    actions: "prepareSyncTask",
-                },
+                ARCHIVE_FINALIZE_STORAGE_SUCCEEDED: [
+                    {
+                        guard: "hasDerivedFile",
+                        actions: "prepareTranscodeSyncTask",
+                        target: "SYNCING_FILE",
+                    },
+                    {
+                        target: "NOTIFY",
+                    },
+                ],
             },
         },
 
@@ -266,8 +342,29 @@ export const machine = setup({
                 },
 
                 GRAPH_OPERATION_RESULT_SUCCEEDED: {
+                    target: "NOTIFY",
+                },
+            },
+        },
+
+        NOTIFY: {
+            always: [
+                {
+                    guard: "notifyParentOnCompletion",
+                    target: "SENDING",
+                },
+                {
                     target: "SUCCESS",
-                    actions: "clearNextIntent",
+                },
+            ],
+        },
+
+        SENDING: {
+            entry: "prepareNotify",
+
+            on: {
+                ARCHIVE_NOTIFY_SUCCEEDED: {
+                    target: "SUCCESS",
                 },
             },
         },
@@ -275,6 +372,20 @@ export const machine = setup({
         SUCCESS: {
             type: "final",
             entry: "clearNextIntent",
+        },
+
+        FAILED_NOTIFY: {
+            entry: "prepareFailedNotify",
+
+            on: {
+                ARCHIVE_NOTIFY_SUCCEEDED: {
+                    target: "FAILED",
+                },
+
+                ARCHIVE_NOTIFY_FAILED: {
+                    target: "FAILED",
+                },
+            },
         },
 
         FAILED: {

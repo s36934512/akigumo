@@ -9,12 +9,12 @@ import { resolveFileProcessingStrategy } from "./strategy.js";
 
 export async function dispatchFile({
     fileIdList,
-    correlationId,
-    uncompressMaxDepth,
+    parentWorkflowId,
+    remainingUncompressDepth,
 }: {
     fileIdList: string[];
-    correlationId?: string;
-    uncompressMaxDepth: number;
+    parentWorkflowId?: string;
+    remainingUncompressDepth: number;
 }) {
     if (fileIdList.length === 0) {
         throw new NonRetryableError(
@@ -104,7 +104,7 @@ export async function dispatchFile({
                     id: fileId,
                     workflowType: WORKFLOW_TYPE,
                     status: "INIT",
-                    correlationId,
+                    correlationId: parentWorkflowId,
                 },
             });
 
@@ -114,8 +114,9 @@ export async function dispatchFile({
                     operation: WORKFLOW_BOOTSTRAP,
                     payload: {
                         fileId,
-                        uncompressMaxDepth,
+                        remainingUncompressDepth,
                         strategy,
+                        parentWorkflowId,
                     },
                 },
             });

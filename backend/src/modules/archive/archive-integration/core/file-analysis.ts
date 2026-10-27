@@ -5,7 +5,7 @@ import sharp from "sharp";
 import type { Prisma } from "#app/generated/prisma/client.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 
-import { calculateChecksum } from "./helper.js";
+import { calculateChecksum } from "./checksum.js";
 
 export async function analyzeFile(
     physicalPath: string,

@@ -1,5 +1,7 @@
 import {
+    archiveChildCompletionReportedProcessor,
     archiveDispatchProcessor,
+    archiveNotifyProcessor,
     archiveStorageProcessor,
     archiveTranscodeProcessor,
     archiveUncompressProcessor,
@@ -21,8 +23,10 @@ export const capability = {
     ],
 
     processors: [
-        archiveStorageProcessor,
         archiveDispatchProcessor,
+        archiveNotifyProcessor,
+        archiveChildCompletionReportedProcessor,
+        archiveStorageProcessor,
         archiveTranscodeProcessor,
         archiveUncompressProcessor,
     ],

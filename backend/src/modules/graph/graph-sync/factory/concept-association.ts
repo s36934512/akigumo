@@ -26,6 +26,7 @@ const PoolTaskPayloadSchema = ConceptRegistryWithIdSchema.transform((data) => {
         },
     };
 });
+
 export function buildConceptPoolTask(payload: ConceptRegistryWithId) {
     return PoolTaskPayloadSchema.parse(payload);
 }
