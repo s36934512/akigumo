@@ -12,7 +12,7 @@ class ConceptRegistryExecutor(GenericNodeBase):
         UNWIND $requests AS request
 
         UNWIND request.payload AS data
-        {self._merge_concept}
+        {self._merge_concept()}
 
         RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """
@@ -44,7 +44,7 @@ class ConceptAssociationExecutor(GenericNodeBase):
         UNWIND request.payload AS group
 
         FOREACH (data IN coalesce(group.conceptPool, []) |
-            {self._merge_concept}
+            {self._merge_concept()}
         )
 
         WITH request, group
@@ -95,7 +95,7 @@ class ConceptPairExecutor(GenericNodeBase):
         UNWIND request.payload AS group
 
         FOREACH (data IN coalesce(group.conceptPool, []) |
-            {self._merge_concept}
+            {self._merge_concept()}
         )
 
         WITH request, group

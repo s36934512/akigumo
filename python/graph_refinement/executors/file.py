@@ -13,8 +13,8 @@ class FileRegistryExecutor(GenericNodeBase):
 
         UNWIND request.payload AS data
 
-        {self._merge_file}
-        {self._merge_file_container}
+        {self._merge_file()}
+        {self._merge_file_container()}
 
         MERGE (af)-[:CONTAINS]->(f)
 
@@ -55,7 +55,7 @@ class CreateDerivedFileExecutor(GenericNodeBase):
         SET of.updatedAt = datetime()
         SET of += data.originalFileProps
 
-        {self._merge_file}
+        {self._merge_file()}
 
         MERGE (af)-[:CONTAINS]->(f)
         MERGE (af)-[:DISPLAY_AS]->(f)
