@@ -10,6 +10,13 @@ export class ArchiveApi {
         return this.defaultService.postApiV1ArchiveStructure({});
     }
 
+    public getChildren(archiveId: string) {
+        return this.defaultService.postApiV1ArchiveStructure({
+            parentId: archiveId,
+            showDeleted: false,
+        });
+    }
+
     public getReferenceByConcept(conceptId: string) {
         return this.defaultService.getApiV1ArchiveReferenceConceptId(conceptId);
     }

@@ -8,6 +8,8 @@ import { ArchiveStatus, ArchiveType } from "#generated/prisma/enums.js";
 import { defineGraphSyncTask } from "../core/task.js";
 import { buildArchiveUncompressTask } from "../factory/archive-uncompress.js";
 
+const POSITION_STEP = 1000;
+
 const InputSchema = z.object({
     fileId: z.uuid(),
     derivedFileIdList: z.uuid().array(),
@@ -55,12 +57,28 @@ export const archiveUncompressTask = defineGraphSyncTask({
             },
         );
 
+        const childrenArchiveList = [...derivedFileList]
+            .sort((a, b) =>
+                (a.originalName ?? "").localeCompare(
+                    b.originalName ?? "",
+                    undefined,
+                    {
+                        numeric: true,
+                        sensitivity: "base",
+                    },
+                ),
+            )
+            .map((file, index) => ({
+                ...file,
+                position: (index + 1) * POSITION_STEP,
+            }));
+
         const task = buildArchiveUncompressTask({
             fileId: file.id,
             fileName: file.originalName,
             archiveId: archive.id,
             archiveName: archive.name,
-            childrenArchiveList: derivedFileList,
+            childrenArchiveList,
             fileExtensionCode: file.extensionCode,
         });
 

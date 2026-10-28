@@ -1,5 +1,5 @@
 export const getChildrenCypher = `
-    MATCH (:Archive { id: $parentId })-[:CONTAINS]->(i:Archive)
+    MATCH (:Archive { id: $parentId })-[r:CONTAINS]->(i:Archive)
     WHERE $showDeleted = true OR NOT i:Delete
 
     OPTIONAL MATCH (i)-[:DISPLAY_AS]->(f:File)
@@ -8,7 +8,7 @@ export const getChildrenCypher = `
     WHERE $showDeleted = true
         OR (NOT s:Delete AND NOT cp:Delete)
 
-    WITH i, f,
+    WITH i, f, r.position AS position,
         collect(DISTINCT
             CASE
                 WHEN cp IS NOT NULL
@@ -19,7 +19,7 @@ export const getChildrenCypher = `
     OPTIONAL MATCH (i)-[:HAS_CONCEPT]->(c:Concept)
     WHERE $showDeleted = true OR NOT c:Delete
 
-    WITH i, f, withConceptList,
+    WITH i, f, position, withConceptList,
         collect(DISTINCT
             CASE
                 WHEN c IS NOT NULL
@@ -34,6 +34,7 @@ export const getChildrenCypher = `
             item IN withConceptList + hasConceptList
             WHERE item IS NOT NULL
         ] AS conceptList
+    ORDER BY position ASC, archiveId ASC
 `;
 
 export const getRootArchiveListCypher = `

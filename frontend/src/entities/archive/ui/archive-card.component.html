@@ -3,10 +3,11 @@
         class="flex max-w-[calc(100vw-2rem)] flex-col overflow-hidden bg-white"
         (click)="onClick()"
         (dblclick)="onDoubleClick()"
+        (wheel)="onPreviewWheel($event)"
     >
         <div class="border-b border-gray-200 px-3 py-2">
             <p class="m-0 truncate text-sm font-semibold text-gray-900">
-                {{ archive().name }}
+                {{ previewName() }}
             </p>
         </div>
 

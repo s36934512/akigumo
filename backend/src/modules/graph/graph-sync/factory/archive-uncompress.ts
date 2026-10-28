@@ -7,7 +7,11 @@ const InputSchema = z.object({
     fileName: z.string().nullish(),
     archiveId: z.uuid(),
     archiveName: z.string().nullish(),
-    childrenArchiveList: FileModelSchema.array().min(1, "至少包含一個子項目"),
+    childrenArchiveList: FileModelSchema.extend({
+        position: z.number().int().nonnegative(),
+    })
+        .array()
+        .min(1, "至少包含一個子項目"),
     fileExtensionCode: z.string().nullish(),
 });
 
@@ -31,6 +35,7 @@ const TaskPayloadSchema = InputSchema.transform((data) => ({
         archiveProps: {
             name: i.originalName ?? i.id,
         },
+        position: i.position,
     })),
 }));
 

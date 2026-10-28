@@ -14,6 +14,9 @@ export const archiveReferenceQueryKey = (conceptId: string) =>
 export const archiveDetailQueryKey = (archiveId: string) =>
     [...archiveQueryKey, "detail", archiveId] as const;
 
+export const archiveChildrenQueryKey = (archiveId: string) =>
+    [...archiveQueryKey, "children", archiveId] as const;
+
 @Service()
 export class ArchiveQuery {
     private readonly archiveApi = inject(ArchiveApi);
@@ -23,6 +26,29 @@ export class ArchiveQuery {
             queryKey: archiveListQueryKey,
             queryFn: async (): Promise<Archive[]> => {
                 const response = await this.archiveApi.getList();
+
+                const archiveList: Archive[] = [];
+
+                for (const item of response) {
+                    const result = ArchiveSchema.safeParse(item);
+
+                    if (!result.success) {
+                        continue;
+                    }
+
+                    archiveList.push(result.data);
+                }
+
+                return archiveList;
+            },
+        });
+    }
+
+    public children(archiveId: string) {
+        return queryOptions({
+            queryKey: archiveChildrenQueryKey(archiveId),
+            queryFn: async (): Promise<Archive[]> => {
+                const response = await this.archiveApi.getChildren(archiveId);
 
                 const archiveList: Archive[] = [];
 

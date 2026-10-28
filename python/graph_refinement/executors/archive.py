@@ -21,7 +21,8 @@ class ArchiveUncompressExecutor(GenericNodeBase):
             {self._merge_file_container("group")}
             {self._merge_file("group")}
             MERGE (af)-[:CONTAINS]->(f)
-            MERGE (aw)-[:CONTAINS]->(af)
+            MERGE (aw)-[r:CONTAINS]->(af)
+            ON CREATE SET r.position = group.position
 
             RETURN count(*) AS childCount
         }}
