@@ -14,21 +14,15 @@ import { actions } from "./logic.js";
 import type { MachineContext, MachineEvents } from "./schema.js";
 
 function isProcessingComplete(context: MachineContext): boolean {
-    const { extractedFileIdList, succeededFileIdList, failedFileIdList } =
+    const { extractedFileIdList, childResultByFileId } =
         context.processingProgress;
 
     if (extractedFileIdList.length === 0) {
         return false;
     }
 
-    const completedFileIdSet = new Set([
-        ...succeededFileIdList,
-        ...failedFileIdList,
-    ]);
-
-    return (
-        extractedFileIdList.every((id) => completedFileIdSet.has(id)) &&
-        completedFileIdSet.size === extractedFileIdList.length
+    return extractedFileIdList.every(
+        (id) => childResultByFileId[id] !== undefined,
     );
 }
 
@@ -236,8 +230,7 @@ export const machine = setup({
 
         processingProgress: {
             extractedFileIdList: [],
-            succeededFileIdList: [],
-            failedFileIdList: [],
+            childResultByFileId: {},
         },
 
         nextIntent: null,

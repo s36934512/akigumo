@@ -15,10 +15,12 @@ import {
 } from "../core/processor/index.js";
 import { ArchiveIntegrationBootstrapEvent, StrategySchema } from "./events.js";
 
+const ChildResultSchema = z.enum(["SUCCESS", "FAILURE"]);
+export type ChildResult = z.infer<typeof ChildResultSchema>;
+
 const ProcessingProgressSchema = z.object({
     extractedFileIdList: z.uuid().array(),
-    succeededFileIdList: z.uuid().array(),
-    failedFileIdList: z.uuid().array(),
+    childResultByFileId: z.record(z.uuid(), ChildResultSchema),
 });
 
 export const ContextSchema = MachineContextSchema.extend({

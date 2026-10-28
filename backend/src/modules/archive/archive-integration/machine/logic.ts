@@ -9,7 +9,7 @@ import {
     ArchiveUncompressEvent,
 } from "../core/processor/index.js";
 import { ArchiveIntegrationBootstrapEvent } from "./events.js";
-import type { MachineContext, MachineEvents } from "./schema.js";
+import type { ChildResult, MachineContext, MachineEvents } from "./schema.js";
 
 export const actions = {
     handleBootstrapSucceeded({ event }: { event: MachineEvents }) {
@@ -63,31 +63,17 @@ export const actions = {
         assertEvent(event, ArchiveNotifyBootstrapEvent.SUCCEEDED);
 
         const { fileId, succeeded } = event.data;
-        const { succeededFileIdList, failedFileIdList } =
-            context.processingProgress;
+        const { childResultByFileId } = context.processingProgress;
 
-        if (succeeded) {
-            return {
-                processingProgress: {
-                    ...context.processingProgress,
-                    succeededFileIdList: uniqueArray([
-                        ...succeededFileIdList,
-                        fileId,
-                    ]),
-                    failedFileIdList: failedFileIdList.filter(
-                        (id) => id !== fileId,
-                    ),
-                },
-            };
-        }
+        const result: ChildResult = succeeded ? "SUCCESS" : "FAILURE";
 
         return {
             processingProgress: {
                 ...context.processingProgress,
-                succeededFileIdList: succeededFileIdList.filter(
-                    (id) => id !== fileId,
-                ),
-                failedFileIdList: uniqueArray([...failedFileIdList, fileId]),
+                childResultByFileId: {
+                    ...childResultByFileId,
+                    [fileId]: result,
+                },
             },
         };
     },

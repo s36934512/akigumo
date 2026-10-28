@@ -23,15 +23,13 @@ export const archiveDispatchProcessor = defineProcessor(
             notifyParentOnCompletion,
         } = input.payload;
 
-        if (notifyParentOnCompletion) {
-            return dispatchFile({
-                fileIdList,
-                remainingUncompressDepth,
-                parentWorkflowId: input.context.workflowId,
-            });
-        }
-
-        return dispatchFile(input.payload);
+        return dispatchFile({
+            fileIdList,
+            remainingUncompressDepth,
+            ...(notifyParentOnCompletion
+                ? { parentWorkflowId: input.context.workflowId }
+                : {}),
+        });
     },
 );
 
