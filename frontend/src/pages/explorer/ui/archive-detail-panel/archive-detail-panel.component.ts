@@ -1,5 +1,6 @@
 import { Component, inject, input, output } from "@angular/core";
 import { MessageService } from "@openng/optimus-ui/api";
+import { ButtonModule } from "@openng/optimus-ui/button";
 import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 
 import type { Archive } from "#app/entities/archive";
@@ -11,7 +12,7 @@ import { ArchiveInfoComponent } from "#app/features/archive-info";
 @Component({
     selector: "page-explorer-archive-detail-panel",
     standalone: true,
-    imports: [ArchiveInfoComponent],
+    imports: [ArchiveInfoComponent, ButtonModule],
     providers: [DialogService, MessageService],
     templateUrl: "./archive-detail-panel.component.html",
     styleUrl: "./archive-detail-panel.component.scss",

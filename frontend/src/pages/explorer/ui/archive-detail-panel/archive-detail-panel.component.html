@@ -4,49 +4,48 @@
             {{ archive().name }}
         </h2>
 
-        <button
-            type="button"
-            class="archive-detail-panel__close inline-flex size-8 shrink-0 items-center justify-center rounded-md"
-            aria-label="關閉詳細資訊"
+        <p-button
+            icon="pi pi-times"
+            severity="secondary"
+            [text]="true"
+            [rounded]="true"
+            ariaLabel="關閉詳細資訊"
             title="關閉"
-            (click)="onClose()"
-        >
-            <span class="material-symbols-outlined">close</span>
-        </button>
+            (onClick)="onClose()"
+        />
     </header>
 
     <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <feature-archive-info class="block min-h-0 min-w-0 flex-1" [archive]="archive()" />
 
-        <div class="flex shrink-0 items-center justify-between gap-2 border-t px-4 py-4">
+        <div
+            class="flex shrink-0 items-center justify-between gap-2 border-t border-[#e2e8f0] px-4 py-4"
+        >
             <div class="flex min-w-0 flex-wrap gap-2">
-                <button
-                    type="button"
-                    class="archive-detail-panel__add-concept inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2"
-                    (click)="onAddConcept()"
-                >
-                    <span class="material-symbols-outlined" aria-hidden="true">add</span>
-                    新增 Concept
-                </button>
+                <p-button
+                    label="新增 Concept"
+                    icon="pi pi-plus"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="onAddConcept()"
+                />
 
-                <button
-                    type="button"
-                    class="archive-detail-panel__add-concept inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2"
-                    (click)="onAddConceptPair()"
-                >
-                    <span class="material-symbols-outlined" aria-hidden="true">add</span>
-                    新增 Concept Pair
-                </button>
+                <p-button
+                    label="新增 Concept Pair"
+                    icon="pi pi-plus"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="onAddConceptPair()"
+                />
             </div>
 
-            <button
-                type="button"
-                class="archive-detail-panel__delete inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 py-2"
-                (click)="onDelete()"
-            >
-                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-                刪除
-            </button>
+            <p-button
+                label="刪除"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="onDelete()"
+            />
         </div>
     </div>
 </section>

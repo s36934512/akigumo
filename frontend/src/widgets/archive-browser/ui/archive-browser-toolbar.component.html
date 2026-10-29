@@ -1,55 +1,50 @@
 <header class="flex w-full min-w-0 flex-wrap items-center gap-3">
-    <label
-        class="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2"
-    >
-        <i class="icon-search shrink-0 text-zinc-400"></i>
+    <!-- Search -->
+    <p-iconfield class="min-w-0 flex-1" iconPosition="left">
+        <p-inputicon class="pi pi-search" />
 
         <input
+            pInputText
             type="search"
-            class="w-full min-w-0 border-0 bg-transparent text-sm outline-none"
+            class="w-full"
             placeholder="搜尋 Archive..."
             [value]="searchQuery()"
             (input)="searchQueryChange.emit($any($event.target).value)"
         />
-    </label>
+    </p-iconfield>
 
+    <!-- Grid column count -->
     <div class="flex shrink-0 items-center gap-2">
-        <button
-            type="button"
-            class="rounded-lg border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-40"
+        <p-button
+            icon="pi pi-minus"
+            severity="secondary"
+            [outlined]="true"
             [disabled]="!canDecreaseColumnCount()"
-            aria-label="減少網格欄數"
-            (click)="decreaseColumnCount.emit()"
-        >
-            <i class="icon-minus"></i>
-        </button>
+            ariaLabel="減少網格欄數"
+            (onClick)="decreaseColumnCount.emit()"
+        />
 
         <span class="min-w-12 text-center text-sm tabular-nums"> {{ columnCount() }} 欄 </span>
 
-        <button
-            type="button"
-            class="rounded-lg border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-40"
+        <p-button
+            icon="pi pi-plus"
+            severity="secondary"
+            [outlined]="true"
             [disabled]="!canIncreaseColumnCount()"
-            aria-label="增加網格欄數"
-            (click)="increaseColumnCount.emit()"
-        >
-            <i class="icon-plus"></i>
-        </button>
+            ariaLabel="增加網格欄數"
+            (onClick)="increaseColumnCount.emit()"
+        />
     </div>
 
-    <button
-        type="button"
-        class="flex shrink-0 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
-        [attr.aria-label]="
+    <!-- Sort direction -->
+    <p-button
+        [icon]="sortDirection() === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'"
+        [label]="sortDirection() === 'desc' ? '降冪' : '升冪'"
+        severity="secondary"
+        [outlined]="true"
+        [ariaLabel]="
             sortDirection() === 'desc' ? '目前降冪排序，切換為升冪' : '目前升冪排序，切換為降冪'
         "
-        (click)="toggleSortDirection()"
-    >
-        <i
-            [class.icon-arrow-down-wide-narrow]="sortDirection() === 'desc'"
-            [class.icon-arrow-up-wide-narrow]="sortDirection() === 'asc'"
-        ></i>
-
-        {{ sortDirection() === "desc" ? "降冪" : "升冪" }}
-    </button>
+        (onClick)="toggleSortDirection()"
+    />
 </header>

@@ -1,8 +1,13 @@
 import { Component, input, output } from "@angular/core";
+import { ButtonModule } from "@openng/optimus-ui/button";
+import { IconFieldModule } from "@openng/optimus-ui/iconfield";
+import { InputIconModule } from "@openng/optimus-ui/inputicon";
+import { InputTextModule } from "@openng/optimus-ui/inputtext";
 
 @Component({
     selector: "widget-archive-browser-toolbar",
     standalone: true,
+    imports: [ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
     templateUrl: "./archive-browser-toolbar.component.html",
 })
 export class ArchiveBrowserToolbarComponent {

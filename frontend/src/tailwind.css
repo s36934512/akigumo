@@ -1,1 +1,15 @@
 @import "tailwindcss";
+@import "./app/shared/styles/tokens.scss";
+
+@theme inline {
+    --color-page: var(--akigumo-page);
+    --color-surface: var(--akigumo-surface);
+    --color-surface-muted: var(--akigumo-surface-muted);
+
+    --color-primary: var(--akigumo-primary);
+    --color-primary-hover: var(--akigumo-primary-hover);
+
+    --color-content: var(--akigumo-text);
+    --color-content-secondary: var(--akigumo-text-secondary);
+    --color-default-border: var(--akigumo-border);
+}
