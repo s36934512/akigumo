@@ -1,6 +1,8 @@
-<section class="flex h-full min-h-0 w-full min-w-0 flex-col bg-[#f7f9fc]">
-    <header class="flex shrink-0 items-center justify-between gap-4 border-b border-[#e2e8f0] p-4">
-        <h2 class="m-0 min-w-0 truncate text-base font-semibold">
+<section class="flex h-full min-h-0 w-full min-w-0 flex-col bg-surface">
+    <header
+        class="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-surface-card p-4"
+    >
+        <h2 class="m-0 min-w-0 truncate text-base font-semibold text-text">
             {{ archive().name }}
         </h2>
 
@@ -19,16 +21,10 @@
         <feature-archive-info class="block min-h-0 min-w-0 flex-1" [archive]="archive()" />
 
         <div
-            class="flex shrink-0 items-center justify-between gap-2 border-t border-[#e2e8f0] px-4 py-4"
+            class="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-surface-card px-4 py-4"
         >
             <div class="flex min-w-0 flex-wrap gap-2">
-                <p-button
-                    label="新增 Concept"
-                    icon="pi pi-plus"
-                    severity="secondary"
-                    [outlined]="true"
-                    (onClick)="onAddConcept()"
-                />
+                <p-button label="新增 Concept" icon="pi pi-plus" (onClick)="onAddConcept()" />
 
                 <p-button
                     label="新增 Concept Pair"
