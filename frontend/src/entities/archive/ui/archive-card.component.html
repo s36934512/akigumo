@@ -30,6 +30,7 @@
 <article
     class="w-full min-w-0 px-3 pb-4 pt-3 text-zinc-100"
     (click)="onClick()"
+    (wheel)="onPreviewWheel($event)"
     sharedOverlayPanelDirective
     [sharedOverlayPanel]="previewContent"
 >
