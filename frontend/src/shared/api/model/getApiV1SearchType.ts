@@ -11,4 +11,5 @@ export type GetApiV1SearchType = typeof GetApiV1SearchType[keyof typeof GetApiV1
 export const GetApiV1SearchType = {
   archive: 'archive',
   concept: 'concept',
+  all: 'all',
 } as const;

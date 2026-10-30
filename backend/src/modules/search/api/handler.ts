@@ -48,5 +48,38 @@ export const handleSearchRoute = app.openapi(route, async (c) => {
                 200,
             );
         }
+
+        case SearchQueryTypeSchema.enum.all: {
+            const [archiveResult, conceptResult] = await Promise.all([
+                searchArchive(query.q, options),
+                searchConcept(query.q, options),
+            ]);
+
+            const archiveResultList = archiveResult.hits.map((item) => ({
+                ...item,
+                entityType: SearchQueryTypeSchema.enum.archive,
+            }));
+
+            const conceptResultList = conceptResult.hits.map((item) => ({
+                ...item,
+                entityType: SearchQueryTypeSchema.enum.concept,
+            }));
+
+            const resultList = [...archiveResultList, ...conceptResultList];
+
+            const total =
+                (archiveResult.estimatedTotalHits ??
+                    archiveResult.hits.length) +
+                (conceptResult.estimatedTotalHits ?? conceptResult.hits.length);
+
+            return c.json(
+                {
+                    resultList,
+                    total,
+                    ...options,
+                },
+                200,
+            );
+        }
     }
 });

@@ -1,6 +1,6 @@
 import { z } from "@hono/zod-openapi";
 
-export const SearchQueryTypeSchema = z.enum(["archive", "concept"]);
+export const SearchQueryTypeSchema = z.enum(["archive", "concept", "all"]);
 
 export const SearchQuerySchema = z.object({
     q: z.string().trim().min(1),
@@ -30,13 +30,13 @@ export const ConceptSearchResultSchema = z.object({
     updatedAt: z.string(),
 });
 
+export const SearchResultSchema = z.discriminatedUnion("entityType", [
+    ArchiveSearchResultSchema,
+    ConceptSearchResultSchema,
+]);
+
 export const SearchResponseSchema = z.object({
-    resultList: z.array(
-        z.discriminatedUnion("entityType", [
-            ArchiveSearchResultSchema,
-            ConceptSearchResultSchema,
-        ]),
-    ),
+    resultList: z.array(SearchResultSchema),
     total: z.number().int(),
     limit: z.number().int(),
     offset: z.number().int(),
