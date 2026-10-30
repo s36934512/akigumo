@@ -18,6 +18,7 @@ import { capability as ontologyEditorCapability } from "#app/modules/ontology/on
 import { capability as ontologyPairCapability } from "#app/modules/ontology/ontology-pair/index.js";
 import { capability as ontologyRegistryCapability } from "#app/modules/ontology/ontology-registry/index.js";
 import { capability as ontologyResolverCapability } from "#app/modules/ontology/ontology-resolver/index.js";
+import { capability as searchCapability } from "#app/modules/search/index.js";
 import { capability as systemArchiveServeCapability } from "#app/modules/system/archive/index.js";
 import { capability as systemWorkflowBootstrapCapability } from "#app/modules/system/workflow-bootstrap/index.js";
 import {
@@ -47,6 +48,7 @@ const capabilityList: ModuleCapability[] = [
     ontologyPairCapability,
     ontologyRegistryCapability,
     ontologyResolverCapability,
+    searchCapability,
     systemArchiveServeCapability,
     systemWorkflowBootstrapCapability,
 ];

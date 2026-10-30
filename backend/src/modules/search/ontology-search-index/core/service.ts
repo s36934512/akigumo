@@ -42,3 +42,16 @@ export async function deleteConceptSearchDocumentBatch(
 
     await meilisearchClient.tasks.waitForTask(task.taskUid);
 }
+
+export async function searchConcept(
+    query: string,
+    options: {
+        limit: number;
+        offset: number;
+    },
+) {
+    return conceptSearchIndex.search<ConceptSearchDocument>(query, {
+        limit: options.limit,
+        offset: options.offset,
+    });
+}

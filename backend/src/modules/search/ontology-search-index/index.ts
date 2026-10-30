@@ -7,8 +7,7 @@ const conceptSearchIndex = getSearchIndex("concepts");
 
 const conceptSearchIndexSettings: Settings = {
     searchableAttributes: ["name", "description"],
-    filterableAttributes: ["type", "status"],
-    sortableAttributes: ["publishedDate", "createdAt", "updatedAt"],
+    sortableAttributes: ["createdAt", "updatedAt"],
 };
 
 export async function initializeConceptSearchIndex(): Promise<void> {

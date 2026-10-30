@@ -15,6 +15,8 @@ import {
 
 import type {
   GetApiV1ArchiveArchiveId200,
+  GetApiV1Search200,
+  GetApiV1SearchParams,
   PostApiV1ArchiveConcept202,
   PostApiV1ArchiveConceptBodyItem,
   PostApiV1ArchiveConceptPair202,
@@ -230,6 +232,56 @@ export class DefaultService {
       this.http,
       );
     }
+   getApiV1Search<TData = GetApiV1Search200>(
+    params: GetApiV1SearchParams,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/search`, method: 'GET',
+        params: (() => {
+
+  const filteredParams: Record<string, string | number | boolean | Array<string | number | boolean>> = {};
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (Array.isArray(value)) {
+      const filtered = value
+        .filter(
+          (item) =>
+            item != null &&
+            (typeof item === 'string' ||
+              typeof item === 'number' ||
+              typeof item === 'boolean' ||
+              ((item as unknown) instanceof Date &&
+                !Number.isNaN((item as unknown as Date).getTime()))),
+        )
+        .map((item) =>
+          (item as unknown) instanceof Date
+            ? (item as unknown as Date).toISOString()
+            : item,
+        ) as Array<string | number | boolean>;
+      if (filtered.length) {
+        filteredParams[key] = filtered;
+      }
+    } else if (
+      (value as unknown) instanceof Date &&
+      !Number.isNaN((value as unknown as Date).getTime())
+    ) {
+      // useDates produces Date query params; serialize to ISO so they reach
+      // the wire instead of being dropped by the primitive check below. See #3856.
+      filteredParams[key] = (value as unknown as Date).toISOString();
+    } else if (
+      value != null &&
+      (typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean')
+    ) {
+      filteredParams[key] = value;
+    }
+  }
+  return filteredParams;
+})()
+    },
+      this.http,
+      );
+    }
   /**
  * 以 fileId 從磁碟讀取原始檔案，回傳 binary content 與正確的 Content-Type。圖片類型可直接作為 <img src="..."> 使用。
  * @summary 讀取檔案原始內容
@@ -260,4 +312,5 @@ export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyE
 export type PostApiV1OntologyPairClientResult = NonNullable<PostApiV1OntologyPair202>
 export type PostApiV1OntologyRegistryClientResult = NonNullable<PostApiV1OntologyRegistry202>
 export type PostApiV1OntologyResolverClientResult = NonNullable<PostApiV1OntologyResolver200>
+export type GetApiV1SearchClientResult = NonNullable<GetApiV1Search200>
 export type GetApiV1RawFileIdClientResult = NonNullable<Blob>

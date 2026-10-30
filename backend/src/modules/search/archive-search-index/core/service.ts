@@ -42,3 +42,16 @@ export async function deleteArchiveSearchDocumentBatch(
 
     await meilisearchClient.tasks.waitForTask(task.taskUid);
 }
+
+export async function searchArchive(
+    query: string,
+    options: {
+        limit: number;
+        offset: number;
+    },
+) {
+    return archiveSearchIndex.search<ArchiveSearchDocument>(query, {
+        limit: options.limit,
+        offset: options.offset,
+    });
+}

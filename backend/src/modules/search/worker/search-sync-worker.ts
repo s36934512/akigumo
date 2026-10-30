@@ -86,7 +86,7 @@ export class SearchSyncWorker {
                 );
             } catch (error) {
                 this.options.logger.error(
-                    { error },
+                    { err: error },
                     "Search sync worker iteration failed",
                 );
 

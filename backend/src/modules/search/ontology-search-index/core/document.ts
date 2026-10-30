@@ -14,13 +14,13 @@ export type ConceptSearchSource = Pick<
 >;
 
 export function toConceptSearchDocument(
-    Concept: ConceptSearchSource,
+    concept: ConceptSearchSource,
 ): ConceptSearchDocument {
     return {
-        id: Concept.id,
-        name: Concept.name,
-        description: Concept.description,
-        createdAt: Concept.createdAt.toISOString(),
-        updatedAt: Concept.updatedAt.toISOString(),
+        id: concept.id,
+        name: concept.name,
+        description: concept.description,
+        createdAt: concept.createdAt.toISOString(),
+        updatedAt: concept.updatedAt.toISOString(),
     };
 }

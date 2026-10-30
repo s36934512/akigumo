@@ -4,16 +4,16 @@ import {
 } from "#app/generated/prisma/enums.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
 
-import { toArchiveSearchDocument } from "../../archive-search-index/core/document.js";
+import { toArchiveSearchDocument } from "../archive-search-index/core/document.js";
 import {
     deleteArchiveSearchDocument,
     upsertArchiveSearchDocument,
-} from "../../archive-search-index/core/service.js";
-import { toConceptSearchDocument } from "../../ontology-search-index/core/document.js";
+} from "../archive-search-index/core/service.js";
+import { toConceptSearchDocument } from "../ontology-search-index/core/document.js";
 import {
     deleteConceptSearchDocument,
     upsertConceptSearchDocument,
-} from "../../ontology-search-index/core/service.js";
+} from "../ontology-search-index/core/service.js";
 
 export type SearchSyncRecord = {
     id: bigint;
