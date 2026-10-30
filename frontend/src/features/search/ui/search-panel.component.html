@@ -1,0 +1,50 @@
+<div class="overflow-hidden rounded-xl border bg-white shadow-xl">
+    <div class="flex items-center gap-3 border-b px-4">
+        <i class="pi pi-search text-zinc-400"></i>
+
+        <input
+            class="h-14 min-w-0 flex-1 border-0 bg-transparent text-sm outline-none"
+            placeholder="搜尋 Archive、Concept..."
+            [value]="queryText()"
+            (input)="onQueryChange($any($event.target).value)"
+            autofocus
+        />
+
+        <button type="button" class="text-xs text-zinc-400" (click)="close.emit()">ESC</button>
+    </div>
+
+    <div class="max-h-[60vh] overflow-y-auto">
+        @if (!queryText().trim()) {
+            <div class="px-4 py-10 text-center text-sm text-zinc-400">
+                輸入關鍵字以搜尋 Archive 或 Concept
+            </div>
+        } @else if (searchQuery.isPending()) {
+            <div class="px-4 py-10 text-center text-sm text-zinc-400">搜尋中...</div>
+        } @else if (searchQuery.isError()) {
+            <div class="px-4 py-10 text-center text-sm text-red-500">搜尋失敗，請稍後再試</div>
+        } @else {
+            @for (
+                result of searchQuery.data()?.resultList ?? [];
+                track result.entityType + ":" + result.id
+            ) {
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-zinc-50"
+                    (click)="onResultSelect(result.entityType, result.id)"
+                >
+                    <i [class]="result.entityType === 'archive' ? 'pi pi-file' : 'pi pi-tag'"></i>
+
+                    <span class="min-w-0 flex-1 truncate text-sm">
+                        {{ result.name }}
+                    </span>
+
+                    <span class="text-xs text-zinc-400">
+                        {{ result.entityType }}
+                    </span>
+                </button>
+            } @empty {
+                <div class="px-4 py-10 text-center text-sm text-zinc-400">找不到符合的結果</div>
+            }
+        }
+    </div>
+</div>

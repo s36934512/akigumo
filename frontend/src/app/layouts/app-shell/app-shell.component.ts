@@ -3,6 +3,9 @@ import { RouterOutlet } from "@angular/router";
 import { ButtonModule } from "@openng/optimus-ui/button";
 import { TooltipModule } from "@openng/optimus-ui/tooltip";
 
+import { AppHeaderComponent } from "#app/widgets/app-header";
+import { SearchOverlayComponent } from "#app/widgets/search-overlay";
+
 import {
     NavigationSidebarComponent,
     type NavigationSidebarMode,
@@ -16,11 +19,14 @@ import {
         NavigationSidebarComponent,
         ButtonModule,
         TooltipModule,
+        AppHeaderComponent,
+        SearchOverlayComponent,
     ],
     templateUrl: "./app-shell.component.html",
 })
 export class AppShellComponent {
     readonly sidebarMode = signal<NavigationSidebarMode>("pinned");
+    readonly isSearchOpen = signal(false);
 
     readonly showSidebarTrigger = signal(false);
 
@@ -37,6 +43,30 @@ export class AppShellComponent {
                 return "0";
         }
     });
+
+    protected toggleSidebar(): void {
+        this.sidebarMode.update((mode) => {
+            switch (mode) {
+                case "pinned":
+                    return "hidden";
+
+                case "overlay":
+                case "rail":
+                case "hidden":
+                    return "pinned";
+            }
+        });
+
+        this.showSidebarTrigger.set(false);
+    }
+
+    protected openSearch(): void {
+        this.isSearchOpen.set(true);
+    }
+
+    protected closeSearch(): void {
+        this.isSearchOpen.set(false);
+    }
 
     protected onSidebarModeChange(mode: NavigationSidebarMode): void {
         this.sidebarMode.set(mode);

@@ -1,50 +1,58 @@
-<main class="relative flex h-full min-h-0 w-full min-w-0 overflow-hidden">
-    <app-shell-navigation-sidebar
-        class="block h-full shrink-0 overflow-hidden bg-white transition-[width] duration-300 ease-in-out"
-        [class.absolute]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
-        [class.inset-y-0]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
-        [class.left-0]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
-        [class.z-40]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
-        [style.width]="sidebarWidth()"
-        [style.display]="sidebarMode() === 'hidden' ? 'none' : 'block'"
-        [mode]="sidebarMode()"
-        (modeChange)="onSidebarModeChange($event)"
-    />
+<div class="flex h-full min-h-0 flex-col">
+    <widget-app-header (sidebarToggle)="toggleSidebar()" (searchOpen)="openSearch()" />
 
-    @if (sidebarMode() === "overlay") {
-        <div
-            class="absolute inset-0 z-30 bg-black/30"
-            (click)="onSidebarModeChange('hidden')"
-        ></div>
-    }
+    <main class="relative flex h-full min-h-0 w-full min-w-0 overflow-hidden">
+        <app-shell-navigation-sidebar
+            class="block h-full shrink-0 overflow-hidden bg-white transition-[width] duration-300 ease-in-out"
+            [class.absolute]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
+            [class.inset-y-0]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
+            [class.left-0]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
+            [class.z-40]="sidebarMode() === 'overlay' || sidebarMode() === 'hidden'"
+            [style.width]="sidebarWidth()"
+            [style.display]="sidebarMode() === 'hidden' ? 'none' : 'block'"
+            [mode]="sidebarMode()"
+            (modeChange)="onSidebarModeChange($event)"
+        />
 
-    <div class="min-h-0 min-w-0 flex-1 overflow-auto">
-        <router-outlet />
-    </div>
+        @if (sidebarMode() === "overlay") {
+            <div
+                class="absolute inset-0 z-30 bg-black/30"
+                (click)="onSidebarModeChange('hidden')"
+            ></div>
+        }
 
-    @if (sidebarMode() === "hidden") {
-        <div
-            class="absolute inset-y-0 left-0 z-50 overflow-hidden transition-[width] duration-150"
-            [class.w-2]="!showSidebarTrigger()"
-            [class.w-10]="showSidebarTrigger()"
-            (mouseenter)="onSidebarTriggerMouseEnter()"
-            (mouseleave)="onSidebarTriggerMouseLeave()"
-            (focusin)="onSidebarTriggerMouseEnter()"
-            (focusout)="onSidebarTriggerMouseLeave()"
-        >
-            <p-button
-                icon="pi pi-angle-double-right"
-                [text]="true"
-                [rounded]="false"
-                severity="secondary"
-                styleClass="!absolute !left-0 !top-3 !size-10 !rounded-l-none !rounded-r-lg !border !border-l-0 !border-zinc-200 !bg-white !text-zinc-700 !shadow-md"
-                [class.opacity-0]="!showSidebarTrigger()"
-                [class.pointer-events-none]="!showSidebarTrigger()"
-                aria-label="展開導航側欄"
-                pTooltip="展開導航側欄"
-                tooltipPosition="right"
-                (onClick)="onSidebarModeChange('overlay')"
-            />
+        <div class="min-h-0 min-w-0 flex-1 overflow-auto">
+            <router-outlet />
         </div>
+
+        @if (sidebarMode() === "hidden") {
+            <div
+                class="absolute inset-y-0 left-0 z-50 overflow-hidden transition-[width] duration-150"
+                [class.w-2]="!showSidebarTrigger()"
+                [class.w-10]="showSidebarTrigger()"
+                (mouseenter)="onSidebarTriggerMouseEnter()"
+                (mouseleave)="onSidebarTriggerMouseLeave()"
+                (focusin)="onSidebarTriggerMouseEnter()"
+                (focusout)="onSidebarTriggerMouseLeave()"
+            >
+                <p-button
+                    icon="pi pi-angle-double-right"
+                    [text]="true"
+                    [rounded]="false"
+                    severity="secondary"
+                    styleClass="!absolute !left-0 !top-3 !size-10 !rounded-l-none !rounded-r-lg !border !border-l-0 !border-zinc-200 !bg-white !text-zinc-700 !shadow-md"
+                    [class.opacity-0]="!showSidebarTrigger()"
+                    [class.pointer-events-none]="!showSidebarTrigger()"
+                    aria-label="展開導航側欄"
+                    pTooltip="展開導航側欄"
+                    tooltipPosition="right"
+                    (onClick)="onSidebarModeChange('overlay')"
+                />
+            </div>
+        }
+    </main>
+
+    @if (isSearchOpen()) {
+        <widget-search-overlay (close)="closeSearch()" />
     }
-</main>
+</div>

@@ -1,0 +1,32 @@
+<header class="flex h-14 items-center gap-3 border-b px-4">
+    <!-- Sidebar Toggle -->
+    <p-button
+        icon="pi pi-bars"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        ariaLabel="Toggle sidebar"
+        (onClick)="sidebarToggle.emit()"
+    />
+
+    <!-- App Name -->
+    <a routerLink="/explorer" class="shrink-0 font-semibold"> Akigumo </a>
+
+    <!-- Global Search -->
+    <div class="flex flex-1 justify-center px-4">
+        <p-button
+            severity="secondary"
+            variant="outlined"
+            styleClass="w-full max-w-lg justify-start"
+            (onClick)="searchOpen.emit()"
+        >
+            <ng-template #content>
+                <span class="flex w-full items-center gap-2 text-sm">
+                    <i class="pi pi-search"></i>
+                    <span>搜尋 Archive、Concept...</span>
+                    <span class="ml-auto text-xs">Ctrl K</span>
+                </span>
+            </ng-template>
+        </p-button>
+    </div>
+</header>
