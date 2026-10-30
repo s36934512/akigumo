@@ -7,6 +7,12 @@ CREATE TYPE "ArchiveStatus" AS ENUM ('ONGOING', 'COMPLETED', 'HIATUS', 'UPCOMING
 -- CreateEnum
 CREATE TYPE "OutboxStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED');
 
+-- CreateEnum
+CREATE TYPE "SearchSyncEntityType" AS ENUM ('ARCHIVE', 'CONCEPT');
+
+-- CreateEnum
+CREATE TYPE "SearchSyncOperation" AS ENUM ('UPSERT', 'DELETE');
+
 -- CreateTable
 CREATE TABLE "archive" (
     "id" UUID NOT NULL DEFAULT uuidv7(),
@@ -98,6 +104,24 @@ CREATE TABLE "workflow_state" (
     CONSTRAINT "workflow_state_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "search_sync_outbox" (
+    "id" BIGSERIAL NOT NULL,
+    "entity_type" "SearchSyncEntityType" NOT NULL,
+    "entity_id" UUID NOT NULL,
+    "operation" "SearchSyncOperation" NOT NULL,
+    "status" "OutboxStatus" NOT NULL DEFAULT 'PENDING',
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "scheduled_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completed_at" TIMESTAMP(3),
+    "processing_started_at" TIMESTAMP(3),
+    "processing_id" UUID,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "search_sync_outbox_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "archive_type_idx" ON "archive"("type");
 
@@ -127,3 +151,9 @@ CREATE INDEX "outbox_workflow_id_idx" ON "outbox"("workflow_id");
 
 -- CreateIndex
 CREATE INDEX "workflow_state_correlation_id_idx" ON "workflow_state"("correlation_id");
+
+-- CreateIndex
+CREATE INDEX "search_sync_outbox_status_scheduled_at_created_at_idx" ON "search_sync_outbox"("status", "scheduled_at", "created_at");
+
+-- CreateIndex
+CREATE INDEX "search_sync_outbox_entity_type_entity_id_created_at_idx" ON "search_sync_outbox"("entity_type", "entity_id", "created_at");

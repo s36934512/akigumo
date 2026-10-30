@@ -1,17 +1,29 @@
 import { prisma } from "#app/infrastructure/database/prisma.js";
+import { enqueueBatch } from "#app/infrastructure/search-sync/repository/search-sync-outbox-repository.js";
 
 export async function updateArchiveList(idList: string[]) {
-    const updated = await prisma.archive.updateManyAndReturn({
-        where: {
-            id: {
-                in: idList,
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.archive.updateManyAndReturn({
+            where: {
+                id: {
+                    in: idList,
+                },
+                deletedAt: null,
             },
-            deletedAt: null,
-        },
-        data: {
-            deletedAt: new Date(),
-        },
-    });
+            data: {
+                deletedAt: new Date(),
+            },
+        });
 
-    return updated.map((r) => r.id);
+        await enqueueBatch(
+            tx,
+            updated.map((archive) => ({
+                entityType: "ARCHIVE",
+                entityId: archive.id,
+                operation: "DELETE",
+            })),
+        );
+
+        return updated.map((archive) => archive.id);
+    });
 }

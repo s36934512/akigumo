@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { prisma } from "#app/infrastructure/database/prisma.js";
+import { enqueue } from "#app/infrastructure/search-sync/repository/search-sync-outbox-repository.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { NonRetryableError } from "#app/kernel/index.js";
 import { ArchiveStatus, ArchiveType } from "#generated/prisma/enums.js";
@@ -51,6 +52,12 @@ export const archiveUncompressTask = defineGraphSyncTask({
                         type: ArchiveType.WORK,
                         status: ArchiveStatus.ACTIVE,
                     },
+                });
+
+                await enqueue(tx, {
+                    entityType: "ARCHIVE",
+                    entityId: archive.id,
+                    operation: "UPSERT",
                 });
 
                 return { archive, file, derivedFileList };

@@ -6,6 +6,7 @@ import { workflowResultMqConfig } from "#app/config/message-queue/workflow-resul
 import { postgresConfig } from "#app/config/postgres.js";
 import { closeDatabase, prisma } from "#app/infrastructure/database/prisma.js";
 import { logger } from "#app/infrastructure/logger/index.js";
+import { initializeSearchIndex } from "#app/infrastructure/meilisearch/index.js";
 import { createRedisGraphRefinementMq } from "#app/infrastructure/message-queue/graph-refinement/factory.js";
 import { GraphRefinementResultWorker } from "#app/infrastructure/message-queue/graph-refinement/handler.js";
 import { createRedisWorkflowResultMq } from "#app/infrastructure/message-queue/workflow-result/factory.js";
@@ -22,6 +23,7 @@ import {
     registerProcessor,
 } from "#app/kernel/index.js";
 import { createGraphSyncProcessor } from "#app/modules/graph/graph-sync/index.js";
+import { createSearchSyncWorker } from "#app/modules/search/search-sync/index.js";
 import { createApp } from "#app/routes.js";
 import {
     createWorkflowEngine,
@@ -138,6 +140,8 @@ export async function bootstrap(): Promise<{
 
         await postgresListenerClient.connect();
 
+        await initializeSearchIndex();
+
         const taskQueue = createBullMQTaskQueue();
         cleanup.register("taskQueue", () => taskQueue.close());
 
@@ -186,6 +190,9 @@ export async function bootstrap(): Promise<{
             graphRefinementWorker.stop(),
         );
 
+        const searchSyncWorker = createSearchSyncWorker(logger);
+        cleanup.register("searchSyncWorker", () => searchSyncWorker.stop());
+
         // Dispatch Runtime
         // Register after workers so LIFO shutdown stops it before the workers.
         cleanup.register("dispatchRuntime", () => dispatchRuntime.stop());
@@ -216,6 +223,11 @@ export async function bootstrap(): Promise<{
         superviseBackgroundTask({
             name: "workflowResultConsumer",
             run: () => workflowResultMq.consumer.run(workflowEngine),
+        });
+
+        superviseBackgroundTask({
+            name: "searchSyncWorker",
+            run: () => searchSyncWorker.run(),
         });
 
         dispatchRuntime.start();

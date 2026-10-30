@@ -3,17 +3,28 @@ import { z } from "@hono/zod-openapi";
 import fs from "fs-extra";
 import pLimit from "p-limit";
 
+import {
+    ArchiveStatusSchema,
+    ArchiveTypeSchema,
+} from "#app/generated/zod/schemas/index.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
 import { logger } from "#app/infrastructure/logger/index.js";
+import { enqueueBatch } from "#app/infrastructure/search-sync/repository/search-sync-outbox-repository.js";
 import { extractArchiveWithPython } from "#app/infrastructure/storage/archive/extract.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { NonRetryableError } from "#app/kernel/index.js";
-import type {
-    ArchiveCreateInput,
-    FileCreateInput,
-} from "#generated/prisma/models.js";
+import type { FileCreateInput } from "#generated/prisma/models.js";
 
 const CONCURRENCY_LIMIT = 20;
+
+export const ArchiveCreateInputSchema = z.object({
+    id: z.uuid(),
+    name: z.string(),
+    type: ArchiveTypeSchema,
+    status: ArchiveStatusSchema,
+});
+
+export type ArchiveCreateInput = z.infer<typeof ArchiveCreateInputSchema>;
 
 export async function createExtractedFiles({
     fileList,
@@ -22,15 +33,24 @@ export async function createExtractedFiles({
     fileList: FileCreateInput[];
     archiveList: ArchiveCreateInput[];
 }) {
-    await prisma.$transaction([
-        prisma.file.createMany({
+    await prisma.$transaction(async (tx) => {
+        await tx.file.createMany({
             data: fileList,
-        }),
+        });
 
-        prisma.archive.createMany({
+        await tx.archive.createMany({
             data: archiveList,
-        }),
-    ]);
+        });
+
+        await enqueueBatch(
+            tx,
+            archiveList.map((archive) => ({
+                entityType: "ARCHIVE",
+                entityId: archive.id,
+                operation: "UPSERT",
+            })),
+        );
+    });
 }
 
 async function listFilesRecursively(dir: string) {

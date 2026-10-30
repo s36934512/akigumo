@@ -4,6 +4,7 @@ import { v7 as uuidv7 } from "uuid";
 
 import { ArchiveStatus, ArchiveType } from "#app/generated/prisma/enums.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";
+import { enqueueBatch } from "#app/infrastructure/search-sync/repository/search-sync-outbox-repository.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { NonRetryableError } from "#app/kernel/index.js";
 import { WORKFLOW_BOOTSTRAP } from "#app/modules/system/workflow-bootstrap/index.js";
@@ -46,24 +47,24 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
         status: ArchiveStatus.PROCESSING,
     }));
 
-    await prisma.$transaction([
-        prisma.file.createMany({
+    await prisma.$transaction(async (tx) => {
+        await tx.file.createMany({
             data: completeFileList,
-        }),
+        });
 
-        prisma.archive.createMany({
+        await tx.archive.createMany({
             data: itemList,
-        }),
+        });
 
-        prisma.workflowState.create({
+        await tx.workflowState.create({
             data: {
                 id: workflowId,
                 workflowType: WORKFLOW_TYPE,
                 status: "INIT",
             },
-        }),
+        });
 
-        prisma.outbox.create({
+        await tx.outbox.create({
             data: {
                 workflowId,
                 operation: WORKFLOW_BOOTSTRAP,
@@ -71,8 +72,17 @@ export const handleArchiveIntent = app.openapi(route, async (c) => {
                     fileIdList: fileList.map((f) => f.id),
                 },
             },
-        }),
-    ]);
+        });
+
+        await enqueueBatch(
+            tx,
+            itemList.map((item) => ({
+                entityType: "ARCHIVE",
+                entityId: item.id,
+                operation: "UPSERT",
+            })),
+        );
+    });
 
     return c.json({ workflowId }, 200);
 });

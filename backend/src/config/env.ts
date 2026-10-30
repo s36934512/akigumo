@@ -16,7 +16,7 @@ const envSchema = z.object({
     NEO4J_PASSWORD: z.string(),
 
     MEILI_HOST: z.url().default("http://meilisearch:7700"),
-    MEILI_MASTER_KEY: z.string().default("masterKey"),
+    MEILI_MASTER_KEY: z.string().min(1),
 
     STORAGE_PATH: z.string().default("./storage"),
     TMP_PATH: z.string().default("./tmp"),

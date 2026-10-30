@@ -1,118 +1,134 @@
 services:
-  workspace:
-    build:
-      context: .
-      dockerfile: .devcontainer/Dockerfile
+    workspace:
+        build:
+            context: .
+            dockerfile: .devcontainer/Dockerfile
 
-    volumes:
-      - .:/workspace:cached
+        volumes:
+            - .:/workspace:cached
 
-    working_dir: /workspace
+        working_dir: /workspace
 
-    command: sleep infinity
+        command: sleep infinity
 
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379
-      REDIS_CACHE_URL: redis://redis-cache:6379
-      NEO4J_URL: bolt://neo4j:7687
-      NEO4J_USERNAME: ${NEO4J_USERNAME}
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+        environment:
+            DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+            REDIS_URL: redis://redis:6379
+            REDIS_CACHE_URL: redis://redis-cache:6379
+            NEO4J_URL: bolt://neo4j:7687
+            NEO4J_USERNAME: ${NEO4J_USERNAME}
+            NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+            MEILI_HOST: http://meilisearch:7700
+            MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
 
-    ports:
-      - "4200:4200"
-      - "3000:3000"
+        ports:
+            - "4200:4200"
+            - "3000:3000"
 
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      redis-cache:
-        condition: service_healthy
-      neo4j:
-        condition: service_healthy
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            redis-cache:
+                condition: service_healthy
+            neo4j:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
 
-  postgres:
-    image: postgres:18
+    postgres:
+        image: postgres:18
 
-    restart: unless-stopped
+        restart: unless-stopped
 
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
 
-    volumes:
-      - postgres-data:/var/lib/postgresql
+        volumes:
+            - postgres-data:/var/lib/postgresql
 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
 
-  redis:
-    image: redis:8-alpine
+    redis:
+        image: redis:8-alpine
 
-    restart: unless-stopped
+        restart: unless-stopped
 
-    volumes:
-      - redis-data:/data
+        volumes:
+            - redis-data:/data
 
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
 
-  redis-cache:
-    image: redis:8-alpine
+    redis-cache:
+        image: redis:8-alpine
 
-    restart: unless-stopped
+        restart: unless-stopped
 
-    volumes:
-      - redis-cache-data:/data
+        volumes:
+            - redis-cache-data:/data
 
-    command:
-      [
-        "redis-server",
-        "--maxmemory",
-        "512mb",
-        "--maxmemory-policy",
-        "allkeys-lru"
-      ]
+        command: ["redis-server", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
 
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
 
-  neo4j:
-    image: neo4j:2026.09.0
+    neo4j:
+        image: neo4j:2026.09.0
 
-    restart: unless-stopped
+        restart: unless-stopped
 
-    environment:
-      NEO4J_AUTH: ${NEO4J_USERNAME}/${NEO4J_PASSWORD}
-      NEO4J_PLUGINS: '["apoc"]'
+        environment:
+            NEO4J_AUTH: ${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+            NEO4J_PLUGINS: '["apoc"]'
 
-    volumes:
-      - neo4j-data:/data
+        volumes:
+            - neo4j-data:/data
 
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+
+    meilisearch:
+        image: getmeili/meilisearch:v1.56.0
+
+        restart: unless-stopped
+
+        environment:
+            MEILI_ENV: development
+            MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+
+        volumes:
+            - meilisearch-data:/meili_data
+
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:7700/health"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
 
 volumes:
-  postgres-data:
-  redis-data:
-  redis-cache-data:
-  neo4j-data:
+    postgres-data:
+    redis-data:
+    redis-cache-data:
+    neo4j-data:
+    meilisearch-data:

@@ -4,14 +4,12 @@ import { z } from "zod";
 import { defineEventContract } from "#app/contracts/index.js";
 import type { Prisma } from "#app/generated/prisma/client.js";
 import { ArchiveStatus, ArchiveType } from "#app/generated/prisma/enums.js";
-import {
-    ArchiveCreateInputObjectZodSchema,
-    FileCreateInputObjectZodSchema,
-} from "#app/generated/zod/schemas/index.js";
+import { FileCreateInputObjectZodSchema } from "#app/generated/zod/schemas/index.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { defineProcessor, NonRetryableError } from "#app/kernel/index.js";
 
 import {
+    ArchiveCreateInputSchema,
     createExtractedFiles,
     extractArchive,
     moveMassiveFiles,
@@ -64,7 +62,7 @@ export const archiveUncompressProcessor = defineProcessor(
 
         const fileList = fileListWithPaths.map((f) => f.result);
         const archiveList = fileList.map((f) => {
-            const result = ArchiveCreateInputObjectZodSchema.safeParse({
+            const result = ArchiveCreateInputSchema.safeParse({
                 id: f.id,
                 name: f.originalName,
                 type: ArchiveType.FILE_CONTAINER,
@@ -75,7 +73,7 @@ export const archiveUncompressProcessor = defineProcessor(
                 throw new NonRetryableError(result.error.message);
             }
 
-            return result.data as Prisma.ArchiveCreateInput;
+            return result.data;
         });
 
         await moveMassiveFiles(

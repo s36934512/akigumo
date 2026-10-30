@@ -1,0 +1,33 @@
+enum SearchSyncEntityType {
+    ARCHIVE
+    CONCEPT
+}
+
+enum SearchSyncOperation {
+    UPSERT
+    DELETE
+}
+
+model SearchSyncOutbox {
+    id BigInt @id @default(autoincrement())
+
+    entityType SearchSyncEntityType @map("entity_type")
+    entityId   String               @map("entity_id") @db.Uuid
+    operation  SearchSyncOperation
+
+    status   OutboxStatus @default(PENDING)
+    attempts Int          @default(0)
+
+    scheduledAt DateTime  @default(now()) @map("scheduled_at")
+    completedAt DateTime? @map("completed_at")
+
+    processingStartedAt DateTime? @map("processing_started_at")
+    processingId        String?   @map("processing_id") @db.Uuid
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@index([status, scheduledAt, createdAt])
+    @@index([entityType, entityId, createdAt])
+    @@map("search_sync_outbox")
+}
