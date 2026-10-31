@@ -4,13 +4,17 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "dev": "sh scripts/dev.sh",
+        "dev:backend": "npm run dev --prefix backend",
+        "dev:frontend": "npm run start --prefix frontend",
+        "dev:worker": "python/.venv/bin/python python/main.py"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "devDependencies": {
         "@biomejs/biome": "2.5.13",
+        "concurrently": "^10.0.6",
         "prettier": "^3.9.10"
     }
 }
