@@ -14,11 +14,6 @@ import { ArchiveQuery } from "../model/archive.query";
 import { getArchiveIconPath } from "../model/archive-icon";
 import type { Archive } from "../model/types";
 
-interface PreviewSize {
-    width: number;
-    height: number;
-}
-
 @Component({
     selector: "entity-archive-card",
     standalone: true,
@@ -37,28 +32,14 @@ export class ArchiveCardComponent {
 
     readonly imageErrorFileId = signal<string | null>(null);
     readonly previewErrorFileId = signal<string | null>(null);
-    readonly previewSize = signal<PreviewSize | null>(null);
+
     readonly previewIndex = signal(0);
-
-    readonly archiveListQuery = injectQuery(() => this.archiveQuery.list());
-
-    readonly archiveList = computed(() => {
-        return this.archiveListQuery.data();
-    });
 
     readonly childrenQuery = injectQuery(() =>
         this.archiveQuery.children(this.archive().id),
     );
 
-    readonly coverUrl = computed(() => {
-        const fileId = this.archive().currentFileId;
-
-        if (!fileId || this.imageErrorFileId() === fileId) {
-            return null;
-        }
-
-        return `/api/v1/raw/${encodeURIComponent(fileId)}`;
-    });
+    readonly currentFileId = computed(() => this.archive().currentFileId);
 
     readonly previewChildren = computed(() =>
         (this.childrenQuery.data() ?? []).filter(
@@ -66,21 +47,48 @@ export class ArchiveCardComponent {
         ),
     );
 
-    readonly previewFileId = computed(
-        () =>
-            this.previewChildren()[this.previewIndex()]?.currentFileId ?? null,
+    readonly hasPreviewChildren = computed(
+        () => this.previewChildren().length > 0,
     );
 
-    readonly previewName = computed(
-        () =>
-            this.previewChildren()[this.previewIndex()]?.name ??
-            this.archive().name,
-    );
+    readonly previewFileId = computed(() => {
+        const children = this.previewChildren();
+
+        if (children.length > 0) {
+            const index = this.previewIndex() % children.length;
+
+            return children[index].currentFileId;
+        }
+
+        return this.currentFileId();
+    });
+
+    readonly previewName = computed(() => {
+        const children = this.previewChildren();
+
+        if (children.length > 0) {
+            const index = this.previewIndex() % children.length;
+
+            return children[index].name;
+        }
+
+        return this.archive().name;
+    });
 
     readonly previewUrl = computed(() => {
         const fileId = this.previewFileId();
 
         if (!fileId || this.previewErrorFileId() === fileId) {
+            return null;
+        }
+
+        return `/api/v1/raw/${encodeURIComponent(fileId)}`;
+    });
+
+    readonly coverUrl = computed(() => {
+        const fileId = this.currentFileId();
+
+        if (!fileId || this.imageErrorFileId() === fileId) {
             return null;
         }
 
@@ -98,14 +106,16 @@ export class ArchiveCardComponent {
     }
 
     protected onPreviewWheel(event: WheelEvent): void {
-        event.preventDefault();
-
         const children = this.previewChildren();
+
         if (children.length <= 1) {
             return;
         }
 
+        event.preventDefault();
+
         const delta = Math.sign(event.deltaY);
+
         if (delta === 0) {
             return;
         }
@@ -116,48 +126,18 @@ export class ArchiveCardComponent {
     }
 
     onImageError(): void {
-        const fileId = this.archive().currentFileId;
+        const fileId = this.currentFileId();
 
         if (fileId) {
             this.imageErrorFileId.set(fileId);
         }
     }
 
-    onPreviewImageLoad(event: Event): void {
-        const image = event.target;
-
-        if (!(image instanceof HTMLImageElement)) {
-            return;
-        }
-
-        const { naturalWidth, naturalHeight } = image;
-
-        if (!naturalWidth || !naturalHeight) {
-            return;
-        }
-
-        const maxWidth = Math.max(1, window.innerWidth - 32);
-        const maxHeight = Math.max(1, window.innerHeight - 120);
-
-        const ratio = Math.min(
-            maxWidth / naturalWidth,
-            maxHeight / naturalHeight,
-            1,
-        );
-
-        this.previewSize.set({
-            width: Math.round(naturalWidth * ratio),
-            height: Math.round(naturalHeight * ratio),
-        });
-    }
-
     onPreviewImageError(): void {
-        const fileId = this.archive().currentFileId;
+        const fileId = this.previewFileId();
 
         if (fileId) {
             this.previewErrorFileId.set(fileId);
         }
-
-        this.previewSize.set(null);
     }
 }
