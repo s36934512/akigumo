@@ -14,6 +14,8 @@ import {
 } from '@angular/core';
 
 import type {
+  DeleteApiV1Archive202,
+  DeleteApiV1ArchiveBody,
   GetApiV1ArchiveArchiveId200,
   GetApiV1Search200,
   GetApiV1SearchParams,
@@ -23,10 +25,10 @@ import type {
   PostApiV1ArchiveConceptPairBodyItem,
   PostApiV1ArchiveConceptRemove202,
   PostApiV1ArchiveConceptRemoveBodyItem,
-  PostApiV1ArchiveDelete202,
-  PostApiV1ArchiveDeleteBody,
   PostApiV1ArchiveIntent200,
   PostApiV1ArchiveIntentBody,
+  PostApiV1ArchiveRestore202,
+  PostApiV1ArchiveRestoreBody,
   PostApiV1ArchiveStructure200Item,
   PostApiV1ArchiveStructureBody,
   PostApiV1OntologyDelete202,
@@ -123,13 +125,28 @@ export class DefaultService {
       this.http,
       );
     }
-   postApiV1ArchiveDelete<TData = PostApiV1ArchiveDelete202>(
-    postApiV1ArchiveDeleteBody?: PostApiV1ArchiveDeleteBody,
+  /**
+ * 將指定的 Archive 移入垃圾桶，並非永久刪除。
+ * @summary Move archives to trash
+ */
+ deleteApiV1Archive<TData = DeleteApiV1Archive202>(
+    deleteApiV1ArchiveBody?: DeleteApiV1ArchiveBody,
  ) {
       return angularHttp<TData>(
-      {url: `/api/v1/archive/delete`, method: 'POST',
+      {url: `/api/v1/archive`, method: 'DELETE',
       headers: {'Content-Type': 'application/json', },
-      data: postApiV1ArchiveDeleteBody
+      data: deleteApiV1ArchiveBody
+    },
+      this.http,
+      );
+    }
+   postApiV1ArchiveRestore<TData = PostApiV1ArchiveRestore202>(
+    postApiV1ArchiveRestoreBody?: PostApiV1ArchiveRestoreBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/restore`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1ArchiveRestoreBody
     },
       this.http,
       );
@@ -304,7 +321,8 @@ export type GetApiV1ArchiveArchiveIdClientResult = NonNullable<GetApiV1ArchiveAr
 export type PostApiV1ArchiveConceptClientResult = NonNullable<PostApiV1ArchiveConcept202>
 export type PostApiV1ArchiveConceptPairClientResult = NonNullable<PostApiV1ArchiveConceptPair202>
 export type PostApiV1ArchiveConceptRemoveClientResult = NonNullable<PostApiV1ArchiveConceptRemove202>
-export type PostApiV1ArchiveDeleteClientResult = NonNullable<PostApiV1ArchiveDelete202>
+export type DeleteApiV1ArchiveClientResult = NonNullable<DeleteApiV1Archive202>
+export type PostApiV1ArchiveRestoreClientResult = NonNullable<PostApiV1ArchiveRestore202>
 export type PostApiV1ArchiveStructureClientResult = NonNullable<PostApiV1ArchiveStructure200Item[]>
 export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveIntent200>
 export type PostApiV1OntologyDeleteClientResult = NonNullable<PostApiV1OntologyDelete202>

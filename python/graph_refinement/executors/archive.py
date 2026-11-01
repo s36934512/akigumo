@@ -46,3 +46,20 @@ class ArchiveDeleteExecutor(GenericNodeBase):
 
         RETURN DISTINCT request.intentOutboxId AS intentOutboxId
         """
+
+
+class ArchiveRestoreExecutor(GenericNodeBase):
+    REQUIRED_IDENTITY = ("archiveId",)
+
+    @property
+    def template(self) -> str:
+        return """
+        UNWIND $requests AS request
+
+        UNWIND request.payload AS data
+
+        MATCH (i:Archive:Delete {id: data.archiveId})
+        REMOVE i:Delete
+
+        RETURN DISTINCT request.intentOutboxId AS intentOutboxId
+        """

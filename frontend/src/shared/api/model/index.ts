@@ -5,6 +5,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './deleteApiV1Archive202';
+export * from './deleteApiV1ArchiveBody';
 export * from './getApiV1ArchiveArchiveId200';
 export * from './getApiV1ArchiveArchiveId200ConceptListItem';
 export * from './getApiV1ArchiveArchiveId200Type';
@@ -36,6 +38,8 @@ export * from './postApiV1ArchiveIntent200';
 export * from './postApiV1ArchiveIntentBody';
 export * from './postApiV1ArchiveIntentBodyFileListItem';
 export * from './postApiV1ArchiveIntentBodyFileListItemMetadata';
+export * from './postApiV1ArchiveRestore202';
+export * from './postApiV1ArchiveRestoreBody';
 export * from './postApiV1ArchiveStructure200Item';
 export * from './postApiV1ArchiveStructure200ItemConceptListItem';
 export * from './postApiV1ArchiveStructure200ItemStatus';

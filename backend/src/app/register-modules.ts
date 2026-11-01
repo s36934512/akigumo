@@ -10,6 +10,7 @@ import { capability as archiveConceptPairCapability } from "#app/modules/archive
 import { capability as archiveConceptRemoveCapability } from "#app/modules/archive/archive-concept-remove/index.js";
 import { capability as archiveDeleteCapability } from "#app/modules/archive/archive-delete/index.js";
 import { capability as archiveIntegrationCapability } from "#app/modules/archive/archive-integration/index.js";
+import { capability as archiveRestoreCapability } from "#app/modules/archive/archive-restore/index.js";
 import { capability as archiveStructureCapability } from "#app/modules/archive/archive-structure/index.js";
 import { capability as archiveUploadCapability } from "#app/modules/archive/archive-upload/index.js";
 import { capability as graphResultCapability } from "#app/modules/graph/graph-result/index.js";
@@ -40,6 +41,7 @@ const capabilityList: ModuleCapability[] = [
     archiveConceptRemoveCapability,
     archiveDeleteCapability,
     archiveIntegrationCapability,
+    archiveRestoreCapability,
     archiveStructureCapability,
     archiveUploadCapability,
     graphResultCapability,

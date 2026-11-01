@@ -5,6 +5,7 @@ import {
 import type { GraphRefinementQueue } from "./port/graph-refinement-queue.js";
 import { archiveConceptTask } from "./task/archive-concept.js";
 import { archiveDeleteTask } from "./task/archive-delete.js";
+import { archiveRestoreTask } from "./task/archive-restore.js";
 import { archiveTranscodeTask } from "./task/archive-transcode.js";
 import { archiveUncompressTask } from "./task/archive-uncompress.js";
 import { conceptAssociationTask } from "./task/concept-association.js";
@@ -18,6 +19,7 @@ import { itemContainTask } from "./task/item-contain.js";
 const taskList = [
     archiveConceptTask,
     archiveDeleteTask,
+    archiveRestoreTask,
     archiveTranscodeTask,
     archiveUncompressTask,
     conceptAssociationTask,

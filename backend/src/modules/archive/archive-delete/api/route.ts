@@ -3,10 +3,10 @@ import { createRoute } from "@hono/zod-openapi";
 import { RequestSchema, ResponseSchema } from "./schema.js";
 
 export const route = createRoute({
-    method: "post",
-    path: "/archive/delete",
-    summary: "",
-    description: "",
+    method: "delete",
+    path: "/archive",
+    summary: "Move archives to trash",
+    description: "將指定的 Archive 移入垃圾桶，並非永久刪除。",
     request: {
         body: {
             content: {
@@ -23,10 +23,10 @@ export const route = createRoute({
                     schema: ResponseSchema,
                 },
             },
-            description: "請求成功，回傳流程追蹤 ID",
+            description: "已接受刪除請求，回傳流程追蹤 ID。",
         },
         400: {
-            description: "請求格式錯誤",
+            description: "請求格式錯誤。",
         },
     },
 });
