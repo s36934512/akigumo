@@ -5,6 +5,9 @@ CREATE TYPE "ArchiveType" AS ENUM ('WORK', 'SERIES', 'COLLECTION', 'FILE_CONTAIN
 CREATE TYPE "ArchiveStatus" AS ENUM ('ONGOING', 'COMPLETED', 'HIATUS', 'UPCOMING', 'DRAFT', 'PRIVATE', 'ACTIVE', 'ARCHIVED', 'LOCKED', 'HIDDEN', 'PROCESSING', 'DELETED', 'FAILED');
 
 -- CreateEnum
+CREATE TYPE "ArchiveDeletionResolution" AS ENUM ('RESTORED', 'PERMANENTLY_DELETED');
+
+-- CreateEnum
 CREATE TYPE "OutboxStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED');
 
 -- CreateEnum
@@ -44,6 +47,27 @@ CREATE TABLE "concept" (
     "verified_by" UUID,
 
     CONSTRAINT "concept_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ArchiveDeletion" (
+    "id" UUID NOT NULL,
+    "rootArchiveId" UUID NOT NULL,
+    "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "restoredAt" TIMESTAMP(3),
+    "permanentlyDeletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "ArchiveDeletion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ArchiveDeletionItem" (
+    "deletionId" UUID NOT NULL,
+    "archiveId" UUID NOT NULL,
+    "resolvedAt" TIMESTAMP(3),
+    "resolution" "ArchiveDeletionResolution",
+
+    CONSTRAINT "ArchiveDeletionItem_pkey" PRIMARY KEY ("deletionId","archiveId")
 );
 
 -- CreateTable
@@ -129,6 +153,9 @@ CREATE INDEX "archive_type_idx" ON "archive"("type");
 CREATE INDEX "archive_status_idx" ON "archive"("status");
 
 -- CreateIndex
+CREATE INDEX "ArchiveDeletionItem_archiveId_idx" ON "ArchiveDeletionItem"("archiveId");
+
+-- CreateIndex
 CREATE INDEX "file_extension_code_idx" ON "file"("extension_code");
 
 -- CreateIndex
@@ -157,3 +184,6 @@ CREATE INDEX "search_sync_outbox_status_scheduled_at_created_at_idx" ON "search_
 
 -- CreateIndex
 CREATE INDEX "search_sync_outbox_entity_type_entity_id_created_at_idx" ON "search_sync_outbox"("entity_type", "entity_id", "created_at");
+
+-- AddForeignKey
+ALTER TABLE "ArchiveDeletionItem" ADD CONSTRAINT "ArchiveDeletionItem_deletionId_fkey" FOREIGN KEY ("deletionId") REFERENCES "ArchiveDeletion"("id") ON DELETE CASCADE ON UPDATE CASCADE;

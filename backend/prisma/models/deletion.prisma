@@ -1,0 +1,27 @@
+enum ArchiveDeletionResolution {
+    RESTORED
+    PERMANENTLY_DELETED
+}
+
+model ArchiveDeletion {
+    id                   String    @id @default(uuid()) @db.Uuid
+    rootArchiveId        String    @db.Uuid
+    deletedAt            DateTime  @default(now())
+    restoredAt           DateTime?
+    permanentlyDeletedAt DateTime?
+
+    itemList ArchiveDeletionItem[]
+}
+
+model ArchiveDeletionItem {
+    deletionId String @db.Uuid
+    archiveId  String @db.Uuid
+
+    resolvedAt DateTime?
+    resolution ArchiveDeletionResolution?
+
+    deletion ArchiveDeletion @relation(fields: [deletionId], references: [id], onDelete: Cascade)
+
+    @@id([deletionId, archiveId])
+    @@index([archiveId])
+}
