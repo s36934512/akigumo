@@ -12,6 +12,7 @@ import { capability as archiveDeleteCapability } from "#app/modules/archive/arch
 import { capability as archiveIntegrationCapability } from "#app/modules/archive/archive-integration/index.js";
 import { capability as archiveRestoreCapability } from "#app/modules/archive/archive-restore/index.js";
 import { capability as archiveStructureCapability } from "#app/modules/archive/archive-structure/index.js";
+import { capability as archiveTrashCapability } from "#app/modules/archive/archive-trash/index.js";
 import { capability as archiveUploadCapability } from "#app/modules/archive/archive-upload/index.js";
 import { capability as graphResultCapability } from "#app/modules/graph/graph-result/index.js";
 import { capability as ontologyDeleteCapability } from "#app/modules/ontology/ontology-delete/index.js";
@@ -43,6 +44,7 @@ const capabilityList: ModuleCapability[] = [
     archiveIntegrationCapability,
     archiveRestoreCapability,
     archiveStructureCapability,
+    archiveTrashCapability,
     archiveUploadCapability,
     graphResultCapability,
     ontologyDeleteCapability,

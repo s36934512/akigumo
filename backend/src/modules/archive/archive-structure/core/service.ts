@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import { driver } from "#app/infrastructure/database/neo4j.js";
 import { prisma } from "#app/infrastructure/database/prisma.js";

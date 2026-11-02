@@ -4,7 +4,7 @@ import { ResponseSchema } from "./schema.js";
 
 export const route = createRoute({
     method: "get",
-    path: "/archive/{archiveId}",
+    path: "/id/{archiveId}",
     summary: "瀏覽 檔案 結構",
     description: "",
     request: {
