@@ -58,7 +58,7 @@ export const machine = setup({
                     {
                         guard: ({ event }) =>
                             event.data.archiveIdList.length > 0,
-                        target: "SYNCING_CONCEPT",
+                        target: "SYNCING_GRAPH",
                         actions: ["handleSaveSuccess", "prepareSyncIntent"],
                     },
                     {
@@ -69,7 +69,7 @@ export const machine = setup({
             },
         },
 
-        SYNCING_CONCEPT: {
+        SYNCING_GRAPH: {
             on: {
                 GRAPH_INTENT_CREATED_SUCCEEDED: {
                     actions: "clearNextIntent",
