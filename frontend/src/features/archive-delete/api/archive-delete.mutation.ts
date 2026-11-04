@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { injectMutation } from "@tanstack/angular-query-experimental";
 
-import type { PostApiV1ArchiveDeleteBody } from "#app/shared/api/model";
+import type { DeleteApiV1ArchiveBody } from "#app/shared/api/model";
 
 import { ArchiveDeleteApi } from "./archive-delete.api";
 
@@ -10,7 +10,7 @@ export class ArchiveDeleteMutation {
     private readonly archiveDeleteApi = inject(ArchiveDeleteApi);
 
     readonly delete = injectMutation(() => ({
-        mutationFn: (input: PostApiV1ArchiveDeleteBody) =>
+        mutationFn: (input: DeleteApiV1ArchiveBody) =>
             this.archiveDeleteApi.delete(input),
     }));
 }

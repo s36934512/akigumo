@@ -3,10 +3,7 @@ import { MessageService } from "@openng/optimus-ui/api";
 import { ButtonModule } from "@openng/optimus-ui/button";
 import { DynamicDialogRef } from "@openng/optimus-ui/dynamicdialog";
 
-import type {
-    PostApiV1ArchiveDeleteBody,
-    PostApiV1ArchiveDeleteBodyItem,
-} from "#app/shared/api/model";
+import type { DeleteApiV1ArchiveBody } from "#app/shared/api/model/deleteApiV1ArchiveBody";
 
 import { ArchiveDeleteApi } from "../api/archive-delete.api";
 import { ArchiveDeleteMutation } from "../api/archive-delete.mutation";
@@ -43,7 +40,7 @@ export class ArchiveDeleteDialogComponent {
             return;
         }
 
-        const input: PostApiV1ArchiveDeleteBody = {
+        const input: DeleteApiV1ArchiveBody = {
             archiveIdList: this.archiveIdList().map((id) => id),
         };
 
