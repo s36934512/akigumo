@@ -10,7 +10,7 @@ import { ArchiveDeleteDialogComponent } from "#app/features/archive-delete";
 import { ArchiveInfoComponent } from "#app/features/archive-info";
 
 @Component({
-    selector: "page-explorer-archive-detail-panel",
+    selector: "widget-archive-detail-panel",
     standalone: true,
     imports: [ArchiveInfoComponent, ButtonModule],
     providers: [DialogService, MessageService],

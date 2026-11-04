@@ -1,0 +1,23 @@
+<div class="flex w-full min-w-0 flex-wrap items-center gap-3">
+    <div class="flex shrink-0 items-center gap-2">
+        <p-button
+            icon="pi pi-minus"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="!canDecrease()"
+            ariaLabel="減少網格欄數"
+            (onClick)="decrease.emit()"
+        />
+
+        <span class="min-w-12 text-center text-sm tabular-nums"> {{ columnCount() }} 欄 </span>
+
+        <p-button
+            icon="pi pi-plus"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="!canIncrease()"
+            ariaLabel="增加網格欄數"
+            (onClick)="increase.emit()"
+        />
+    </div>
+</div>
