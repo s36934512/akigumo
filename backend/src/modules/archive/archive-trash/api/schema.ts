@@ -1,6 +1,9 @@
 import { z } from "@hono/zod-openapi";
 
-import { ArchiveModelSchema } from "#generated/zod/schemas/index.js";
+import {
+    ArchiveModelSchema,
+    ArchiveTypeSchema,
+} from "#generated/zod/schemas/index.js";
 
 export const ConceptItemSchema = z.object({
     conceptId: z.uuid(),
@@ -9,30 +12,36 @@ export const ConceptItemSchema = z.object({
 
 export const ConceptListSchema = ConceptItemSchema.array();
 
-export const ArchiveSummarySchema = ArchiveModelSchema.pick({
-    id: true,
-    name: true,
+const ArchiveStructureBaseSchema = ArchiveModelSchema.omit({
     type: true,
-    publishedDate: true,
-    createdAt: true,
-    updatedAt: true,
+}).extend({
+    currentFileId: z.uuid().nullable(),
+    conceptList: ConceptListSchema,
 });
 
-export const ArchiveStructureItemSchema = ArchiveSummarySchema.extend({
-    currentFileId: z.uuid().nullable(),
-    conceptList: z
-        .object({
-            conceptId: z.uuid(),
-            type: z.string().nullable(),
-        })
-        .array(),
-});
+export const ArchiveStructureItemSchema = z.discriminatedUnion("type", [
+    ArchiveStructureBaseSchema.extend({
+        type: z.literal(ArchiveTypeSchema.enum.FILE_CONTAINER),
+    }),
+    ArchiveStructureBaseSchema.extend({
+        type: z.literal(ArchiveTypeSchema.enum.WORK),
+        count: z.number().int(),
+    }),
+    ArchiveStructureBaseSchema.extend({
+        type: z.literal(ArchiveTypeSchema.enum.SERIES),
+        count: z.number().int(),
+    }),
+    ArchiveStructureBaseSchema.extend({
+        type: z.literal(ArchiveTypeSchema.enum.COLLECTION),
+        count: z.number().int(),
+    }),
+]);
 
 export const ArchiveDeletionSummarySchema = z.object({
     id: z.uuid(),
     rootArchiveId: z.uuid(),
     deletedAt: z.date(),
-    archive: ArchiveSummarySchema.nullable(),
+    archive: ArchiveStructureItemSchema.optional(),
     archiveCount: z.number().int(),
 });
 
@@ -45,7 +54,13 @@ export const GetArchiveStructureSchema = z.object({
 
 export const RequestSchema = GetArchiveStructureSchema;
 
-export const ResponseSchema = z.union([
-    ArchiveDeletionSummarySchema.array(),
-    ArchiveStructureItemSchema.array(),
+export const ResponseSchema = z.discriminatedUnion("type", [
+    z.object({
+        type: z.literal("trash"),
+        deletionList: ArchiveDeletionSummarySchema.array(),
+    }),
+    z.object({
+        type: z.literal("children"),
+        archiveList: ArchiveStructureItemSchema.array(),
+    }),
 ]);
