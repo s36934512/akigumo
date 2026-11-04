@@ -2,6 +2,7 @@ import { inject, Service } from "@angular/core";
 import { queryOptions } from "@tanstack/angular-query-experimental";
 
 import { ArchiveApi } from "../api/archive.api";
+import { ArchiveDeletionSummarySchema } from "./archive-deletion";
 import { type Archive, ArchiveSchema } from "./types";
 
 export const archiveQueryKey = ["archive"] as const;
@@ -16,6 +17,11 @@ export const archiveDetailQueryKey = (archiveId: string) =>
 
 export const archiveChildrenQueryKey = (archiveId: string) =>
     [...archiveQueryKey, "children", archiveId] as const;
+
+export const archiveTrashQueryKey = (parentId?: string) =>
+    parentId
+        ? ([...archiveQueryKey, "trash", parentId] as const)
+        : ([...archiveQueryKey, "trash"] as const);
 
 @Service()
 export class ArchiveQuery {
@@ -81,6 +87,31 @@ export class ArchiveQuery {
                 const response = await this.archiveApi.getById(archiveId);
 
                 return ArchiveSchema.parse(response);
+            },
+        });
+    }
+
+    public trash(parentId?: string) {
+        return queryOptions({
+            queryKey: archiveTrashQueryKey(parentId),
+            queryFn: async () => {
+                const response = await this.archiveApi.getTrash(parentId);
+
+                if (response.type === "trash") {
+                    return {
+                        ...response,
+                        deletionList: response.deletionList.map((deletion) =>
+                            ArchiveDeletionSummarySchema.parse(deletion),
+                        ),
+                    };
+                }
+
+                return {
+                    ...response,
+                    archiveList: response.archiveList.map((archive) =>
+                        ArchiveSchema.parse(archive),
+                    ),
+                };
             },
         });
     }

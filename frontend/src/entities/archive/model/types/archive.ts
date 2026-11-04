@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { BaseArchiveSchema, ItemTypeSchema } from "./base";
+import { ArchiveTypeSchema, BaseArchiveSchema } from "./base";
 import { FileContainerSchema } from "./file-container";
 
 /** ============================================================================
@@ -20,19 +20,19 @@ export const CompositeArchiveSchema = BaseArchiveSchema.extend({
 
 // --- 作品 (Work) -------------------------------------------------------------
 export const WorkSchema = CompositeArchiveSchema.extend({
-    type: z.literal(ItemTypeSchema.enum.WORK),
+    type: z.literal(ArchiveTypeSchema.enum.WORK),
 });
 export type Work = z.infer<typeof WorkSchema>;
 
 // --- 系列 (Series) -----------------------------------------------------------
 export const SeriesSchema = CompositeArchiveSchema.extend({
-    type: z.literal(ItemTypeSchema.enum.SERIES),
+    type: z.literal(ArchiveTypeSchema.enum.SERIES),
 });
 export type Series = z.infer<typeof SeriesSchema>;
 
 // --- 合集 (Collection) -------------------------------------------------------
 export const CollectionSchema = CompositeArchiveSchema.extend({
-    type: z.literal(ItemTypeSchema.enum.COLLECTION),
+    type: z.literal(ArchiveTypeSchema.enum.COLLECTION),
 });
 export type Collection = z.infer<typeof CollectionSchema>;
 

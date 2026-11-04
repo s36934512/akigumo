@@ -5,13 +5,13 @@ import { z } from "zod";
  *  ============================================================================
  *  定義系統中所有封存項目的核心類型標籤。
  */
-export const ItemTypeSchema = z.enum([
+export const ArchiveTypeSchema = z.enum([
     "WORK",
     "SERIES",
     "COLLECTION",
     "FILE_CONTAINER",
 ]);
-export type ItemType = z.infer<typeof ItemTypeSchema>;
+export type ArchiveType = z.infer<typeof ArchiveTypeSchema>;
 
 /** ============================================================================
  *  2. 狀態標記定義 (Flags)

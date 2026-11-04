@@ -22,6 +22,12 @@ export class ArchiveApi {
     }
 
     public getById(archiveId: string) {
-        return this.defaultService.getApiV1ArchiveArchiveId(archiveId);
+        return this.defaultService.getApiV1IdArchiveId(archiveId);
+    }
+
+    public getTrash(parentId?: string) {
+        return this.defaultService.getApiV1ArchiveTrash({
+            parentId,
+        });
     }
 }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { BaseArchiveSchema, ItemTypeSchema } from "./base";
+import { ArchiveTypeSchema, BaseArchiveSchema } from "./base";
 
 // ============================================================================
 // 1. 基礎型別與常量定義 (Enums & Types)
@@ -48,7 +48,7 @@ export const FileSchema = z.discriminatedUnion("type", [
 export type File = z.infer<typeof FileSchema>;
 
 export const FileContainerSchema = BaseArchiveSchema.extend({
-    type: z.literal(ItemTypeSchema.enum.FILE_CONTAINER),
+    type: z.literal(ArchiveTypeSchema.enum.FILE_CONTAINER),
     // file: FileSchema.prefault({ type: "file" }),
 });
 export type FileContainer = z.infer<typeof FileContainerSchema>;
