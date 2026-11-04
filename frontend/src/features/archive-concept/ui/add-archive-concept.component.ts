@@ -14,7 +14,7 @@ import { InputTextModule } from "@openng/optimus-ui/inputtext";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
 import { ArchiveQuery } from "#app/entities/archive";
-import { ConceptChipComponent, ConceptQuery } from "#app/entities/concept";
+import { ConceptQuery } from "#app/entities/concept";
 import type { PostApiV1ArchiveConceptBodyItem } from "#app/shared/api/model";
 import { searchConcept } from "#app/shared/lib/concept-search";
 import { SelectionStore } from "#app/shared/model/selection-store";
@@ -28,13 +28,7 @@ type AddMode = "existing" | "create";
 @Component({
     selector: "feature-add-archive-concept",
     standalone: true,
-    imports: [
-        FormsModule,
-        ButtonModule,
-        CheckboxModule,
-        InputTextModule,
-        ConceptChipComponent,
-    ],
+    imports: [FormsModule, ButtonModule, CheckboxModule, InputTextModule],
     providers: [
         ArchiveConceptApi,
         ArchiveConceptMutation,

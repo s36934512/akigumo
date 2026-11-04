@@ -2,10 +2,11 @@ import { Component, computed, inject, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import { DrawerModule } from "@openng/optimus-ui/drawer";
 import { injectQuery } from "@tanstack/angular-query-experimental";
+
 import { ArchiveQuery } from "#app/entities/archive";
 import { SelectionStore } from "#app/shared/model/selection-store";
 import { ArchiveBrowserComponent } from "#app/widgets/archive-browser";
-import { ArchiveDetailPanelComponent } from "./archive-detail-panel/archive-detail-panel.component";
+import { ArchiveDetailPanelComponent } from "#app/widgets/archive-detail-panel";
 
 type DetailPanelMode = "inline" | "overlay";
 

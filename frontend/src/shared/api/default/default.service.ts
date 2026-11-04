@@ -16,7 +16,9 @@ import {
 import type {
   DeleteApiV1Archive202,
   DeleteApiV1ArchiveBody,
-  GetApiV1ArchiveArchiveId200,
+  GetApiV1ArchiveTrash200,
+  GetApiV1ArchiveTrashParams,
+  GetApiV1IdArchiveId200,
   GetApiV1Search200,
   GetApiV1SearchParams,
   PostApiV1ArchiveConcept202,
@@ -83,11 +85,11 @@ export class DefaultService {
   /**
  * @summary 瀏覽 檔案 結構
  */
- getApiV1ArchiveArchiveId<TData = GetApiV1ArchiveArchiveId200>(
+ getApiV1IdArchiveId<TData = GetApiV1IdArchiveId200>(
     archiveId: string,
  ) {
       return angularHttp<TData>(
-      {url: `/api/v1/archive/${archiveId}`, method: 'GET'
+      {url: `/api/v1/id/${archiveId}`, method: 'GET'
     },
       this.http,
       );
@@ -161,6 +163,59 @@ export class DefaultService {
       {url: `/api/v1/archive/structure`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: postApiV1ArchiveStructureBody
+    },
+      this.http,
+      );
+    }
+  /**
+ * @summary 瀏覽 已刪除 檔案
+ */
+ getApiV1ArchiveTrash<TData = GetApiV1ArchiveTrash200>(
+    params?: GetApiV1ArchiveTrashParams,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/archive/trash`, method: 'GET',
+        params: (() => {
+
+  const filteredParams: Record<string, string | number | boolean | Array<string | number | boolean>> = {};
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (Array.isArray(value)) {
+      const filtered = value
+        .filter(
+          (item) =>
+            item != null &&
+            (typeof item === 'string' ||
+              typeof item === 'number' ||
+              typeof item === 'boolean' ||
+              ((item as unknown) instanceof Date &&
+                !Number.isNaN((item as unknown as Date).getTime()))),
+        )
+        .map((item) =>
+          (item as unknown) instanceof Date
+            ? (item as unknown as Date).toISOString()
+            : item,
+        ) as Array<string | number | boolean>;
+      if (filtered.length) {
+        filteredParams[key] = filtered;
+      }
+    } else if (
+      (value as unknown) instanceof Date &&
+      !Number.isNaN((value as unknown as Date).getTime())
+    ) {
+      // useDates produces Date query params; serialize to ISO so they reach
+      // the wire instead of being dropped by the primitive check below. See #3856.
+      filteredParams[key] = (value as unknown as Date).toISOString();
+    } else if (
+      value != null &&
+      (typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean')
+    ) {
+      filteredParams[key] = value;
+    }
+  }
+  return filteredParams;
+})()
     },
       this.http,
       );
@@ -317,13 +372,14 @@ export class DefaultService {
 
 export type GetApiV1StreamClientResult = NonNullable<string>
 export type GetApiV1ArchiveReferenceConceptIdClientResult = NonNullable<string[]>
-export type GetApiV1ArchiveArchiveIdClientResult = NonNullable<GetApiV1ArchiveArchiveId200>
+export type GetApiV1IdArchiveIdClientResult = NonNullable<GetApiV1IdArchiveId200>
 export type PostApiV1ArchiveConceptClientResult = NonNullable<PostApiV1ArchiveConcept202>
 export type PostApiV1ArchiveConceptPairClientResult = NonNullable<PostApiV1ArchiveConceptPair202>
 export type PostApiV1ArchiveConceptRemoveClientResult = NonNullable<PostApiV1ArchiveConceptRemove202>
 export type DeleteApiV1ArchiveClientResult = NonNullable<DeleteApiV1Archive202>
 export type PostApiV1ArchiveRestoreClientResult = NonNullable<PostApiV1ArchiveRestore202>
 export type PostApiV1ArchiveStructureClientResult = NonNullable<PostApiV1ArchiveStructure200Item[]>
+export type GetApiV1ArchiveTrashClientResult = NonNullable<GetApiV1ArchiveTrash200>
 export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveIntent200>
 export type PostApiV1OntologyDeleteClientResult = NonNullable<PostApiV1OntologyDelete202>
 export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyEditor202>

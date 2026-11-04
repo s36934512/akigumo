@@ -1,0 +1,32 @@
+<section class="relative w-full min-w-0">
+    <widget-archive-trash-toolbar
+        class="mb-4 block"
+        [columnCount]="columnCount()"
+        [canDecreaseColumnCount]="canDecreaseColumnCount()"
+        [canIncreaseColumnCount]="canIncreaseColumnCount()"
+        (decreaseColumnCount)="decreaseColumnCount()"
+        (increaseColumnCount)="increaseColumnCount()"
+    />
+
+    @if (isEmpty()) {
+        <div class="grid min-h-40 place-items-center text-center text-zinc-400">
+            <p class="m-0">回收桶是空的</p>
+        </div>
+    } @else {
+        <div
+            class="archive-trash__grid grid gap-4"
+            [style.--archive-grid-column-count]="columnCount()"
+        >
+            @for (deletion of deletionList(); track deletion.id) {
+                @if (deletion.archive; as archive) {
+                    <entity-archive-card
+                        [archive]="archive"
+                        [selected]="isSelected(deletion.id)"
+                        (cardClick)="onArchiveClick(deletion.id, archive.id)"
+                        (cardDoubleClick)="onArchiveDoubleClick(archive.id)"
+                    />
+                }
+            }
+        </div>
+    }
+</section>

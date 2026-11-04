@@ -4,10 +4,18 @@ import { IconFieldModule } from "@openng/optimus-ui/iconfield";
 import { InputIconModule } from "@openng/optimus-ui/inputicon";
 import { InputTextModule } from "@openng/optimus-ui/inputtext";
 
+import { ArchiveGridLayoutComponent } from "#app/features/archive-grid-layout";
+
 @Component({
     selector: "widget-archive-browser-toolbar",
     standalone: true,
-    imports: [ButtonModule, IconFieldModule, InputIconModule, InputTextModule],
+    imports: [
+        ButtonModule,
+        IconFieldModule,
+        InputIconModule,
+        InputTextModule,
+        ArchiveGridLayoutComponent,
+    ],
     templateUrl: "./archive-browser-toolbar.component.html",
 })
 export class ArchiveBrowserToolbarComponent {

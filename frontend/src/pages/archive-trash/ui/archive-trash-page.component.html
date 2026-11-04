@@ -1,0 +1,50 @@
+<main class="flex h-full min-h-0 w-full min-w-0 overflow-hidden">
+    <widget-archive-trash
+        class="block min-h-0 min-w-0 flex-1 overflow-auto"
+        [deletionList]="deletionList()"
+        (archiveOpen)="onArchiveOpen($event)"
+        (archiveDoubleClick)="onArchiveDoubleClick($event)"
+    />
+
+    @if (openedArchive(); as archive) {
+        @if (detailPanelMode() === "inline") {
+            <div class="explorer__detail flex min-h-0 w-96 shrink-0 flex-col overflow-hidden">
+                <div class="shrink-0">
+                    <button type="button" (click)="setDetailPanelMode('overlay')">覆蓋模式</button>
+                </div>
+
+                <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                    <widget-archive-detail-panel
+                        class="block min-h-0 min-w-0 flex-1"
+                        [archive]="archive"
+                        (closed)="onArchiveClose()"
+                    />
+                </div>
+            </div>
+        } @else {
+            <p-drawer
+                [visible]="true"
+                position="right"
+                [modal]="false"
+                [style]="{ width: '24rem', maxWidth: '100vw' }"
+                (onHide)="onArchiveClose()"
+            >
+                <div class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+                    <div class="shrink-0">
+                        <button type="button" (click)="setDetailPanelMode('inline')">
+                            固定面板
+                        </button>
+                    </div>
+
+                    <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                        <widget-archive-detail-panel
+                            class="block min-h-0 min-w-0 flex-1"
+                            [archive]="archive"
+                            (closed)="onArchiveClose()"
+                        />
+                    </div>
+                </div>
+            </p-drawer>
+        }
+    }
+</main>

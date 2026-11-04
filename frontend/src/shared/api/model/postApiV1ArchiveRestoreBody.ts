@@ -7,5 +7,5 @@
 
 export type PostApiV1ArchiveRestoreBody = {
   /** @minItems 1 */
-  archiveIdList: string[];
+  deletionIdList: string[];
 };

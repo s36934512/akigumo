@@ -40,6 +40,7 @@ export class NavigationSidebarComponent {
     readonly navigationItems: NavigationItem[] = [
         { label: "全部漫畫", routerLink: "/explorer", icon: "pi pi-th-large" },
         { label: "標籤管理", routerLink: "/ontology", icon: "pi pi-tags" },
+        { label: "垃圾桶", routerLink: "/trash", icon: "pi pi-trash" },
     ];
 
     toggleExpanded(): void {
