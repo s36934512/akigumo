@@ -5,7 +5,7 @@ import { createFlexibleSchema, type InferFlexible } from "#app/schema/index.js";
 
 export const ArchiveRestoreSchema = createFlexibleSchema(
     z.object({
-        archiveIdList: z.array(z.uuid()).min(1),
+        deletionIdList: z.array(z.uuid()).min(1),
     }),
 );
 

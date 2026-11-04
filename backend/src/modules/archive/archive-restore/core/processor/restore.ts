@@ -12,8 +12,8 @@ export const archiveRestoreProcessor = defineProcessor(
     ARCHIVE_RESTORE,
     ArchiveRestoreSchema.single,
     async (input) => {
-        const archiveIdList = await service.updateArchiveList(
-            input.payload.archiveIdList,
+        const archiveIdList = await service.restoreArchiveDeletion(
+            input.payload.deletionIdList,
         );
 
         return { archiveIdList };
