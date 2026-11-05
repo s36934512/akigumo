@@ -46,6 +46,20 @@ export class ArchiveTrashPageComponent {
         );
     });
 
+    readonly openedDeletion = computed(() => {
+        const archiveId = this.openedArchiveId();
+
+        if (!archiveId) {
+            return null;
+        }
+
+        return (
+            this.deletionList().find(
+                (deletion) => deletion.archive?.id === archiveId,
+            ) ?? null
+        );
+    });
+
     readonly detailPanelMode = signal<DetailPanelMode>("inline");
 
     protected onArchiveOpen(archiveId: string): void {
@@ -54,6 +68,10 @@ export class ArchiveTrashPageComponent {
 
     protected onArchiveClose(): void {
         this.openedArchiveId.set(null);
+    }
+
+    protected onArchiveRestore(): void {
+        this.onArchiveClose();
     }
 
     protected onArchiveDoubleClick(archiveId: string): void {
