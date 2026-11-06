@@ -9,6 +9,7 @@ dependencies = [
     "pydantic-settings",
     "redis",
     "structlog",
+    "rarfile",
 ]
 
 [tool.setuptools.packages.find]

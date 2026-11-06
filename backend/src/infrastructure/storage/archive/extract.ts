@@ -1,6 +1,5 @@
 import { execFile } from "node:child_process";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -9,8 +8,8 @@ const EXECUTION_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 
 const SCRIPT_PATH = resolve(
-    dirname(fileURLToPath(import.meta.url)),
-    "../../../../scripts/archive/extract_archive.py",
+    process.env.AKIGUMO_ROOT ?? "/workspace",
+    "scripts/archive/extract_archive.py",
 );
 
 export interface ExtractArchiveOptions {
