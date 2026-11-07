@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 
 import { ArchiveQuery } from "#app/entities/archive";
@@ -6,6 +7,7 @@ import { ArchiveQuery } from "#app/entities/archive";
 @Component({
     selector: "feature-view-concept-archive",
     standalone: true,
+    imports: [RouterLink],
     templateUrl: "./view-concept-archive.component.html",
 })
 export class ViewConceptArchiveComponent {
