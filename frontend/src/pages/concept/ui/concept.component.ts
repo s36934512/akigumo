@@ -1,10 +1,12 @@
 import { JsonPipe } from "@angular/common";
 import { Component, computed, inject, signal } from "@angular/core";
+import { MessageService } from "@openng/optimus-ui/api";
 import { DialogService } from "@openng/optimus-ui/dynamicdialog";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 import type { ElementsDefinition } from "cytoscape";
 
 import { ConceptQuery } from "#app/entities/concept";
+import { ConceptDeleteDialogComponent } from "#app/features/concept-delete";
 import { CreateConceptComponent } from "#app/features/create-concept";
 import { EditConceptComponent } from "#app/features/edit-concept";
 import { ViewConceptArchiveComponent } from "#app/features/view-concept-archive";
@@ -15,9 +17,14 @@ import { ConceptExplorerComponent } from "#app/widgets/concept-explorer";
 @Component({
     selector: "page-concept",
     standalone: true,
-    imports: [JsonPipe, ViewConceptArchiveComponent, ConceptExplorerComponent],
+    imports: [
+        JsonPipe,
+        ViewConceptArchiveComponent,
+        ConceptExplorerComponent,
+        ConceptDeleteDialogComponent,
+    ],
     templateUrl: "./concept.component.html",
-    providers: [SelectionStore, DialogService],
+    providers: [SelectionStore, DialogService, MessageService],
 })
 export class ConceptPageComponent {
     private readonly dialogService = inject(DialogService);
@@ -103,6 +110,21 @@ export class ConceptPageComponent {
             header: "新增 Concept",
             width: "40rem",
             modal: true,
+        });
+    }
+
+    protected onDeleteConcept(): void {
+        const concept = this.selectedConcept();
+
+        if (!concept) return;
+
+        this.dialogService.open(ConceptDeleteDialogComponent, {
+            header: "刪除 Concept",
+            width: "40rem",
+            modal: true,
+            inputValues: {
+                conceptIdList: [concept.id],
+            },
         });
     }
 }

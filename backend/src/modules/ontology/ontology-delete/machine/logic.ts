@@ -8,6 +8,7 @@ import type { MachineEvents } from "./schema.js";
 export const machineActions = {
     handleDeleteSuccess({ event }: { event: MachineEvents }) {
         assertEvent(event, OntologyDeleteEvent.SUCCEEDED);
+
         return {
             conceptIdList: event.data.conceptIdList,
         };

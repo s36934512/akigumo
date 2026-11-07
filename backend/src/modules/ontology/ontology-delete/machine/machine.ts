@@ -36,7 +36,7 @@ export const machine = setup({
 
             return {
                 nextIntent: createSyncIntentOutbox(
-                    "concept-registry",
+                    "concept-delete",
                     context.conceptIdList,
                 ),
             };
@@ -61,18 +61,24 @@ export const machine = setup({
     states: {
         SAVING_CONCEPT: {
             on: {
-                ONTOLOGY_DELETE_SUCCEEDED: [
-                    {
-                        actions: ["prepareGraphSyncIntent"],
-                    },
-                ],
+                ONTOLOGY_DELETE_SUCCEEDED: {
+                    target: "CHECK_GRAPH_SYNC",
+                    actions: "handleDeleteSuccess",
+                },
             },
+        },
 
-            always: {
-                guard: "hasGraphSyncData",
-                target: "SYNCING_GRAPH",
-                actions: "prepareGraphSyncIntent",
-            },
+        CHECK_GRAPH_SYNC: {
+            always: [
+                {
+                    guard: "hasGraphSyncData",
+                    target: "SYNCING_GRAPH",
+                    actions: "prepareGraphSyncIntent",
+                },
+                {
+                    target: "SUCCESS",
+                },
+            ],
         },
 
         SYNCING_GRAPH: {

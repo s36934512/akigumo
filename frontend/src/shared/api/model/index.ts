@@ -7,6 +7,8 @@
 
 export * from './deleteApiV1Archive202';
 export * from './deleteApiV1ArchiveBody';
+export * from './deleteApiV1Ontology202';
+export * from './deleteApiV1OntologyBody';
 export * from './getApiV1ArchiveArchiveId200';
 export * from './getApiV1ArchiveArchiveId200ConceptListItem';
 export * from './getApiV1ArchiveArchiveId200Type';

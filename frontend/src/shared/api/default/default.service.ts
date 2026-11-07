@@ -16,6 +16,8 @@ import {
 import type {
   DeleteApiV1Archive202,
   DeleteApiV1ArchiveBody,
+  DeleteApiV1Ontology202,
+  DeleteApiV1OntologyBody,
   GetApiV1ArchiveTrash200,
   GetApiV1ArchiveTrashParams,
   GetApiV1IdArchiveId200,
@@ -33,8 +35,6 @@ import type {
   PostApiV1ArchiveRestoreBody,
   PostApiV1ArchiveStructure200Item,
   PostApiV1ArchiveStructureBody,
-  PostApiV1OntologyDelete202,
-  PostApiV1OntologyDeleteBody,
   PostApiV1OntologyEditor202,
   PostApiV1OntologyEditorBody,
   PostApiV1OntologyPair202,
@@ -236,16 +236,16 @@ export class DefaultService {
       );
     }
   /**
- * 刪除一個實體，並刪除關聯。
+ * 刪除指定實體及其關聯。
  * @summary 刪除實體
  */
- postApiV1OntologyDelete<TData = PostApiV1OntologyDelete202>(
-    postApiV1OntologyDeleteBody?: PostApiV1OntologyDeleteBody,
+ deleteApiV1Ontology<TData = DeleteApiV1Ontology202>(
+    deleteApiV1OntologyBody?: DeleteApiV1OntologyBody,
  ) {
       return angularHttp<TData>(
-      {url: `/api/v1/ontology/delete`, method: 'POST',
+      {url: `/api/v1/ontology`, method: 'DELETE',
       headers: {'Content-Type': 'application/json', },
-      data: postApiV1OntologyDeleteBody
+      data: deleteApiV1OntologyBody
     },
       this.http,
       );
@@ -381,7 +381,7 @@ export type PostApiV1ArchiveRestoreClientResult = NonNullable<PostApiV1ArchiveRe
 export type PostApiV1ArchiveStructureClientResult = NonNullable<PostApiV1ArchiveStructure200Item[]>
 export type GetApiV1ArchiveTrashClientResult = NonNullable<GetApiV1ArchiveTrash200>
 export type PostApiV1ArchiveIntentClientResult = NonNullable<PostApiV1ArchiveIntent200>
-export type PostApiV1OntologyDeleteClientResult = NonNullable<PostApiV1OntologyDelete202>
+export type DeleteApiV1OntologyClientResult = NonNullable<DeleteApiV1Ontology202>
 export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyEditor202>
 export type PostApiV1OntologyPairClientResult = NonNullable<PostApiV1OntologyPair202>
 export type PostApiV1OntologyRegistryClientResult = NonNullable<PostApiV1OntologyRegistry202>
