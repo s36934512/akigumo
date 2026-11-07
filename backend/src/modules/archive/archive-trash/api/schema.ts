@@ -40,7 +40,7 @@ export const ArchiveStructureItemSchema = z.discriminatedUnion("type", [
 export const ArchiveDeletionSummarySchema = z.object({
     id: z.uuid(),
     rootArchiveId: z.uuid(),
-    deletedAt: z.date(),
+    deletedAt: z.coerce.date(),
     archive: ArchiveStructureItemSchema.optional(),
     archiveCount: z.number().int(),
 });

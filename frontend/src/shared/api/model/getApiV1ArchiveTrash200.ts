@@ -10,7 +10,8 @@ export type GetApiV1ArchiveTrash200 = {
   deletionList: ({
   id: string;
   rootArchiveId: string;
-  deletedAt: string;
+  /** @nullable */
+  deletedAt: string | null;
   archive?: {
   id: string;
   name: string;
