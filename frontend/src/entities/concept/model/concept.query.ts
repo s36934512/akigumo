@@ -2,11 +2,18 @@ import { inject, Service } from "@angular/core";
 import { queryOptions } from "@tanstack/angular-query-experimental";
 
 import { ConceptApi } from "../api/concept.api";
-import type { Concept, ConceptEdge } from "./concept";
+import type {
+    Concept,
+    ConceptEdge,
+    ConceptRelationshipResponse,
+} from "./concept";
 
 export const conceptQueryKey = ["concept"] as const;
 
 export const conceptListQueryKey = [...conceptQueryKey, "list"] as const;
+
+export const conceptRelationshipQueryKey = (conceptId: string) =>
+    [...conceptQueryKey, "relationship", conceptId] as const;
 
 export interface ConceptGraph {
     nodes: Concept[];
@@ -40,6 +47,17 @@ export class ConceptQuery {
                     edges: edgeList,
                 };
             },
+        });
+    }
+
+    public relationship(conceptId: string) {
+        return queryOptions({
+            queryKey: conceptRelationshipQueryKey(conceptId),
+
+            enabled: !!conceptId,
+
+            queryFn: (): Promise<ConceptRelationshipResponse> =>
+                this.conceptApi.getRelationship(conceptId),
         });
     }
 }

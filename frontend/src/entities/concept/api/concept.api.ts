@@ -12,4 +12,10 @@ export class ConceptApi {
             showDeleted: false,
         });
     }
+
+    public getRelationship(conceptId: string) {
+        return this.defaultService.postApiV1OntologyRelationship({
+            conceptId,
+        });
+    }
 }

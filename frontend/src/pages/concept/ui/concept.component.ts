@@ -14,6 +14,8 @@ import { searchConcept } from "#app/shared/lib/concept-search";
 import { SelectionStore } from "#app/shared/model/selection-store";
 import { ConceptExplorerComponent } from "#app/widgets/concept-explorer";
 
+import { toRelationshipElements } from "../model/relationship.adapter";
+
 @Component({
     selector: "page-concept",
     standalone: true,
@@ -29,10 +31,17 @@ import { ConceptExplorerComponent } from "#app/widgets/concept-explorer";
 export class ConceptPageComponent {
     private readonly dialogService = inject(DialogService);
     private readonly conceptQuery = inject(ConceptQuery);
+
     protected readonly selectionStore = inject(SelectionStore);
 
     protected readonly conceptListQuery = injectQuery(() =>
         this.conceptQuery.list(),
+    );
+
+    protected readonly relationshipGraphQuery = injectQuery(() =>
+        this.conceptQuery.relationship(
+            this.selectionStore.singleSelectedId() ?? "",
+        ),
     );
 
     protected readonly searchTerm = signal("");
@@ -41,6 +50,10 @@ export class ConceptPageComponent {
 
     protected readonly conceptList = computed(
         () => this.conceptListQuery.data()?.nodes ?? [],
+    );
+
+    protected readonly edgeList = computed(
+        () => this.conceptListQuery.data()?.edges ?? [],
     );
 
     protected readonly filteredConceptList = computed(() =>
@@ -59,15 +72,57 @@ export class ConceptPageComponent {
         );
     });
 
+    // 全部 Concept 的瀏覽圖，維持原本 Resolver 資料格式。
     protected readonly graphElements = computed<ElementsDefinition>(() => ({
         nodes: this.conceptList().map((concept) => ({
             data: {
                 id: concept.id,
+                entityId: concept.id,
+                entityType: "CONCEPT",
                 name: concept.name,
             },
         })),
-        edges: [],
+
+        edges: this.edgeList().flatMap((edge) => {
+            if (
+                !this.conceptList().some(
+                    (concept) => concept.id === edge.source,
+                ) ||
+                !this.conceptList().some(
+                    (concept) => concept.id === edge.target,
+                )
+            ) {
+                return [];
+            }
+
+            return [
+                {
+                    data: {
+                        id: edge.id,
+                        source: edge.source,
+                        target: edge.target,
+                        label: edge.label ?? undefined,
+                    },
+                },
+            ];
+        }),
     }));
+
+    // 單一 Concept 的完整關聯圖，使用新的 DTO Adapter。
+    protected readonly relationshipGraphElements = computed<ElementsDefinition>(
+        () => {
+            const response = this.relationshipGraphQuery.data();
+
+            if (!response) {
+                return {
+                    nodes: [],
+                    edges: [],
+                };
+            }
+
+            return toRelationshipElements(response);
+        },
+    );
 
     protected onSearchChange(value: string): void {
         this.searchTerm.set(value);
@@ -100,7 +155,7 @@ export class ConceptPageComponent {
             width: "40rem",
             modal: true,
             inputValues: {
-                concept: concept,
+                concept,
             },
         });
     }

@@ -118,6 +118,28 @@
                 </section>
 
                 <section class="mb-6">
+                    <h3 class="mb-2 text-sm font-semibold">概念關係</h3>
+
+                    @if (relationshipGraphQuery.isPending()) {
+                        <p class="text-sm text-zinc-500">載入關係中...</p>
+                    } @else if (relationshipGraphQuery.isError()) {
+                        <p class="text-sm text-red-600">無法載入概念關係。</p>
+                    } @else if (
+                        relationshipGraphElements().nodes.length === 0 &&
+                        relationshipGraphElements().edges.length === 0
+                    ) {
+                        <p class="text-sm text-zinc-500">目前沒有相關概念。</p>
+                    } @else {
+                        <div class="h-80 min-h-0 overflow-hidden rounded-md border">
+                            <widget-concept-explorer
+                                [elements]="relationshipGraphElements()"
+                                (conceptToggle)="onConceptToggle($event)"
+                            />
+                        </div>
+                    }
+                </section>
+
+                <section class="mb-6">
                     <h3 class="mb-2 text-sm font-semibold">驗證狀態</h3>
                     <p class="m-0 text-sm">
                         {{ concept.verifiedAt ? "已驗證" : "尚未驗證" }}

@@ -19,6 +19,7 @@ import { capability as ontologyDeleteCapability } from "#app/modules/ontology/on
 import { capability as ontologyEditorCapability } from "#app/modules/ontology/ontology-editor/index.js";
 import { capability as ontologyPairCapability } from "#app/modules/ontology/ontology-pair/index.js";
 import { capability as ontologyRegistryCapability } from "#app/modules/ontology/ontology-registry/index.js";
+import { capability as ontologyRelationshipCapability } from "#app/modules/ontology/ontology-relationship/index.js";
 import { capability as ontologyResolverCapability } from "#app/modules/ontology/ontology-resolver/index.js";
 import { capability as searchCapability } from "#app/modules/search/index.js";
 import { capability as systemArchiveServeCapability } from "#app/modules/system/archive/index.js";
@@ -51,6 +52,7 @@ const capabilityList: ModuleCapability[] = [
     ontologyEditorCapability,
     ontologyPairCapability,
     ontologyRegistryCapability,
+    ontologyRelationshipCapability,
     ontologyResolverCapability,
     searchCapability,
     systemArchiveServeCapability,

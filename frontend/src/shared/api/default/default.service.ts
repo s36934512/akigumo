@@ -41,6 +41,8 @@ import type {
   PostApiV1OntologyPairBodyItem,
   PostApiV1OntologyRegistry202,
   PostApiV1OntologyRegistryBody,
+  PostApiV1OntologyRelationship200,
+  PostApiV1OntologyRelationshipBody,
   PostApiV1OntologyResolver200,
   PostApiV1OntologyResolverBody
 } from '../model';
@@ -291,6 +293,21 @@ export class DefaultService {
       );
     }
   /**
+ * 取得 Concept 參與的語意關聯、直接關聯及相關實體資料。
+ * @summary 取得 Concept 關聯結構
+ */
+ postApiV1OntologyRelationship<TData = PostApiV1OntologyRelationship200>(
+    postApiV1OntologyRelationshipBody?: PostApiV1OntologyRelationshipBody,
+ ) {
+      return angularHttp<TData>(
+      {url: `/api/v1/ontology/relationship`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1OntologyRelationshipBody
+    },
+      this.http,
+      );
+    }
+  /**
  * @summary 取得實體圖形與資訊
  */
  postApiV1OntologyResolver<TData = PostApiV1OntologyResolver200>(
@@ -385,6 +402,7 @@ export type DeleteApiV1OntologyClientResult = NonNullable<DeleteApiV1Ontology202
 export type PostApiV1OntologyEditorClientResult = NonNullable<PostApiV1OntologyEditor202>
 export type PostApiV1OntologyPairClientResult = NonNullable<PostApiV1OntologyPair202>
 export type PostApiV1OntologyRegistryClientResult = NonNullable<PostApiV1OntologyRegistry202>
+export type PostApiV1OntologyRelationshipClientResult = NonNullable<PostApiV1OntologyRelationship200>
 export type PostApiV1OntologyResolverClientResult = NonNullable<PostApiV1OntologyResolver200>
 export type GetApiV1SearchClientResult = NonNullable<GetApiV1Search200>
 export type GetApiV1RawFileIdClientResult = NonNullable<Blob>
