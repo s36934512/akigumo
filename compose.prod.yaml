@@ -1,0 +1,182 @@
+services:
+    postgres:
+        image: postgres:18
+        restart: unless-stopped
+
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+            POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+
+        volumes:
+            - postgres-data:/var/lib/postgresql
+
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    redis:
+        image: redis:8-alpine
+        restart: unless-stopped
+
+        volumes:
+            - redis-data:/data
+
+        command: redis-server --appendonly yes
+
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    redis-cache:
+        image: redis:8-alpine
+        restart: unless-stopped
+
+        volumes:
+            - redis-cache-data:/data
+
+        command:
+            - redis-server
+            - --maxmemory
+            - 512mb
+            - --maxmemory-policy
+            - allkeys-lru
+
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    neo4j:
+        image: neo4j:2026.09.0
+        restart: unless-stopped
+
+        environment:
+            NEO4J_AUTH: ${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
+            NEO4J_PLUGINS: '["apoc"]'
+
+        volumes:
+            - neo4j-data:/data
+
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    meilisearch:
+        image: getmeili/meilisearch:v1.56.0
+        restart: unless-stopped
+
+        environment:
+            MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?MEILI_MASTER_KEY is required}
+
+        volumes:
+            - meilisearch-data:/meili_data
+
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:7700/health"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    migrate:
+        build:
+            context: .
+            dockerfile: backend/Dockerfile
+            target: migrate
+
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+            POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+        restart: "no"
+
+    backend:
+        build:
+            context: .
+            dockerfile: backend/Dockerfile
+            target: runtime
+
+        environment:
+            NODE_ENV: production
+            PORT: 3000
+
+            POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+            POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+
+            REDIS_URL: redis://redis:6379
+            REDIS_CACHE_URL: redis://redis-cache:6379
+
+            NEO4J_URL: bolt://neo4j:7687
+            NEO4J_USERNAME: ${NEO4J_USERNAME:-neo4j}
+            NEO4J_PASSWORD: ${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
+
+            MEILI_HOST: http://meilisearch:7700
+            MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?MEILI_MASTER_KEY is required}
+
+            STORAGE_PATH: /data/storage
+            TMP_PATH: /data/tmp
+
+        volumes:
+            - app-storage:/data
+
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+            redis:
+                condition: service_healthy
+            redis-cache:
+                condition: service_healthy
+            neo4j:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+
+        restart: unless-stopped
+
+    python-worker:
+        build:
+            context: .
+            dockerfile: python/Dockerfile
+            target: runtime
+
+        environment:
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            REDIS_DB: 0
+
+            NEO4J_URL: bolt://neo4j:7687
+            NEO4J_USERNAME: ${NEO4J_USERNAME:-neo4j}
+            NEO4J_PASSWORD: ${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
+
+        depends_on:
+            redis:
+                condition: service_healthy
+            neo4j:
+                condition: service_healthy
+
+        restart: unless-stopped
+
+volumes:
+    postgres-data:
+    redis-data:
+    redis-cache-data:
+    neo4j-data:
+    meilisearch-data:
+    app-storage:
