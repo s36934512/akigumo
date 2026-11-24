@@ -8,7 +8,7 @@ const InputSchema = z.object({
     archiveId: z.uuid(),
     archiveName: z.string().nullish(),
     childrenArchiveList: FileModelSchema.extend({
-        position: z.number().int().nonnegative(),
+        position: z.string(),
     })
         .array()
         .min(1, "至少包含一個子項目"),

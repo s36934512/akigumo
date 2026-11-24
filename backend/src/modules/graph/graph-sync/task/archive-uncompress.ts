@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { prisma } from "#app/infrastructure/database/prisma.js";
+import { generatePositions } from "#app/infrastructure/ordering/fractional-index.js";
 import { enqueue } from "#app/infrastructure/search-sync/repository/search-sync-outbox-repository.js";
 import * as Paths from "#app/infrastructure/storage/paths.js";
 import { NonRetryableError } from "#app/kernel/index.js";
@@ -8,8 +9,6 @@ import { ArchiveStatus, ArchiveType } from "#generated/prisma/enums.js";
 
 import { defineGraphSyncTask } from "../core/task.js";
 import { buildArchiveUncompressTask } from "../factory/archive-uncompress.js";
-
-const POSITION_STEP = 1000;
 
 const InputSchema = z.object({
     fileId: z.uuid(),
@@ -64,21 +63,23 @@ export const archiveUncompressTask = defineGraphSyncTask({
             },
         );
 
-        const childrenArchiveList = [...derivedFileList]
-            .sort((a, b) =>
-                (a.originalName ?? "").localeCompare(
-                    b.originalName ?? "",
-                    undefined,
-                    {
-                        numeric: true,
-                        sensitivity: "base",
-                    },
-                ),
-            )
-            .map((file, index) => ({
-                ...file,
-                position: (index + 1) * POSITION_STEP,
-            }));
+        const sortedFileList = [...derivedFileList].sort((a, b) =>
+            (a.originalName ?? "").localeCompare(
+                b.originalName ?? "",
+                undefined,
+                {
+                    numeric: true,
+                    sensitivity: "base",
+                },
+            ),
+        );
+
+        const positions = generatePositions(sortedFileList.length);
+
+        const childrenArchiveList = sortedFileList.map((file, index) => ({
+            ...file,
+            position: positions[index],
+        }));
 
         const task = buildArchiveUncompressTask({
             fileId: file.id,

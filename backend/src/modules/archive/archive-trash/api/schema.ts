@@ -1,9 +1,6 @@
 import { z } from "@hono/zod-openapi";
 
-import {
-    ArchiveModelSchema,
-    ArchiveTypeSchema,
-} from "#generated/zod/schemas/index.js";
+import { ArchiveTypeSchema } from "#generated/zod/schemas/index.js";
 
 export const ConceptItemSchema = z.object({
     conceptId: z.uuid(),
@@ -12,9 +9,13 @@ export const ConceptItemSchema = z.object({
 
 export const ConceptListSchema = ConceptItemSchema.array();
 
-const ArchiveStructureBaseSchema = ArchiveModelSchema.omit({
-    type: true,
-}).extend({
+const ArchiveStructureBaseSchema = z.object({
+    id: z.uuid(),
+    name: z.string(),
+    publishedDate: z.coerce.date().nullable(),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+
     currentFileId: z.uuid().nullable(),
     conceptList: ConceptListSchema,
 });
