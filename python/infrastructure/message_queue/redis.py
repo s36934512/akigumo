@@ -7,8 +7,8 @@ class RedisConnection:
         host: str,
         port: int,
         db: int = 0,
-    ):
-        self.redis = Redis.from_url(
+    ) -> None:
+        self.redis: Redis = Redis.from_url(
             f"redis://{host}:{port}/{db}",
             decode_responses=True,
         )
@@ -16,5 +16,5 @@ class RedisConnection:
     def get(self) -> Redis:
         return self.redis
 
-    async def close(self):
+    async def close(self) -> None:
         await self.redis.aclose()

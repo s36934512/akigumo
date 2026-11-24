@@ -8,7 +8,10 @@ class JobDict(TypedDict):
 
 
 class Jobs:
-    def __init__(self, messages: list[tuple]):
+    def __init__(
+        self,
+        messages: list[tuple[str, dict[str, str]]],
+    ):
         self.messages = messages
 
     def get_jobs(self) -> list[JobDict]:
@@ -30,8 +33,6 @@ class Jobs:
         data = json.loads(payload)
 
         if not isinstance(data, dict):
-            raise ValueError(
-                "Redis Stream payload must be a JSON object"
-            )
+            raise TypeError("Redis Stream payload must be a JSON object")
 
         return data

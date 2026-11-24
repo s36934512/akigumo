@@ -14,9 +14,10 @@ class ResultPublisher:
         self.stream_name = stream_name
 
     async def publish(self, result: dict[str, Any]) -> str:
-        return await self.redis.xadd(
+        message_id = await self.redis.xadd(
             self.stream_name,
             {
                 "payload": json.dumps(result),
             },
         )
+        return message_id.decode() if isinstance(message_id, bytes) else message_id

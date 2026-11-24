@@ -2,13 +2,13 @@ import asyncio
 import signal
 
 import structlog
-
-from graph_refinement.core.config import config
-from graph_refinement.batch_processor import BatchProcessor
 from infrastructure.database.neo4j import Neo4jClient
+from infrastructure.message_queue.publisher import ResultPublisher
 from infrastructure.message_queue.redis import RedisConnection
 from infrastructure.message_queue.worker import BatchWorker
-from infrastructure.message_queue.publisher import ResultPublisher
+
+from graph_refinement.batch_processor import BatchProcessor
+from graph_refinement.core.config import config
 
 
 class GraphRefinementWorker:
@@ -41,9 +41,7 @@ class GraphRefinementWorker:
             stream_name=config.redis_result_stream,
         )
 
-        self.batch_processor = BatchProcessor(
-            self.neo4j_client, self.result_publisher
-        )
+        self.batch_processor = BatchProcessor(self.neo4j_client, self.result_publisher)
 
     async def start(self) -> int:
         """Start the graph refinement worker."""

@@ -1,7 +1,5 @@
-from pathlib import Path
-
-from pydantic import field_validator, ConfigDict
-from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class GraphRefinementConfig(BaseSettings):
@@ -21,7 +19,7 @@ class GraphRefinementConfig(BaseSettings):
     redis_trim_interval_seconds: int = 600
 
     # Neo4j configuration
-    neo4j_url: str
+    neo4j_url: str = "bolt://neo4j:7687"
     neo4j_username: str
     neo4j_password: str
 
@@ -33,7 +31,7 @@ class GraphRefinementConfig(BaseSettings):
     log_level: str = "INFO"
     neo4j_log_level: str = "WARNING"
 
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_prefix="",
         case_sensitive=False,
         extra="ignore",
@@ -43,9 +41,8 @@ class GraphRefinementConfig(BaseSettings):
     @classmethod
     def validate_batch_size(cls, value: int) -> int:
         if value < 1 or value > 1000:
-            raise ValueError(
-                f'Batch size must be between 1 and 1000, got {value}')
+            raise ValueError(f"Batch size must be between 1 and 1000, got {value}")
         return value
 
 
-config = GraphRefinementConfig()
+config = GraphRefinementConfig()  # pyright: ignore[reportCallIssue]

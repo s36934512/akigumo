@@ -1,9 +1,8 @@
-from typing import Any
+from typing import Any, LiteralString, cast
 
 import structlog
-from neo4j import AsyncDriver, AsyncGraphDatabase
-
 from graph_refinement.core.config import config
+from neo4j import AsyncDriver, AsyncGraphDatabase
 
 
 class Neo4jClient:
@@ -41,9 +40,7 @@ class Neo4jClient:
                 await self.driver.close()
                 self.driver = None
 
-            raise ConnectionError(
-                f"Failed to connect to Neo4j: {error}"
-            ) from error
+            raise ConnectionError(f"Failed to connect to Neo4j: {error}") from error
 
     async def close(self) -> None:
         if self.driver is not None:
@@ -84,7 +81,7 @@ class Neo4jClient:
         try:
             async with self.driver.session() as session:
                 result = await session.run(
-                    query,
+                    cast(LiteralString, query),
                     parameters or {},
                 )
 

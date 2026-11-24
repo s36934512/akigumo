@@ -2,12 +2,11 @@ from collections import defaultdict
 from typing import Any
 
 import structlog
-
-from graph_refinement.executors import load_executors
+from infrastructure.database.neo4j import Neo4jClient
 from infrastructure.message_queue.job import JobDict
 from infrastructure.message_queue.publisher import ResultPublisher
-from infrastructure.database.neo4j import Neo4jClient
 
+from graph_refinement.executors import load_executors
 
 GRAPH_OPERATION_REQUEST_VERSION = "1.0.0"
 PYTHON_JOB_RESULT_VERSION = "1.0.0"
@@ -16,11 +15,7 @@ PYTHON_JOB_RESULT_VERSION = "1.0.0"
 class BatchProcessor:
     """Processes batches of graph refinement tasks."""
 
-    def __init__(
-        self,
-        neo4j_client: Neo4jClient,
-        result_publisher: ResultPublisher
-    ):
+    def __init__(self, neo4j_client: Neo4jClient, result_publisher: ResultPublisher):
         self.logger = structlog.get_logger(__name__)
         self.neo4j_client = neo4j_client
         self.result_publisher = result_publisher
@@ -78,9 +73,7 @@ class BatchProcessor:
                     operation=operation,
                 )
 
-                error = ValueError(
-                    f"No executor found for operation: {operation}"
-                )
+                error = ValueError(f"No executor found for operation: {operation}")
 
                 await self._publish_results(
                     self._build_failure_results(
@@ -100,16 +93,13 @@ class BatchProcessor:
             ]
 
             try:
-                execution_result, skipped_request_list = (
-                    await executor.execute(
-                        self.neo4j_client,
-                        executor_request_list,
-                    )
+                execution_result, skipped_request_list = await executor.execute(
+                    self.neo4j_client,
+                    executor_request_list,
                 )
 
                 skipped_id_set = {
-                    request["intentOutboxId"]
-                    for request in skipped_request_list
+                    request["intentOutboxId"] for request in skipped_request_list
                 }
 
                 executed_request_list = [
