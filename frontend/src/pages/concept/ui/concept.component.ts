@@ -19,12 +19,7 @@ import { toRelationshipElements } from "../model/relationship.adapter";
 @Component({
     selector: "page-concept",
     standalone: true,
-    imports: [
-        JsonPipe,
-        ViewConceptArchiveComponent,
-        ConceptExplorerComponent,
-        ConceptDeleteDialogComponent,
-    ],
+    imports: [JsonPipe, ViewConceptArchiveComponent, ConceptExplorerComponent],
     templateUrl: "./concept.component.html",
     providers: [SelectionStore, DialogService, MessageService],
 })
