@@ -3,5 +3,10 @@
     "dockerComposeFile": "../compose.yaml",
     "service": "workspace",
     "workspaceFolder": "/workspace",
-    "postCreateCommand": "bash .devcontainer/setup.sh"
+    "postCreateCommand": "bash .devcontainer/setup.sh",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "moby": false
+        }
+    }
 }
