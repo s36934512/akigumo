@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import shutil
 import stat
 import sys
@@ -34,7 +33,7 @@ def normalize_member_name(name: str) -> tuple[str, bool]:
     if "\\" in name:
         fail(f"Backslash in archive member path: {name!r}")
 
-    if name.startswith("/") or name.startswith("//"):
+    if name.startswith("/"):
         fail(f"Absolute archive path is not allowed: {name!r}")
 
     is_dir = name.endswith("/")
@@ -93,10 +92,17 @@ def validate_zip_member(info: zipfile.ZipInfo) -> tuple[str, bool, int]:
 
 
 def validate_rar_member(info: rarfile.RarInfo) -> tuple[str, bool, int]:
-    relative_path, is_dir = normalize_member_name(info.filename)
+    filename = info.filename
 
-    if info.file_size < 0:
-        fail(f"Invalid RAR member size: {info.filename!r}")
+    if not isinstance(filename, str):
+        fail("RAR member has an invalid filename")
+
+    file_size = info.file_size
+
+    if not isinstance(file_size, int) or isinstance(file_size, bool) or file_size < 0:
+        fail(f"Invalid RAR member size: {filename!r}")
+
+    relative_path, is_dir = normalize_member_name(filename)
 
     # RarInfo.is_symlink() is available in modern rarfile releases.
     # file_redir additionally describes RAR5 links and redirects.
@@ -277,7 +283,13 @@ def main() -> int:
         print('{"success": true}')
         return 0
 
-    except Exception as error:
+    except (
+        ArchiveError,
+        zipfile.BadZipFile,
+        rarfile.Error,
+        OSError,
+        RuntimeError,
+    ) as error:
         print(
             f"Archive extraction failed: {error}",
             file=sys.stderr,
