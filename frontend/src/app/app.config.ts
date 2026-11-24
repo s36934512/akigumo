@@ -3,10 +3,8 @@ import {
     type ApplicationConfig,
     provideBrowserGlobalErrorListeners,
 } from "@angular/core";
-import { provideClientHydration } from "@angular/platform-browser";
 import { provideRouter } from "@angular/router";
 import { provideOptimus } from "@openng/optimus-ui/config";
-import Aura from "@openng/optimus-ui-themes/aura";
 import {
     provideTanStackQuery,
     QueryClient,
@@ -20,7 +18,6 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(),
         provideBrowserGlobalErrorListeners(),
         provideRouter(routes),
-        provideClientHydration(),
         provideTanStackQuery(new QueryClient()),
         provideOptimus({
             theme: {

@@ -4,7 +4,11 @@ import { kernelConfig } from "#app/config/kernel.js";
 import { graphRefinementMqConfig } from "#app/config/message-queue/graph-refinement.js";
 import { workflowResultMqConfig } from "#app/config/message-queue/workflow-result.js";
 import { postgresConfig } from "#app/config/postgres.js";
-import { closeDatabase, prisma } from "#app/infrastructure/database/prisma.js";
+import {
+    closeDatabase,
+    prisma,
+    verifyDbConnection,
+} from "#app/infrastructure/database/prisma.js";
 import { logger } from "#app/infrastructure/logger/index.js";
 import { initializeSearchIndex } from "#app/infrastructure/meilisearch/index.js";
 import { createRedisGraphRefinementMq } from "#app/infrastructure/message-queue/graph-refinement/factory.js";
@@ -131,9 +135,12 @@ export async function bootstrap(): Promise<{
         registerModuleRuntime();
 
         // Infrastructure
+        await verifyDbConnection();
+
         const postgresListenerClient = new Client({
             connectionString: postgresConfig.connectionString,
         });
+
         cleanup.register("postgresListenerClient", () =>
             postgresListenerClient.end(),
         );
