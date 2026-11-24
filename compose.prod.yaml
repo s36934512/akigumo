@@ -1,3 +1,5 @@
+name: akigumo
+
 services:
     postgres:
         image: postgres:18
@@ -170,6 +172,21 @@ services:
                 condition: service_healthy
             neo4j:
                 condition: service_healthy
+
+        restart: unless-stopped
+
+    caddy:
+        build:
+            context: .
+            dockerfile: frontend/Dockerfile
+            target: runtime
+
+        ports:
+            - "127.0.0.1:${HTTP_PORT:-8421}:80"
+
+        depends_on:
+            backend:
+                condition: service_started
 
         restart: unless-stopped
 

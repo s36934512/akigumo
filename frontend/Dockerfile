@@ -11,20 +11,14 @@ RUN npm run build
 
 
 # Production runtime stage
-FROM node:22-bookworm-slim AS runtime
+FROM caddy:2-alpine AS runtime
 
-WORKDIR /app
+# 複製 Angular CSR 靜態檔案
+COPY --from=builder /app/dist/frontend/browser /usr/share/caddy
 
-ENV NODE_ENV=production
-ENV PORT=4000
+# Caddy 設定
+COPY Caddyfile /etc/caddy/Caddyfile
 
-# 只安裝正式環境依賴
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+EXPOSE 80
 
-# 複製 Angular SSR 編譯產物
-COPY --from=builder /app/dist/frontend ./dist/frontend
-
-EXPOSE 4000
-
-CMD ["node", "dist/frontend/server/server.mjs"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

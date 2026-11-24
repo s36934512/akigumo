@@ -6,25 +6,30 @@ echo "==> Setting up Node.js environment"
 
 npm install -g npm@12.0.2
 
-npm install
+if [ -f "/workspace/package-lock.json" ]; then
+    cd /workspace
+    npm ci
+fi
+
+# Frontend
+echo "==> Installing Frontend dependencies"
 
 cd /workspace/frontend
-npm install
+npm ci
+
+# Backend
+echo "==> Installing Backend dependencies"
 
 cd /workspace/backend
-npm install
+npm ci
+
 npm run prisma:generate
 npm run prisma:migrate
 
+# Python
 echo "==> Setting up Python environment"
 
 cd /workspace/python
-
-if [ ! -d ".venv" ]; then
-    python3.13 -m venv .venv
-fi
-
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -e .
+uv sync
 
 echo "==> Akigumo development environment is ready"

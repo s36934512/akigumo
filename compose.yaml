@@ -1,3 +1,5 @@
+name: akigumo-dev
+
 services:
     workspace:
         build:
@@ -20,10 +22,6 @@ services:
             NEO4J_PASSWORD: ${NEO4J_PASSWORD}
             MEILI_HOST: http://meilisearch:7700
             MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
-
-        ports:
-            - "${FRONTEND_PORT:-4200}:4200"
-            - "${BACKEND_PORT:-3000}:3000"
 
         depends_on:
             postgres:
@@ -125,6 +123,20 @@ services:
             interval: 5s
             timeout: 5s
             retries: 10
+
+    caddy:
+        image: caddy:2-alpine
+
+        ports:
+            - "127.0.0.1:${HTTP_PORT:-8420}:80"
+
+        volumes:
+            - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
+
+        depends_on:
+            - workspace
+
+        restart: unless-stopped
 
 volumes:
     postgres-data:

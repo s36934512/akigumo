@@ -7,6 +7,10 @@ WORKDIR /app
 
 COPY python/pyproject.toml python/uv.lock ./
 
+RUN uv sync --locked --no-dev --no-install-project
+
+COPY python/ ./
+
 RUN uv sync --locked --no-dev
 
 # Runtime stage

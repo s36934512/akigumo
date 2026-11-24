@@ -5,6 +5,10 @@
     "main": "index.js",
     "private": true,
     "type": "module",
+    "imports": {
+        "#app/*": "./dist/*",
+        "#generated/*": "./dist/generated/*"
+    },
     "scripts": {
         "dev": "tsx watch src/index.ts",
         "build": "tsc",
@@ -28,6 +32,7 @@
         "cacheable": "^2.5.0",
         "dotenv": "^18.0.1",
         "file-type": "^22.1.1",
+        "fractional-indexing": "^4.0.0",
         "fs-extra": "^11.4.1",
         "hono": "^4.13.7",
         "ioredis": "^6.0.0",
