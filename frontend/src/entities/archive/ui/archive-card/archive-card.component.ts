@@ -10,9 +10,9 @@ import { injectQuery } from "@tanstack/angular-query-experimental";
 
 import { OverlayPanelDirective } from "#app/shared/ui/overlay-panel";
 
-import { ArchiveQuery } from "../model/archive.query";
-import { getArchiveIconPath } from "../model/archive-icon";
-import type { Archive } from "../model/types";
+import { ArchiveQuery } from "../../model/archive.query";
+import { getArchiveIconPath } from "../../model/archive-icon";
+import type { Archive } from "../../model/types";
 
 @Component({
     selector: "entity-archive-card",
@@ -27,8 +27,9 @@ export class ArchiveCardComponent {
     readonly archive = input.required<Archive>();
     readonly selected = input(false);
 
-    readonly cardClick = output<string>();
-    readonly cardDoubleClick = output<string>();
+    readonly archiveClick = output<string>();
+    readonly archiveDoubleClick = output<string>();
+    readonly archiveMiddleClick = output<string>();
 
     readonly imageErrorFileId = signal<string | null>(null);
     readonly previewErrorFileId = signal<string | null>(null);
@@ -98,11 +99,15 @@ export class ArchiveCardComponent {
     readonly iconPath = computed(() => getArchiveIconPath(this.archive().type));
 
     onClick(): void {
-        this.cardClick.emit(this.archive().id);
+        this.archiveClick.emit(this.archive().id);
     }
 
     onDoubleClick(): void {
-        this.cardDoubleClick.emit(this.archive().id);
+        this.archiveDoubleClick.emit(this.archive().id);
+    }
+
+    onMiddleClick(): void {
+        this.archiveMiddleClick.emit(this.archive().id);
     }
 
     protected onPreviewWheel(event: WheelEvent): void {

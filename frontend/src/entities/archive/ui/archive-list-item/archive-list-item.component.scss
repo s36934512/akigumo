@@ -1,0 +1,44 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.archive-list-item {
+    border: 1px solid rgb(255 255 255 / 8%);
+    background: #050505;
+    color: #d8d4d1;
+    cursor: pointer;
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease;
+}
+
+.archive-list-item:hover {
+    background: #151515;
+}
+
+.archive-list-item--selected {
+    border-color: #3bb2bf;
+    box-shadow: 0 0 0 1px #3bb2bf;
+}
+
+.archive-list-item__name {
+    overflow: hidden;
+    margin: 0 0 0.5rem;
+    color: #050505;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.archive-list-item__metadata {
+    color: #a1a1aa;
+    font-size: 0.75rem;
+}
+
+.archive-list-item__selected-indicator {
+    border-color: rgb(255 255 255 / 50%);
+    background: #3bb2bf;
+    color: #050505;
+}

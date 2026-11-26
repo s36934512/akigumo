@@ -1,0 +1,48 @@
+<article
+    class="relative flex min-w-0 items-center gap-4 rounded-md px-4 py-3"
+    [class.archive-list-item--selected]="selected()"
+    (click)="onClick()"
+    (dblclick)="onDoubleClick()"
+>
+    <div class="relative grid size-14 shrink-0 place-items-center overflow-hidden">
+        @if (coverUrl(); as url) {
+            <img
+                class="size-full object-contain"
+                [src]="url"
+                [alt]="archive().name"
+                loading="lazy"
+                decoding="async"
+                (error)="onImageError()"
+            />
+        } @else {
+            <svg class="size-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path [attr.d]="iconPath()" />
+            </svg>
+        }
+    </div>
+
+    <div class="min-w-0 flex-1">
+        <p class="archive-list-item__name">
+            {{ archive().name }}
+        </p>
+
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+            <span class="archive-list-item__metadata">
+                建立時間：{{ archive().createdAt | date: "yyyy/MM/dd HH:mm" }}
+            </span>
+
+            <span class="archive-list-item__metadata">
+                更新時間：{{ archive().updatedAt | date: "yyyy/MM/dd HH:mm" }}
+            </span>
+        </div>
+    </div>
+
+    @if (selected()) {
+        <div
+            class="grid size-7 shrink-0 place-items-center rounded-full border archive-list-item__selected-indicator"
+            aria-label="已選取"
+        >
+            <i class="icon-check"></i>
+        </div>
+    }
+</article>
